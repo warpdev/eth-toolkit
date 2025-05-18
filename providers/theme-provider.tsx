@@ -11,7 +11,7 @@ export function ThemeProvider({
 }: ThemeProviderProps) {
   return (
     <NextThemesProvider
-      attribute="data-theme"
+      attribute="class"
       defaultTheme="system"
       enableSystem
       disableTransitionOnChange
@@ -21,3 +21,5 @@ export function ThemeProvider({
     </NextThemesProvider>
   );
 }
+
+export { useTheme } from "next-themes";
