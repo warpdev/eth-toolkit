@@ -27,7 +27,11 @@ import { useDecodeCalldata } from "@/lib/hooks/use-decode-calldata";
 import { AbiSelector } from "./abi-selector";
 import { SavedAbiSelector } from "./saved-abi-selector";
 
-export function DecoderForm() {
+interface DecoderFormProps {
+  onDecodeSuccess?: () => void;
+}
+
+export function DecoderForm({ onDecodeSuccess }: DecoderFormProps) {
   const [calldata, setCalldata] = useAtom(calldataAtom);
   const [abiString, setAbiString] = useAtom(abiStringAtom);
   const [decodeMode, setDecodeMode] = useAtom(decodeModeAtom);
@@ -65,6 +69,14 @@ export function DecoderForm() {
           description: `Successfully decoded ${result.functionName}`,
           duration: 3000
         });
+        
+        // Scroll to the result section
+        if (onDecodeSuccess) {
+          // Small delay to ensure result is rendered
+          setTimeout(() => {
+            onDecodeSuccess();
+          }, 100);
+        }
       }
     }
   };
