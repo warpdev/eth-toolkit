@@ -92,9 +92,10 @@ Micro-interactions are critical to our application's user experience. They provi
 - Use toast notifications for operation results
 - Implement skeleton loaders for content that requires loading
 
-## Library Usage Guidelines
+## Library Usage Guidelines (**IMPORTANT**)
 
 When working with libraries from our Technology Stack:
+
 1. Use the Context7 tools (`mcp__context7__resolve-library-id` and `mcp__context7__get-library-docs`) to retrieve up-to-date documentation
 2. For example, to get viem documentation:
    ```
@@ -106,7 +107,7 @@ When working with libraries from our Technology Stack:
 
 ## Package Management
 
-1. When installing new packages, update the Technology Stack section in this file
+1. When installing new packages, update the Technology Stack section in this file immediately
 2. Always document the purpose of newly added packages
 3. Group related packages together in the Technology Stack section
 4. Include links to official documentation when available
