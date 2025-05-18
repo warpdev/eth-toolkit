@@ -1,4 +1,4 @@
-import { Abi, decodeFunctionData, parseAbi } from "viem";
+import { Abi, DecodeFunctionDataReturnType, decodeFunctionData, parseAbi, parseAbiParameters } from "viem";
 import { getLastSelectedSignature } from "@/lib/storage/abi-storage";
 
 /**
@@ -17,6 +17,16 @@ export interface DecodedFunction {
 export interface DecodedFunctionWithSignatures extends DecodedFunction {
   possibleSignatures?: string[];
   selectedSignatureIndex?: number;
+  parsedParameters?: ParsedParameter[];
+}
+
+/**
+ * Interface for parsed parameter information
+ */
+export interface ParsedParameter {
+  name: string;
+  type: string;
+  value: unknown;
 }
 
 /**
@@ -235,6 +245,126 @@ async function findBestSignatureMatch(
 }
 
 /**
+ * Create a temporary ABI item from function signature
+ * 
+ * @param signature - Function signature (e.g. "transfer(address,uint256)")
+ * @returns ABI item array
+ */
+export function createTemporaryAbiFromSignature(signature: string): Abi {
+  try {
+    // Validate signature format
+    if (!signature.includes('(')) {
+      throw new Error('Invalid function signature format: missing parentheses');
+    }
+    
+    // Create a single function item in ABI format
+    return parseAbi([`function ${signature}`]);
+  } catch (error) {
+    console.error("Error creating temporary ABI:", error);
+    // Return minimal valid ABI if parsing fails
+    return parseAbi(['function unknown()']);
+  }
+}
+
+/**
+ * Check if a function signature is valid for ABI creation
+ * 
+ * @param signature - Function signature to validate
+ * @returns True if the signature is valid, false otherwise
+ */
+export function isValidFunctionSignature(signature: string): boolean {
+  try {
+    // Basic format validation
+    if (!signature || !signature.includes('(') || !signature.includes(')')) {
+      return false;
+    }
+    
+    // Try to parse it (this will catch syntax errors)
+    parseAbi([`function ${signature}`]);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Extract parameter section from function signature
+ * 
+ * @param signature - Function signature (e.g. "transfer(address to,uint256 amount)")
+ * @returns The parameter section of the signature or empty string if none
+ */
+export function extractParameterSection(signature: string): string {
+  try {
+    // Get the parameter section from the signature
+    return signature.substring(signature.indexOf('(') + 1, signature.lastIndexOf(')'));
+  } catch (error) {
+    console.error("Error extracting parameter section:", error);
+    return '';
+  }
+}
+
+/**
+ * Parse a single parameter string into name and type
+ * 
+ * @param param - Parameter string (e.g. "address to" or "uint256")
+ * @param index - Index of the parameter for fallback naming
+ * @returns Object with parameter name and type
+ */
+export function parseParameter(param: string, index: number): { name: string; type: string } {
+  // Split parameter into type and name parts
+  const parts = param.trim().split(' ');
+  
+  // Extract type and name
+  const type = parts[0];
+  // Use the name if available, otherwise use the index
+  const name = parts.length > 1 ? parts[1] : `param${index}`;
+  
+  return { name, type };
+}
+
+/**
+ * Extract parameter information from function signature and decoded args
+ * 
+ * @param signature - Function signature (e.g. "transfer(address to,uint256 amount)")
+ * @param decodedData - Decoded function data from viem
+ * @returns Array of parsed parameters with types and values
+ */
+export function extractParametersFromSignature(
+  signature: string, 
+  decodedData: DecodeFunctionDataReturnType
+): ParsedParameter[] {
+  try {
+    // Get the parameter section from the signature
+    const paramSection = extractParameterSection(signature);
+    
+    if (!paramSection || paramSection.length === 0) {
+      return []; // No parameters
+    }
+    
+    // Handle empty args
+    if (!decodedData.args || decodedData.args.length === 0) {
+      return [];
+    }
+    
+    // Split parameter section into individual parameters
+    const paramParts = paramSection.split(',');
+    
+    return paramParts.map((param, index) => {
+      // Parse parameter to get name and type
+      const { name, type } = parseParameter(param, index);
+      
+      // Map the decoded value to the parameter
+      const value = index < decodedData.args.length ? decodedData.args[index] : undefined;
+      
+      return { name, type, value };
+    });
+  } catch (error) {
+    console.error("Error extracting parameters:", error);
+    return [];
+  }
+}
+
+/**
  * Decode calldata using the 4bytes API for function signature lookup
  * 
  * @param calldata - The calldata hex string to decode
@@ -248,6 +378,11 @@ export async function decodeCalldataWithSignatureLookup(
     const functionSelector = calldata.startsWith("0x") 
       ? calldata.slice(0, 10) 
       : `0x${calldata.slice(0, 8)}`;
+    
+    // Normalize the full calldata
+    const fullCalldata = calldata.startsWith("0x") 
+      ? calldata 
+      : `0x${calldata}`;
       
     // Lookup the function signatures
     const signatures = await fetchFunctionSignatures(functionSelector);
@@ -271,21 +406,39 @@ export async function decodeCalldataWithSignatureLookup(
     // Extract function name from the best signature
     const functionName = bestSignature.split("(")[0];
     
-    // For parameters, we can't fully decode without the full ABI
-    // Show the raw parameters after the selector
-    const rawParams = calldata.length > 10 
-      ? calldata.slice(10) 
-      : "";
+    // Create a temporary ABI from the best signature to decode parameters
+    const tempAbi = createTemporaryAbiFromSignature(bestSignature);
     
-    const args: unknown[] = [rawParams]; // Add raw calldata as first arg
+    let args: unknown[] = [];
+    let parsedParameters: ParsedParameter[] = [];
     
-    // Return the result with possible signatures
+    try {
+      // Try to decode the calldata using the temporary ABI
+      const decodedData = decodeFunctionData({
+        abi: tempAbi,
+        data: fullCalldata,
+      });
+      
+      // Use the decoded args
+      args = decodedData.args || [];
+      
+      // Extract parameter information
+      parsedParameters = extractParametersFromSignature(bestSignature, decodedData);
+    } catch (decodeError) {
+      console.warn("Error decoding parameters:", decodeError);
+      // Fallback to showing raw parameters if decoding fails
+      const rawParams = calldata.length > 10 ? calldata.slice(10) : "";
+      args = [rawParams];
+    }
+    
+    // Return the result with possible signatures and parsed parameters
     return {
       functionName,
       functionSig: bestSignature,
       args,
       possibleSignatures: signatures.map(sig => sig.textSignature),
-      selectedSignatureIndex: index
+      selectedSignatureIndex: index,
+      parsedParameters
     };
   } catch (error) {
     console.error("Error decoding with signature lookup:", error);
