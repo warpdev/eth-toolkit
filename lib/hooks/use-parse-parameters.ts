@@ -1,8 +1,7 @@
 "use client";
 
-import React from "react";
+import React, { useMemo, useCallback } from "react";
 import { useAtomValue } from "jotai";
-import { useCallback, useMemo } from "react";
 import { decodeFunctionData } from "viem";
 import { 
   calldataAtom,
@@ -122,10 +121,13 @@ export function useParseParameters() {
     return parseParameters();
   }, [parseParameters]);
 
-  return {
+  // Memoize the return object to prevent recreation on each render
+  const result = useMemo(() => ({
     parsedParameters,
     parseParameters,
     selectedSignature,
     parseError
-  };
+  }), [parsedParameters, parseParameters, selectedSignature, parseError]);
+  
+  return result;
 }

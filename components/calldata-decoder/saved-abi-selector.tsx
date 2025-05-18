@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useSetAtom } from "jotai";
 import { toast } from "sonner";
 import { ABIRecord, getAllABIs, loadABI, saveABI, deleteABI } from "@/lib/storage/abi-storage";
@@ -38,8 +38,9 @@ export function SavedAbiSelector() {
   useEffect(() => {
     loadSavedAbis();
   }, []);
-
-  const loadSavedAbis = async () => {
+  
+  // Memoize the loadSavedAbis function to prevent recreating it on each render
+  const loadSavedAbis = useCallback(async () => {
     try {
       setIsLoading(true);
       const abis = await getAllABIs();
@@ -50,7 +51,8 @@ export function SavedAbiSelector() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
+
 
   const handleSelectAbi = async (id: string) => {
     try {

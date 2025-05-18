@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useCallback, useMemo } from "react";
 import { useAtom, useAtomValue } from "jotai";
 import { 
   calldataAtom, 
@@ -14,6 +14,16 @@ import {
   CardTitle,
   CardContent 
 } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+
+// Extracted skeleton component to prevent recreation on each render
+const SkeletonGroup = React.memo(() => (
+  <div className="space-y-2">
+    <Skeleton className="h-10 w-full" />
+    <Skeleton className="h-20 w-full" />
+    <Skeleton className="h-16 w-3/4" />
+  </div>
+));
 import {
   Select,
   SelectContent,
@@ -24,7 +34,7 @@ import {
 import { saveSignatureSelection } from "@/lib/storage/abi-storage";
 import { useParseParameters } from "@/lib/hooks/use-parse-parameters";
 
-export function DecoderOutput() {
+export const DecoderOutput = React.memo(function DecoderOutput() {
   const calldata = useAtomValue(calldataAtom);
   const isDecoding = useAtomValue(isDecodingAtom);
   const decodeError = useAtomValue(decodeErrorAtom);
@@ -79,7 +89,7 @@ export function DecoderOutput() {
   // The parameter parsing logic is now handled by the useParseParameters hook
 
   // Handler for signature selection
-  const handleSignatureChange = async (value: string) => {
+  const handleSignatureChange = useCallback(async (value: string) => {
     // Parse the index from the value
     const index = parseInt(value, 10);
     
@@ -113,19 +123,19 @@ export function DecoderOutput() {
         }
       }
     }
-  };
+  }, [decodedResult, calldata, setSelectedIndex]);
 
   // Get the current function signature is now handled by the useParseParameters hook
   // We use the selectedSignature value directly
 
-  // Get the function name from the current signature
-  const getCurrentFunctionName = () => {
+  // Get the function name from the current signature - memoized to prevent recalculation
+  const currentFunctionName = useMemo(() => {
     if (selectedSignature) {
       return selectedSignature.split("(")[0];
     }
     
     return decodedResult?.functionName || "";
-  };
+  }, [selectedSignature, decodedResult?.functionName]);
 
   return (
     <Card className="w-full">
@@ -134,8 +144,12 @@ export function DecoderOutput() {
       </CardHeader>
       <CardContent>
         {isDecoding ? (
-          <div className="flex items-center justify-center p-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          <div className="space-y-4 p-4">
+            <div className="flex items-center space-x-2">
+              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary"></div>
+              <p className="text-sm font-medium">Decoding calldata...</p>
+            </div>
+            <SkeletonGroup />
           </div>
         ) : decodeError ? (
           <div className="p-4 bg-destructive/10 text-destructive rounded-md">
@@ -197,7 +211,7 @@ export function DecoderOutput() {
             <div className="space-y-2">
               <h3 className="text-sm font-medium">Function Name</h3>
               <div className="p-3 bg-muted rounded-md font-mono text-sm">
-                {getCurrentFunctionName()}
+                {currentFunctionName}
               </div>
             </div>
             
@@ -262,4 +276,4 @@ export function DecoderOutput() {
       </CardContent>
     </Card>
   );
-}
+})

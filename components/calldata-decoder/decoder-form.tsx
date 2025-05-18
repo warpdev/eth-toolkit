@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useEffect, useCallback, useMemo } from "react";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { toast } from "sonner";
 import { 
@@ -31,7 +31,7 @@ interface DecoderFormProps {
   onDecodeSuccess?: () => void;
 }
 
-export function DecoderForm({ onDecodeSuccess }: DecoderFormProps) {
+export const DecoderForm = React.memo(function DecoderForm({ onDecodeSuccess }: DecoderFormProps) {
   const [calldata, setCalldata] = useAtom(calldataAtom);
   const [abiString, setAbiString] = useAtom(abiStringAtom);
   const [decodeMode, setDecodeMode] = useAtom(decodeModeAtom);
@@ -48,27 +48,31 @@ export function DecoderForm({ onDecodeSuccess }: DecoderFormProps) {
     }
   }, [abiString, decodeMode, parseAbi]);
 
+  // Create toast options object only when decodeError changes
+  const errorToastOptions = useMemo(() => ({
+    description: decodeError,
+    duration: 5000
+  }), [decodeError]);
+  
   // Watch for decode errors and show toast
   useEffect(() => {
     if (decodeError) {
-      toast.error("Decode Error", {
-        description: decodeError,
-        duration: 5000
-      });
+      toast.error("Decode Error", errorToastOptions);
     }
-  }, [decodeError]);
+  }, [decodeError, errorToastOptions]);
   
-  const handleDecode = async () => {
+  const handleDecode = useCallback(async () => {
     const result = await decodeCalldata();
     if (result) {
       setDecodedResult(result);
       
       // Show success toast
       if (!result.error) {
-        toast.success("Calldata Decoded", {
+        const successToastOptions = {
           description: `Successfully decoded ${result.functionName}`,
           duration: 3000
-        });
+        };
+        toast.success("Calldata Decoded", successToastOptions);
         
         // Scroll to the result section
         if (onDecodeSuccess) {
@@ -79,7 +83,7 @@ export function DecoderForm({ onDecodeSuccess }: DecoderFormProps) {
         }
       }
     }
-  };
+  }, [decodeCalldata, setDecodedResult, onDecodeSuccess]);
 
   return (
     <Card className="w-full">
@@ -134,10 +138,21 @@ export function DecoderForm({ onDecodeSuccess }: DecoderFormProps) {
           onClick={handleDecode}
           disabled={isDecoding || !calldata}
           size="lg"
+          className="relative"
         >
-          {isDecoding ? "Decoding..." : "Decode Calldata"}
+          {isDecoding ? (
+            <>
+              <span className="opacity-0">Decode Calldata</span>
+              <span className="absolute inset-0 flex items-center justify-center">
+                <span className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-background border-t-transparent"></span>
+                Decoding...
+              </span>
+            </>
+          ) : (
+            "Decode Calldata"
+          )}
         </Button>
       </CardFooter>
     </Card>
   );
-}
+})
