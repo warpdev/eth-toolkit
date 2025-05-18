@@ -70,6 +70,16 @@ pnpm lint        # Run ESLint
 3. TypeScript types and interfaces for all data
 4. Reusable components and utility functions
 5. State management via jotai atoms
+6. Performance optimization with React hooks (useMemo, useCallback, etc)
+
+### Performance Optimization
+
+1. **Use React.memo** for pure functional components that render often with the same props
+2. **Leverage useMemo** for expensive calculations to prevent unnecessary re-computation
+3. **Apply useCallback** for function references passed to child components as props
+4. **Optimize rerenders** by using proper dependency arrays in hooks
+5. **Avoid inline object/array creation** in render to prevent unnecessary rerenders
+6. **Lazy load components** for code-splitting and reducing initial bundle size
 
 ## Micro-Interactions
 

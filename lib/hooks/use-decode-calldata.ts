@@ -10,11 +10,13 @@ import {
   decodeErrorAtom,
   decodeModeAtom
 } from "@/lib/atoms/calldata-atoms";
+import { decodedResultAtom, selectedSignatureIndexAtom } from "@/lib/atoms/decoder-result-atom";
 import { 
   decodeCalldataWithAbi, 
   decodeCalldataWithSignatureLookup, 
   parseAbiFromString,
-  DecodedFunction
+  DecodedFunction,
+  DecodedFunctionWithSignatures
 } from "@/lib/decoder/calldata-utils";
 import {
   isValidCalldata,
@@ -81,12 +83,17 @@ export function useDecodeCalldata() {
     return true;
   }, [calldata, setDecodeError]);
 
+  const setDecodedResult = useSetAtom(decodedResultAtom);
+  const setSelectedIndex = useSetAtom(selectedSignatureIndexAtom);
+
   /**
    * Decode the calldata
    */
-  const decodeCalldata = useCallback(async (): Promise<DecodedFunction | null> => {
+  const decodeCalldata = useCallback(async (): Promise<DecodedFunctionWithSignatures | null> => {
     setIsDecoding(true);
     setDecodeError(null);
+    // Reset selected index when starting a new decode
+    setSelectedIndex(0);
 
     try {
       // Validate calldata first
@@ -96,6 +103,7 @@ export function useDecodeCalldata() {
 
       // Normalize the calldata
       const normalizedCalldata = normalizeCalldata(calldata);
+      let result: DecodedFunction | DecodedFunctionWithSignatures | null = null;
 
       if (decodeMode === "abi") {
         // Make sure we have a valid ABI
@@ -107,23 +115,24 @@ export function useDecodeCalldata() {
         }
 
         // Decode using the ABI
-        const result = await decodeCalldataWithAbi(normalizedCalldata, abi);
-        
-        if (result.error) {
-          setDecodeError(result.error);
-        }
-        
-        return result;
+        result = await decodeCalldataWithAbi(normalizedCalldata, abi);
       } else {
         // Decode using signature lookup
-        const result = await decodeCalldataWithSignatureLookup(normalizedCalldata);
+        result = await decodeCalldataWithSignatureLookup(normalizedCalldata);
         
-        if (result.error) {
-          setDecodeError(result.error);
+        // If we have a selected signature index from the result, use it
+        if ('selectedSignatureIndex' in result && typeof result.selectedSignatureIndex === 'number') {
+          setSelectedIndex(result.selectedSignatureIndex);
         }
-        
-        return result;
       }
+      
+      if (result && result.error) {
+        setDecodeError(result.error);
+      }
+      
+      // Store the result in the atom
+      setDecodedResult(result);
+      return result as DecodedFunctionWithSignatures;
     } catch (error) {
       console.error("Error decoding calldata:", error);
       setDecodeError(error instanceof Error ? error.message : "Unknown error decoding calldata");
@@ -131,7 +140,17 @@ export function useDecodeCalldata() {
     } finally {
       setIsDecoding(false);
     }
-  }, [calldata, decodeMode, abi, parseAbi, validateCalldataInput, setIsDecoding, setDecodeError]);
+  }, [
+    calldata, 
+    decodeMode, 
+    abi, 
+    parseAbi, 
+    validateCalldataInput, 
+    setIsDecoding, 
+    setDecodeError, 
+    setDecodedResult, 
+    setSelectedIndex
+  ]);
 
   return {
     decodeCalldata,

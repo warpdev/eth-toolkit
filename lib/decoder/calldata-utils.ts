@@ -1,4 +1,5 @@
 import { Abi, decodeFunctionData, parseAbi } from "viem";
+import { getLastSelectedSignature } from "@/lib/storage/abi-storage";
 
 /**
  * Interface for the decoded function result
@@ -8,6 +9,14 @@ export interface DecodedFunction {
   functionSig: string;
   args: unknown[];
   error?: string;
+}
+
+/**
+ * Enhanced interface for the decoded function result with possible signatures
+ */
+export interface DecodedFunctionWithSignatures extends DecodedFunction {
+  possibleSignatures?: string[];
+  selectedSignatureIndex?: number;
 }
 
 /**
@@ -135,6 +144,96 @@ export async function fetchFunctionSignature(
   return signatures.length > 0 ? signatures[0].textSignature : null;
 }
 
+// Popular ERC standards and known protocols to prioritize
+const POPULAR_PROTOCOLS = [
+  // ERC20
+  { pattern: /transfer\(address,uint256\)/, score: 10 },
+  { pattern: /transferFrom\(address,address,uint256\)/, score: 10 },
+  { pattern: /approve\(address,uint256\)/, score: 10 },
+  { pattern: /balanceOf\(address\)/, score: 10 },
+  // ERC721
+  { pattern: /safeTransferFrom\(address,address,uint256\)/, score: 9 },
+  { pattern: /transferFrom\(address,address,uint256\)/, score: 9 },
+  { pattern: /ownerOf\(uint256\)/, score: 9 },
+  // Uniswap
+  { pattern: /swapExactTokensForTokens/, score: 8 },
+  { pattern: /swapTokensForExactTokens/, score: 8 },
+  { pattern: /addLiquidity/, score: 8 },
+];
+
+/**
+ * Calculate a match score for a function signature based on how well it might match the calldata
+ * 
+ * @param signature - The function signature to score
+ * @param calldata - The calldata to match against
+ * @returns A score (higher is better match)
+ */
+function calculateSignatureMatchScore(signature: string, calldata: string): number {
+  let score = 0;
+  
+  // Check if it's a popular protocol function
+  for (const protocol of POPULAR_PROTOCOLS) {
+    if (protocol.pattern.test(signature)) {
+      score += protocol.score;
+      break;
+    }
+  }
+  
+  // Prefer simpler signatures (fewer parameters)
+  const paramCount = (signature.match(/,/g) || []).length + 1;
+  score -= paramCount * 0.5; // Slight penalty for complexity
+  
+  // TODO: Add more heuristics here based on calldata analysis
+  
+  return score;
+}
+
+/**
+ * Find the best signature match from a list of candidates
+ * 
+ * @param signatures - Available function signatures
+ * @param functionSelector - The function selector (first 4 bytes)
+ * @param calldata - Full calldata
+ * @returns The best matching signature and index
+ */
+async function findBestSignatureMatch(
+  signatures: FunctionSignature[],
+  functionSelector: string,
+  calldata: string
+): Promise<{ bestSignature: string; index: number }> {
+  // If there's only one signature, return it
+  if (signatures.length === 1) {
+    return { bestSignature: signatures[0].textSignature, index: 0 };
+  }
+  
+  // First check if we have a user selection history
+  const lastSelected = await getLastSelectedSignature(functionSelector);
+  if (lastSelected) {
+    // Find the index of the previously selected signature
+    const index = signatures.findIndex(sig => sig.textSignature === lastSelected);
+    if (index >= 0) {
+      return { bestSignature: lastSelected, index };
+    }
+  }
+  
+  // Otherwise, score each signature and find the best match
+  let bestScore = -Infinity;
+  let bestIndex = 0;
+  
+  signatures.forEach((signature, index) => {
+    const score = calculateSignatureMatchScore(signature.textSignature, calldata);
+    if (score > bestScore) {
+      bestScore = score;
+      bestIndex = index;
+    }
+  });
+  
+  return { 
+    bestSignature: signatures[bestIndex].textSignature, 
+    index: bestIndex 
+  };
+}
+
 /**
  * Decode calldata using the 4bytes API for function signature lookup
  * 
@@ -143,7 +242,7 @@ export async function fetchFunctionSignature(
  */
 export async function decodeCalldataWithSignatureLookup(
   calldata: string
-): Promise<DecodedFunction> {
+): Promise<DecodedFunctionWithSignatures> {
   try {
     // Extract just the function selector
     const functionSelector = calldata.startsWith("0x") 
@@ -162,11 +261,15 @@ export async function decodeCalldataWithSignatureLookup(
       };
     }
     
-    // Get the first signature (most likely match)
-    const primarySignature = signatures[0].textSignature;
+    // Find the best matching signature
+    const { bestSignature, index } = await findBestSignatureMatch(
+      signatures, 
+      functionSelector,
+      calldata
+    );
     
-    // Extract function name from the primary signature
-    const functionName = primarySignature.split("(")[0];
+    // Extract function name from the best signature
+    const functionName = bestSignature.split("(")[0];
     
     // For parameters, we can't fully decode without the full ABI
     // Show the raw parameters after the selector
@@ -174,23 +277,15 @@ export async function decodeCalldataWithSignatureLookup(
       ? calldata.slice(10) 
       : "";
     
-    // If there are multiple signatures, include them in the args
-    const args: unknown[] = [];
+    const args: unknown[] = [rawParams]; // Add raw calldata as first arg
     
-    // Add raw calldata as first arg
-    args.push(rawParams);
-    
-    // If there are multiple signatures, add them as the second arg
-    if (signatures.length > 1) {
-      args.push({
-        alternativeSignatures: signatures.slice(1).map(sig => sig.textSignature)
-      });
-    }
-      
+    // Return the result with possible signatures
     return {
       functionName,
-      functionSig: primarySignature,
+      functionSig: bestSignature,
       args,
+      possibleSignatures: signatures.map(sig => sig.textSignature),
+      selectedSignatureIndex: index
     };
   } catch (error) {
     console.error("Error decoding with signature lookup:", error);
