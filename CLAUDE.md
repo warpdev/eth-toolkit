@@ -80,6 +80,8 @@ pnpm lint        # Run ESLint
 4. **Optimize rerenders** by using proper dependency arrays in hooks
 5. **Avoid inline object/array creation** in render to prevent unnecessary rerenders
 6. **Lazy load components** for code-splitting and reducing initial bundle size
+7. **Extract event handlers** as named functions rather than using inline arrow functions (e.g., use `onClick={handleClick}` instead of `onClick={() => setValue(value)}`)
+8. **Create reusable handlers** with useCallback to maintain referential equality between renders
 
 ## Micro-Interactions
 

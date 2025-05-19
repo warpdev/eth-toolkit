@@ -47,7 +47,7 @@ export const DecoderForm = React.memo(function DecoderForm({ onDecodeSuccess }: 
       parseAbi();
     }
   }, [abiString, decodeMode, parseAbi]);
-
+  
   // Create toast options object only when decodeError changes
   const errorToastOptions = useMemo(() => ({
     description: decodeError,
@@ -85,6 +85,25 @@ export const DecoderForm = React.memo(function DecoderForm({ onDecodeSuccess }: 
     }
   }, [decodeCalldata, setDecodedResult, onDecodeSuccess]);
 
+  const handleCalldataChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setCalldata(e.target.value);
+  }, [setCalldata]);
+  
+  const handleCalldataKeyDown = useCallback((e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey && calldata && !isDecoding) {
+      e.preventDefault();
+      handleDecode();
+    }
+  }, [calldata, isDecoding, handleDecode]);
+  
+  const handleAbiStringChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setAbiString(e.target.value);
+  }, [setAbiString]);
+  
+  const handleDecodeModeChange = useCallback((value: string) => {
+    setDecodeMode(value as "signature" | "abi");
+  }, [setDecodeMode]);
+
   return (
     <Card className="w-full">
       <CardHeader>
@@ -99,14 +118,15 @@ export const DecoderForm = React.memo(function DecoderForm({ onDecodeSuccess }: 
             Calldata
           </label>
           <Textarea 
-            placeholder="Enter calldata hex string (e.g., 0x70a08231000000000000000000000000...)" 
+            placeholder="Enter calldata hex string (e.g., 0x70a08231000000000000000000000000...) and press Enter to decode" 
             value={calldata}
-            onChange={(e) => setCalldata(e.target.value)}
+            onChange={handleCalldataChange}
+            onKeyDown={handleCalldataKeyDown}
             className="font-mono h-32"
           />
         </div>
 
-        <Tabs value={decodeMode} onValueChange={(value) => setDecodeMode(value as "signature" | "abi")}>
+        <Tabs value={decodeMode} onValueChange={handleDecodeModeChange}>
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="signature">Signature Lookup</TabsTrigger>
             <TabsTrigger value="abi">Custom ABI</TabsTrigger>
@@ -126,7 +146,7 @@ export const DecoderForm = React.memo(function DecoderForm({ onDecodeSuccess }: 
               <Textarea 
                 placeholder="Paste contract ABI JSON here..." 
                 value={abiString}
-                onChange={(e) => setAbiString(e.target.value)}
+                onChange={handleAbiStringChange}
                 className="font-mono h-48"
               />
             </div>
