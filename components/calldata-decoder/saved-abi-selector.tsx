@@ -178,10 +178,15 @@ export function SavedAbiSelector() {
                   <Bookmark className="mr-2 h-4 w-4" />
                   <span>{abi.name}</span>
                 </div>
-                <Trash2 
-                  className="h-4 w-4 text-muted-foreground hover:text-destructive"
+                <button 
                   onClick={(e) => handleDeleteAbi(abi.id, abi.name, e)}
-                />
+                  className="p-1"
+                  aria-label={`Delete ${abi.name} ABI`}
+                >
+                  <Trash2 
+                    className="h-4 w-4 text-muted-foreground hover:text-destructive"
+                  />
+                </button>
               </DropdownMenuItem>
             ))
           )}
