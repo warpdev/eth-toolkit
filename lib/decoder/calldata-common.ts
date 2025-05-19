@@ -67,7 +67,7 @@ export function isDynamicType(type: string): boolean {
  * @param type Ethereum type string
  * @returns Size in bytes (32 for most types due to padding)
  */
-export function getTypeSize(type: string): number {
+export function getTypeSize(): number {
   // Most Ethereum types are padded to 32 bytes
   return 32;
 }

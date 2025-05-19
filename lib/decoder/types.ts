@@ -1,5 +1,3 @@
-import { DecodeFunctionDataReturnType } from "viem";
-
 /**
  * Interface for the decoded function result
  */
