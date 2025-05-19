@@ -63,6 +63,10 @@ pnpm lint        # Run ESLint
   - IndexedDB integration
   - CRUD operations for saved items
 
+### Code Quality Guidelines
+
+- See @docs/code-quality-guidelines.md
+
 ### Code Organization Principles
 
 1. Modular components with single responsibility
