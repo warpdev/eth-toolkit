@@ -28,7 +28,6 @@ import { Save, Database, Trash2, Bookmark } from "lucide-react";
 export function SavedAbiSelector() {
   const setAbiString = useSetAtom(abiStringAtom);
   const [savedAbis, setSavedAbis] = useState<ABIRecord[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [showSaveDialog, setShowSaveDialog] = useState(false);
   const [abiName, setAbiName] = useState("");
   const [currentAbiString, setCurrentAbiString] = useState("");
@@ -36,14 +35,11 @@ export function SavedAbiSelector() {
   // Memoize the loadSavedAbis function to prevent recreating it on each render
   const loadSavedAbis = useCallback(async () => {
     try {
-      setIsLoading(true);
       const abis = await getAllABIs();
       setSavedAbis(abis);
     } catch (error) {
       console.error("Error loading saved ABIs:", error);
       toast.error("Failed to load saved ABIs");
-    } finally {
-      setIsLoading(false);
     }
   }, []);
 
@@ -155,9 +151,9 @@ export function SavedAbiSelector() {
 
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="outline" size="sm" disabled={isLoading || savedAbis.length === 0}>
+          <Button variant="outline" size="sm" disabled={savedAbis.length === 0}>
             <Database className="mr-2 h-4 w-4" />
-            {isLoading ? "Loading..." : "Load Saved ABI"}
+            Load Saved ABI
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-56">
