@@ -15,15 +15,18 @@ import {
   CardContent 
 } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ColorCodedCalldata } from "./color-coded-calldata";
 
 // Extracted skeleton component to prevent recreation on each render
-const SkeletonGroup = React.memo(() => (
-  <div className="space-y-2">
-    <Skeleton className="h-10 w-full" />
-    <Skeleton className="h-20 w-full" />
-    <Skeleton className="h-16 w-3/4" />
-  </div>
-));
+const SkeletonGroup = React.memo(function SkeletonGroup() {
+  return (
+    <div className="space-y-2">
+      <Skeleton className="h-10 w-full" />
+      <Skeleton className="h-20 w-full" />
+      <Skeleton className="h-16 w-3/4" />
+    </div>
+  );
+});
 import {
   Select,
   SelectContent,
@@ -45,7 +48,7 @@ export const DecoderOutput = React.memo(function DecoderOutput() {
   const { parsedParameters, selectedSignature, parseError } = useParseParameters();
 
   // Helper to format arguments in a readable way
-  const formatArg = (arg: unknown, index: number): React.ReactNode => {
+  const formatArg = (arg: unknown): React.ReactNode => {
     if (arg === null || arg === undefined) {
       return <span className="text-muted-foreground">null</span>;
     }
@@ -68,7 +71,7 @@ export const DecoderOutput = React.memo(function DecoderOutput() {
             )}
           </pre>
         );
-      } catch (e) {
+      } catch {
         return <span>{String(arg)}</span>;
       }
     }
@@ -162,7 +165,7 @@ export const DecoderOutput = React.memo(function DecoderOutput() {
           </div>
         ) : !decodedResult ? (
           <div className="text-center p-8 text-muted-foreground">
-            <p>Click "Decode Calldata" to decode</p>
+            <p>Click &quot;Decode Calldata&quot; to decode</p>
           </div>
         ) : (
           <div className="space-y-6">
@@ -230,7 +233,7 @@ export const DecoderOutput = React.memo(function DecoderOutput() {
                         </div>
                       </div>
                       <div className="font-mono text-sm overflow-auto">
-                        {formatArg(param.value, index)}
+                        {formatArg(param.value)}
                       </div>
                     </div>
                   ))}
@@ -240,7 +243,7 @@ export const DecoderOutput = React.memo(function DecoderOutput() {
                   {parseError ? (
                     <div className="text-destructive/80">{parseError}</div>
                   ) : (
-                    "No parameters could be parsed"
+                    <>No parameters could be parsed</>
                   )}
                 </div>
               )}
@@ -257,7 +260,7 @@ export const DecoderOutput = React.memo(function DecoderOutput() {
                         Arg {index + 1}:
                       </div>
                       <div className="font-mono text-sm">
-                        {formatArg(arg, index)}
+                        {formatArg(arg)}
                       </div>
                     </div>
                   ))}
@@ -268,7 +271,10 @@ export const DecoderOutput = React.memo(function DecoderOutput() {
             <div className="space-y-2">
               <h3 className="text-sm font-medium">Raw Calldata</h3>
               <div className="p-3 bg-muted rounded-md font-mono text-sm break-all">
-                {calldata}
+                {calldata && <ColorCodedCalldata 
+                  calldata={calldata} 
+                  parsedParameters={parsedParameters}
+                />}
               </div>
             </div>
           </div>
