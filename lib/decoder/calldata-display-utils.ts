@@ -1,4 +1,5 @@
 import { ParsedParameter } from "./types";
+import { isDynamicType } from "./calldata-common";
 
 export interface Segment {
   start: number;
@@ -33,20 +34,6 @@ export const TYPE_LENGTHS: Record<string, number> = {
   'bytes4': 64,
   'bytes2': 64,
   'bytes1': 64,
-};
-
-// Helper function to determine if a type is dynamic
-export const isDynamicType = (type: string): boolean => {
-  // Basic dynamic types
-  if (type === 'string' || type === 'bytes') return true;
-  
-  // Arrays
-  if (type.endsWith('[]')) return true;
-  
-  // Dynamic length arrays of form type[N] are not dynamic themselves
-  if (type.match(/\[\d+\]$/)) return false;
-  
-  return false;
 };
 
 // Colors for different parameter types
@@ -88,17 +75,15 @@ export const formatTooltipValue = (value: unknown): string => {
   return String(value);
 };
 
-// Calculate parameter segments with handling of dynamic types
-export const calculateSegments = (
-  parsedParameters: ParsedParameter[] | undefined, 
-  remainingCalldata: string
-): Segment[] => {
-  if (!parsedParameters || parsedParameters.length === 0) return [];
-  
-  const segments: Segment[] = [];
-  
-  // First pass: identify static and dynamic parameters
+/**
+ * Analyze parameters and identify static vs dynamic types
+ */
+function analyzeParameters(parsedParameters: ParsedParameter[]): {
+  parameterTypes: Array<ParsedParameter & { baseType: string; isDynamic: boolean }>;
+  hasAnyDynamicParams: boolean;
+} {
   let hasAnyDynamicParams = false;
+  
   const parameterTypes = parsedParameters.map(param => {
     const baseType = param.type.replace(/\[\d*\]$/, ''); // Remove array suffix
     const isDynamic = isDynamicType(param.type);
@@ -114,125 +99,191 @@ export const calculateSegments = (
     };
   });
   
-  // If no dynamic parameters, we can do simple static allocation
-  if (!hasAnyDynamicParams) {
-    let currentPos = 0;
+  return { parameterTypes, hasAnyDynamicParams };
+}
+
+/**
+ * Handle static parameters with simple allocation
+ */
+function processStaticParameters(
+  parameterTypes: Array<ParsedParameter & { baseType: string; isDynamic: boolean }>
+): Segment[] {
+  const segments: Segment[] = [];
+  let currentPos = 0;
+  
+  parameterTypes.forEach(param => {
+    const type = param.baseType;
     
-    parameterTypes.forEach(param => {
-      const type = param.baseType;
-      
-      // Handle static types
-      if (type in TYPE_LENGTHS) {
-        segments.push({
-          start: currentPos,
-          end: currentPos + TYPE_LENGTHS[type],
-          type: param.type,
-          name: param.name,
-          value: param.value
-        });
-        currentPos += TYPE_LENGTHS[type];
-      } else {
-        // Unknown type - just use 32 bytes as default
-        segments.push({
-          start: currentPos,
-          end: currentPos + 64,
-          type: param.type,
-          name: param.name,
-          value: param.value
-        });
-        currentPos += 64;
-      }
-    });
-  } 
-  // For calldata with dynamic parameters, we need to handle offsets
-  else {
-    let staticParamPos = 0;
-    const dynamicSegments: Segment[] = [];
-    
-    // Calculate positions for static parts and placeholders for dynamic data
-    parameterTypes.forEach((param) => {
-      if (param.isDynamic) {
-        // For dynamic parameters, in the static section we have a pointer (offset)
-        // Try to extract the offset from remaining calldata
-        let offsetHex = '';
-        try {
-          offsetHex = remainingCalldata.slice(staticParamPos, staticParamPos + 64);
-          const offsetValue = parseInt(offsetHex, 16);
-          
-          // Add an entry for the offset pointer in the static section
-          segments.push({
-            start: staticParamPos,
-            end: staticParamPos + 64,
-            type: `${param.type} offset`,
-            name: `${param.name} offset`,
-            value: offsetValue,
-            isOffset: true,
-            offsetValue
-          });
-          
-          // Calculate where this dynamic data should be
-          const dynamicDataStart = offsetValue * 2 - 8; // Convert bytes to hex chars and adjust for 0x
-          
-          // Try to estimate the length of dynamic data
-          let dynamicLength = 64; // Default to 32 bytes
-          
-          // For strings and bytes, the first 32 bytes contain length
-          if (param.type === 'string' || param.type === 'bytes') {
-            try {
-              const lengthHex = remainingCalldata.slice(dynamicDataStart, dynamicDataStart + 64);
-              const length = parseInt(lengthHex, 16);
-              // Length is in bytes, convert to hex chars (x2) and round up to nearest 32 bytes
-              dynamicLength = 64 + (Math.ceil(length * 2 / 64) * 64);
-            } catch {
-              // Fallback to default if we can't parse
-            }
-          }
-          
-          // Add an entry for the actual dynamic data
-          dynamicSegments.push({
-            start: dynamicDataStart,
-            end: dynamicDataStart + dynamicLength,
-            type: param.type,
-            name: param.name,
-            value: param.value,
-            isDynamic: true
-          });
-          
-        } catch {
-          // If we can't parse, just add a basic segment
-          segments.push({
-            start: staticParamPos,
-            end: staticParamPos + 64,
-            type: param.type,
-            name: param.name,
-            value: param.value
-          });
-        }
-        
-        staticParamPos += 64; // Still move forward 32 bytes for the offset
-      } else {
-        // For static parameters, just add them directly
-        const type = param.baseType;
-        const staticLength = type in TYPE_LENGTHS ? TYPE_LENGTHS[type] : 64;
-        
-        segments.push({
-          start: staticParamPos,
-          end: staticParamPos + staticLength,
-          type: param.type,
-          name: param.name,
-          value: param.value
-        });
-        
-        staticParamPos += staticLength;
-      }
-    });
-    
-    // Now add all the dynamic segments at the end
-    segments.push(...dynamicSegments);
-    
-    // Sort segments by start position to ensure correct rendering order
-    segments.sort((a, b) => a.start - b.start);
-  }
+    // Handle static types
+    if (type in TYPE_LENGTHS) {
+      segments.push({
+        start: currentPos,
+        end: currentPos + TYPE_LENGTHS[type],
+        type: param.type,
+        name: param.name,
+        value: param.value
+      });
+      currentPos += TYPE_LENGTHS[type];
+    } else {
+      // Unknown type - just use 32 bytes as default
+      segments.push({
+        start: currentPos,
+        end: currentPos + 64,
+        type: param.type,
+        name: param.name,
+        value: param.value
+      });
+      currentPos += 64;
+    }
+  });
   
   return segments;
+}
+
+/**
+ * Process a dynamic parameter and extract its offset information
+ */
+function processDynamicParameter(
+  param: ParsedParameter & { baseType: string; isDynamic: boolean },
+  staticParamPos: number,
+  remainingCalldata: string
+): {
+  staticSegment: Segment | null;
+  dynamicSegment: Segment | null;
+} {
+  // For dynamic parameters, in the static section we have a pointer (offset)
+  try {
+    const offsetHex = remainingCalldata.slice(staticParamPos, staticParamPos + 64);
+    const offsetValue = parseInt(offsetHex, 16);
+    
+    // Create static segment for the offset pointer
+    const staticSegment: Segment = {
+      start: staticParamPos,
+      end: staticParamPos + 64,
+      type: `${param.type} offset`,
+      name: `${param.name} offset`,
+      value: offsetValue,
+      isOffset: true,
+      offsetValue
+    };
+    
+    // Calculate where the dynamic data should be
+    const dynamicDataStart = offsetValue * 2 - 8; // Convert bytes to hex chars and adjust for 0x
+    
+    // Estimate the length of dynamic data
+    let dynamicLength = 64; // Default to 32 bytes
+    
+    // For strings and bytes, the first 32 bytes contain length
+    if (param.type === 'string' || param.type === 'bytes') {
+      try {
+        const lengthHex = remainingCalldata.slice(dynamicDataStart, dynamicDataStart + 64);
+        const length = parseInt(lengthHex, 16);
+        // Length is in bytes, convert to hex chars (x2) and round up to nearest 32 bytes
+        dynamicLength = 64 + (Math.ceil(length * 2 / 64) * 64);
+      } catch {
+        // Fallback to default if we can't parse
+      }
+    }
+    
+    // Create dynamic segment for the actual data
+    const dynamicSegment: Segment = {
+      start: dynamicDataStart,
+      end: dynamicDataStart + dynamicLength,
+      type: param.type,
+      name: param.name,
+      value: param.value,
+      isDynamic: true
+    };
+    
+    return { staticSegment, dynamicSegment };
+  } catch {
+    // If we can't parse, return a basic segment
+    const staticSegment: Segment = {
+      start: staticParamPos,
+      end: staticParamPos + 64,
+      type: param.type,
+      name: param.name,
+      value: param.value
+    };
+    
+    return { staticSegment, dynamicSegment: null };
+  }
+}
+
+/**
+ * Process a static parameter and create its segment
+ */
+function processStaticParameter(
+  param: ParsedParameter & { baseType: string; isDynamic: boolean },
+  staticParamPos: number
+): Segment {
+  const type = param.baseType;
+  const staticLength = type in TYPE_LENGTHS ? TYPE_LENGTHS[type] : 64;
+  
+  return {
+    start: staticParamPos,
+    end: staticParamPos + staticLength,
+    type: param.type,
+    name: param.name,
+    value: param.value
+  };
+}
+
+/**
+ * Handle parameters with mixed static and dynamic types
+ */
+function processMixedParameters(
+  parameterTypes: Array<ParsedParameter & { baseType: string; isDynamic: boolean }>,
+  remainingCalldata: string
+): Segment[] {
+  const segments: Segment[] = [];
+  const dynamicSegments: Segment[] = [];
+  let staticParamPos = 0;
+  
+  // Process each parameter
+  parameterTypes.forEach((param) => {
+    if (param.isDynamic) {
+      // Handle dynamic parameter
+      const { staticSegment, dynamicSegment } = processDynamicParameter(
+        param, staticParamPos, remainingCalldata
+      );
+      
+      if (staticSegment) segments.push(staticSegment);
+      if (dynamicSegment) dynamicSegments.push(dynamicSegment);
+    } else {
+      // Handle static parameter
+      segments.push(processStaticParameter(param, staticParamPos));
+    }
+    
+    // Always move position forward by 32 bytes (64 hex chars)
+    staticParamPos += 64;
+  });
+  
+  // Combine static and dynamic segments
+  segments.push(...dynamicSegments);
+  
+  // Sort by position for correct rendering order
+  return segments.sort((a, b) => a.start - b.start);
+}
+
+/**
+ * Calculate parameter segments with handling of dynamic types
+ */
+export const calculateSegments = (
+  parsedParameters: ParsedParameter[] | undefined, 
+  remainingCalldata: string
+): Segment[] => {
+  if (!parsedParameters || parsedParameters.length === 0) return [];
+  
+  // Analyze parameters to identify static vs dynamic types
+  const { parameterTypes, hasAnyDynamicParams } = analyzeParameters(parsedParameters);
+  
+  // Choose processing strategy based on parameter types
+  if (!hasAnyDynamicParams) {
+    // Simple case: all static parameters
+    return processStaticParameters(parameterTypes);
+  } else {
+    // Complex case: mixed static and dynamic parameters
+    return processMixedParameters(parameterTypes, remainingCalldata);
+  }
 };
