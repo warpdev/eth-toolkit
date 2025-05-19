@@ -30,7 +30,7 @@ export function AbiSelector() {
       </label>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="outline" size="sm">
+          <Button variant="outline" size="sm" className="ml-4">
             Sample ABIs
             <ChevronDown className="ml-2 h-4 w-4" />
           </Button>

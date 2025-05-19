@@ -1,13 +1,13 @@
 "use client";
 
-import React, { useCallback, useMemo } from "react";
-import { useAtom, useAtomValue } from "jotai";
+import React, { useMemo } from "react";
+import { useAtomValue } from "jotai";
 import { 
   calldataAtom, 
   isDecodingAtom, 
   decodeErrorAtom 
 } from "@/lib/atoms/calldata-atoms";
-import { decodedResultAtom, selectedSignatureIndexAtom } from "@/lib/atoms/decoder-result-atom";
+import { decodedResultAtom } from "@/lib/atoms/decoder-result-atom";
 import { 
   Card,
   CardHeader,
@@ -16,6 +16,9 @@ import {
 } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ColorCodedCalldata } from "./color-coded-calldata";
+import { FunctionSignatureSelector } from "./function-signature-selector";
+import { ParameterDisplay } from "./parameter-display";
+import { useParseParameters } from "@/lib/hooks/use-parse-parameters";
 
 // Extracted skeleton component to prevent recreation on each render
 const SkeletonGroup = React.memo(function SkeletonGroup() {
@@ -27,109 +30,15 @@ const SkeletonGroup = React.memo(function SkeletonGroup() {
     </div>
   );
 });
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { saveSignatureSelection } from "@/lib/storage/abi-storage";
-import { useParseParameters } from "@/lib/hooks/use-parse-parameters";
 
 export const DecoderOutput = React.memo(function DecoderOutput() {
   const calldata = useAtomValue(calldataAtom);
   const isDecoding = useAtomValue(isDecodingAtom);
   const decodeError = useAtomValue(decodeErrorAtom);
   const decodedResult = useAtomValue(decodedResultAtom);
-  const [selectedIndex, setSelectedIndex] = useAtom(selectedSignatureIndexAtom);
   
   // Use our custom hook for parameter parsing
   const { parsedParameters, selectedSignature, parseError } = useParseParameters();
-
-  // Helper to format arguments in a readable way
-  const formatArg = (arg: unknown): React.ReactNode => {
-    if (arg === null || arg === undefined) {
-      return <span className="text-muted-foreground">null</span>;
-    }
-
-    if (typeof arg === 'bigint') {
-      return <span>{arg.toString()}</span>;
-    }
-
-    if (typeof arg === 'boolean') {
-      return <span>{arg ? 'true' : 'false'}</span>;
-    }
-
-    // Regular object handling
-    if (typeof arg === 'object') {
-      try {
-        return (
-          <pre className="whitespace-pre-wrap break-all">
-            {JSON.stringify(arg, (_, value) => 
-              typeof value === 'bigint' ? value.toString() : value, 2
-            )}
-          </pre>
-        );
-      } catch {
-        return <span>{String(arg)}</span>;
-      }
-    }
-
-    // For raw calldata in signature mode
-    if (typeof arg === 'string' && arg.match(/^[0-9a-fA-F]*$/)) {
-      return (
-        <div className="font-mono break-all">
-          <span className="text-sm font-medium text-muted-foreground mr-2">Raw Calldata:</span>
-          {arg}
-        </div>
-      );
-    }
-
-    return <span className="break-all">{String(arg)}</span>;
-  };
-
-  // The parameter parsing logic is now handled by the useParseParameters hook
-
-  // Handler for signature selection
-  const handleSignatureChange = useCallback(async (value: string) => {
-    // Parse the index from the value
-    const index = parseInt(value, 10);
-    
-    if (
-      decodedResult && 
-      decodedResult.possibleSignatures && 
-      !isNaN(index) && 
-      index >= 0 && 
-      index < decodedResult.possibleSignatures.length
-    ) {
-      // Update selected index (will trigger parameter parsing in hook)
-      setSelectedIndex(index);
-      
-      // Save this choice to IndexedDB for future reference
-      if (calldata) {
-        const functionSelector = calldata.startsWith("0x") 
-          ? calldata.slice(0, 10) 
-          : `0x${calldata.slice(0, 8)}`;
-        
-        try {
-          // Get the selected signature
-          const selectedSig = decodedResult.possibleSignatures[index];
-          
-          // Save to IndexedDB
-          await saveSignatureSelection(
-            functionSelector,
-            selectedSig
-          );
-        } catch (error) {
-          console.error("Error saving signature selection:", error);
-        }
-      }
-    }
-  }, [decodedResult, calldata, setSelectedIndex]);
-
-  // Get the current function signature is now handled by the useParseParameters hook
-  // We use the selectedSignature value directly
 
   // Get the function name from the current signature - memoized to prevent recalculation
   const currentFunctionName = useMemo(() => {
@@ -140,146 +49,90 @@ export const DecoderOutput = React.memo(function DecoderOutput() {
     return decodedResult?.functionName || "";
   }, [selectedSignature, decodedResult?.functionName]);
 
+  // Render different states based on current decoding status
+  const renderContent = () => {
+    if (isDecoding) {
+      return (
+        <div className="space-y-4 p-4">
+          <div className="flex items-center space-x-2">
+            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary"></div>
+            <p className="text-sm font-medium">Decoding calldata...</p>
+          </div>
+          <SkeletonGroup />
+        </div>
+      );
+    }
+    
+    if (decodeError) {
+      return (
+        <div className="p-4 bg-destructive/10 text-destructive rounded-md">
+          <h3 className="font-medium">Error Decoding Calldata</h3>
+          <p className="text-sm mt-1">{decodeError}</p>
+        </div>
+      );
+    }
+    
+    if (!calldata) {
+      return (
+        <div className="text-center p-8 text-muted-foreground">
+          <p>Enter calldata to see the decoded result</p>
+        </div>
+      );
+    }
+    
+    if (!decodedResult) {
+      return (
+        <div className="text-center p-8 text-muted-foreground">
+          <p>Click &quot;Decode Calldata&quot; to decode</p>
+        </div>
+      );
+    }
+    
+    return (
+      <div className="space-y-6">
+        {/* Function signature selector */}
+        <FunctionSignatureSelector 
+          decodedResult={decodedResult} 
+          calldata={calldata} 
+        />
+        
+        {/* Function name */}
+        <div className="space-y-2">
+          <h3 className="text-sm font-medium">Function Name</h3>
+          <div className="p-3 bg-muted rounded-md font-mono text-sm">
+            {currentFunctionName}
+          </div>
+        </div>
+        
+        {/* Function parameters */}
+        <ParameterDisplay 
+          parameters={parsedParameters} 
+          parseError={parseError}
+          args={decodedResult.args}
+        />
+        
+        {/* Raw calldata */}
+        <div className="space-y-2">
+          <h3 className="text-sm font-medium">Raw Calldata</h3>
+          <div className="p-3 bg-muted rounded-md font-mono text-sm break-all">
+            {calldata && <ColorCodedCalldata 
+              calldata={calldata} 
+              parsedParameters={parsedParameters}
+            />}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <Card className="w-full">
       <CardHeader>
         <CardTitle>Decoded Output</CardTitle>
       </CardHeader>
       <CardContent>
-        {isDecoding ? (
-          <div className="space-y-4 p-4">
-            <div className="flex items-center space-x-2">
-              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary"></div>
-              <p className="text-sm font-medium">Decoding calldata...</p>
-            </div>
-            <SkeletonGroup />
-          </div>
-        ) : decodeError ? (
-          <div className="p-4 bg-destructive/10 text-destructive rounded-md">
-            <h3 className="font-medium">Error Decoding Calldata</h3>
-            <p className="text-sm mt-1">{decodeError}</p>
-          </div>
-        ) : !calldata ? (
-          <div className="text-center p-8 text-muted-foreground">
-            <p>Enter calldata to see the decoded result</p>
-          </div>
-        ) : !decodedResult ? (
-          <div className="text-center p-8 text-muted-foreground">
-            <p>Click &quot;Decode Calldata&quot; to decode</p>
-          </div>
-        ) : (
-          <div className="space-y-6">
-            {/* Function signature selector */}
-            {decodedResult.possibleSignatures && decodedResult.possibleSignatures.length > 1 && (
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-sm font-medium">Function Signature</h3>
-                  <div className="text-sm text-muted-foreground">
-                    {decodedResult.possibleSignatures.length} possible signatures found
-                  </div>
-                </div>
-                
-                <Select 
-                  value={selectedIndex.toString()} 
-                  onValueChange={handleSignatureChange}
-                >
-                  <SelectTrigger className="w-full font-mono text-sm">
-                    <SelectValue placeholder="Select a function signature" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {decodedResult.possibleSignatures.map((sig, index) => (
-                      <SelectItem 
-                        key={index} 
-                        value={index.toString()} 
-                        className="font-mono text-sm"
-                      >
-                        {sig}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-            
-            {/* Single function signature (no alternatives) */}
-            {(!decodedResult.possibleSignatures || decodedResult.possibleSignatures.length <= 1) && (
-              <div className="space-y-2">
-                <h3 className="text-sm font-medium">Function Signature</h3>
-                <div className="p-3 bg-muted rounded-md font-mono text-sm break-all">
-                  {selectedSignature || decodedResult.functionSig}
-                </div>
-              </div>
-            )}
-            
-            <div className="space-y-2">
-              <h3 className="text-sm font-medium">Function Name</h3>
-              <div className="p-3 bg-muted rounded-md font-mono text-sm">
-                {currentFunctionName}
-              </div>
-            </div>
-            
-            <div className="space-y-2">
-              <h3 className="text-sm font-medium">Function Parameters</h3>
-              {parsedParameters && parsedParameters.length > 0 ? (
-                <div className="border rounded-md divide-y">
-                  {parsedParameters.map((param, index) => (
-                    <div key={index} className="p-3 grid grid-cols-[1fr_1fr] gap-4">
-                      <div className="space-y-1">
-                        <div className="font-medium text-sm">
-                          {param.name}
-                        </div>
-                        <div className="text-xs text-muted-foreground font-mono">
-                          {param.type}
-                        </div>
-                      </div>
-                      <div className="font-mono text-sm overflow-auto">
-                        {formatArg(param.value)}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="p-3 bg-muted rounded-md text-sm text-muted-foreground">
-                  {parseError ? (
-                    <div className="text-destructive/80">{parseError}</div>
-                  ) : (
-                    <>No parameters could be parsed</>
-                  )}
-                </div>
-              )}
-            </div>
-            
-            {/* Show raw arguments as a fallback if parameter parsing fails */}
-            {parsedParameters.length === 0 && decodedResult.args && decodedResult.args.length > 0 && (
-              <div className="space-y-2">
-                <h3 className="text-sm font-medium">Raw Function Arguments</h3>
-                <div className="border rounded-md divide-y">
-                  {decodedResult.args.map((arg, index) => (
-                    <div key={index} className="p-3 grid grid-cols-[auto_1fr] gap-4">
-                      <div className="font-medium text-sm text-muted-foreground">
-                        Arg {index + 1}:
-                      </div>
-                      <div className="font-mono text-sm">
-                        {formatArg(arg)}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-            
-            <div className="space-y-2">
-              <h3 className="text-sm font-medium">Raw Calldata</h3>
-              <div className="p-3 bg-muted rounded-md font-mono text-sm break-all">
-                {calldata && <ColorCodedCalldata 
-                  calldata={calldata} 
-                  parsedParameters={parsedParameters}
-                />}
-              </div>
-            </div>
-          </div>
-        )}
+        {renderContent()}
       </CardContent>
     </Card>
   );
-})
+});

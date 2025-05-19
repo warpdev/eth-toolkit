@@ -169,6 +169,11 @@ const POPULAR_PROTOCOLS = [
   { pattern: /swapExactTokensForTokens/, score: 8 },
   { pattern: /swapTokensForExactTokens/, score: 8 },
   { pattern: /addLiquidity/, score: 8 },
+  // ERC1155
+  { pattern: /safeTransferFrom\(address,address,uint256,uint256,bytes\)/, score: 9 },
+  { pattern: /safeBatchTransferFrom\(address,address,uint256\[\],uint256\[\],bytes\)/, score: 9 },
+  // Named parameter preference
+  { pattern: /\w+\s+\w+/, score: 1 }, // Bonus for named parameters
 ];
 
 /**
@@ -178,7 +183,7 @@ const POPULAR_PROTOCOLS = [
  * @param calldata - The calldata to match against
  * @returns A score (higher is better match)
  */
-function calculateSignatureMatchScore(signature: string): number {
+function calculateSignatureMatchScore(signature: string, calldata: string): number {
   let score = 0;
   
   // Check if it's a popular protocol function
@@ -193,7 +198,54 @@ function calculateSignatureMatchScore(signature: string): number {
   const paramCount = (signature.match(/,/g) || []).length + 1;
   score -= paramCount * 0.5; // Slight penalty for complexity
   
-  // TODO: Add more heuristics here based on calldata analysis
+  // Parse out parameter types for additional analysis
+  const paramSection = extractParameterSection(signature);
+  const params = paramSection ? paramSection.split(',').map(p => p.trim()) : [];
+  
+  // Analyze calldata length for better matching
+  if (calldata && calldata.length > 10) {
+    const calldataLength = calldata.length - 10; // Subtract function selector
+    
+    // Estimate parameter length based on types
+    let estimatedLength = 0;
+    
+    for (const param of params) {
+      const paramType = param.split(' ')[0]; // Get just the type part
+      
+      // Dynamic types typically start with an offset (32 bytes)
+      if (paramType === 'string' || paramType === 'bytes' || paramType.endsWith('[]')) {
+        estimatedLength += 64; // 32 bytes offset = 64 hex chars
+      } 
+      // Fixed-size types
+      else {
+        // Most Ethereum types are padded to 32 bytes
+        estimatedLength += 64; // 32 bytes = 64 hex chars
+      }
+    }
+    
+    // If our parameter estimates are within 25% of the actual calldata length, that's a good sign
+    const lengthDifference = Math.abs(estimatedLength - calldataLength);
+    const lengthRatio = estimatedLength > 0 ? lengthDifference / estimatedLength : 1;
+    
+    if (lengthRatio < 0.25) {
+      score += 3; // Good length match
+    } else if (lengthRatio < 0.5) {
+      score += 1; // Decent length match
+    }
+  }
+  
+  // Prefer signatures with named parameters
+  const namedParamCount = params.filter(p => p.includes(' ')).length;
+  score += namedParamCount * 0.5; // Bonus for named parameters
+  
+  // Prefer signatures with more specific parameter types
+  // (e.g., uint256 is more specific than uint)
+  for (const param of params) {
+    const paramType = param.split(' ')[0];
+    if (/uint\d+/.test(paramType) || /int\d+/.test(paramType) || /bytes\d+/.test(paramType)) {
+      score += 0.2; // Small bonus for specific numeric types
+    }
+  }
   
   return score;
 }

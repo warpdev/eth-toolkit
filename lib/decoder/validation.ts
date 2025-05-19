@@ -1,30 +1,16 @@
+import { 
+  isValidCalldata as commonIsValidCalldata, 
+  normalizeCalldata as commonNormalizeCalldata,
+  extractFunctionSelector as commonExtractFunctionSelector
+} from './calldata-common';
+
 /**
  * Validates if a string is a valid ethereum calldata
  * @param calldata String to validate
  * @returns Boolean indicating if the string is valid calldata
  */
 export function isValidCalldata(calldata: string): boolean {
-  if (!calldata) {
-    return false;
-  }
-
-  // Clean input
-  const cleanCalldata = calldata.trim();
-
-  // Check if it starts with 0x
-  const hasPrefix = cleanCalldata.startsWith("0x");
-  const calldataWithoutPrefix = hasPrefix ? cleanCalldata.slice(2) : cleanCalldata;
-
-  // Check if it's valid hex
-  const isHex = /^[0-9a-fA-F]*$/.test(calldataWithoutPrefix);
-  
-  // Check if it has at least 4 bytes for the function selector (8 chars)
-  const hasMinLength = calldataWithoutPrefix.length >= 8;
-
-  // Check if it has the correct length (should be even length for bytes)
-  const hasEvenLength = calldataWithoutPrefix.length % 2 === 0;
-
-  return isHex && hasMinLength && hasEvenLength;
+  return commonIsValidCalldata(calldata);
 }
 
 /**
@@ -75,13 +61,9 @@ export function validateAbi(abiString: string): { isValid: boolean; error?: stri
  * @returns Normalized calldata string
  */
 export function normalizeCalldata(calldata: string): string {
-  const cleanCalldata = calldata.trim();
-  const withPrefix = cleanCalldata.startsWith("0x") 
-    ? cleanCalldata 
-    : `0x${cleanCalldata}`;
-    
-  return withPrefix.toLowerCase();
+  return commonNormalizeCalldata(calldata);
 }
+
 
 /**
  * Extracts function selector from calldata
@@ -89,6 +71,5 @@ export function normalizeCalldata(calldata: string): string {
  * @returns Function selector (first 4 bytes with 0x prefix)
  */
 export function extractFunctionSelector(calldata: string): string {
-  const normalized = normalizeCalldata(calldata);
-  return normalized.slice(0, 10);
+  return commonExtractFunctionSelector(calldata);
 }

@@ -10,6 +10,31 @@ interface ColorCodedCalldataProps {
   parsedParameters?: ParsedParameter[];
 }
 
+interface Segment {
+  start: number;
+  end: number;
+  type: string;
+  name: string;
+  value: unknown;
+  isDynamic?: boolean;
+  isOffset?: boolean;
+  offsetValue?: number;
+}
+
+// Helper function to determine if a type is dynamic
+const isDynamicType = (type: string): boolean => {
+  // Basic dynamic types
+  if (type === 'string' || type === 'bytes') return true;
+  
+  // Arrays
+  if (type.endsWith('[]')) return true;
+  
+  // Dynamic length arrays of form type[N] are not dynamic themselves
+  if (type.match(/\[\d+\]$/)) return false;
+  
+  return false;
+};
+
 const ColorCodedCalldata = React.memo(function ColorCodedCalldata({ 
   calldata,
   parsedParameters
@@ -21,20 +46,13 @@ const ColorCodedCalldata = React.memo(function ColorCodedCalldata({
   const functionSignature = normalizedCalldata.slice(0, 10); // 0x + 8 chars
   const remainingCalldata = normalizedCalldata.slice(10);
   
-  // Calculate approximate parameter segments for common types
+  // Calculate parameter segments with improved handling of dynamic types
   const calculateSegments = useMemo(() => {
     if (!parsedParameters || parsedParameters.length === 0) return [];
     
-    const segments: Array<{
-      start: number,
-      end: number,
-      type: string,
-      name: string,
-      value: unknown
-    }> = [];
+    const segments: Segment[] = [];
     
     // Static parameter types have fixed lengths (assuming hex encoded)
-    // These are approximate and don't handle all edge cases
     const typeLength: Record<string, number> = {
       'address': 64, // 32 bytes = 64 hex chars, padded
       'uint256': 64,
@@ -58,40 +76,147 @@ const ColorCodedCalldata = React.memo(function ColorCodedCalldata({
       'bytes1': 64,
     };
     
-    let currentPos = 0;
-    
-    parsedParameters.forEach((param) => {
-      const type = param.type.replace(/\[\]$/, ''); // Remove array suffix for now
+    // First pass: identify static and dynamic parameters
+    let hasAnyDynamicParams = false;
+    const parameterTypes = parsedParameters.map(param => {
+      const baseType = param.type.replace(/\[\d*\]$/, ''); // Remove array suffix
+      const isDynamic = isDynamicType(param.type);
       
-      // Handle static types
-      if (type in typeLength) {
-        segments.push({
-          start: currentPos,
-          end: currentPos + typeLength[type],
-          type: param.type,
-          name: param.name,
-          value: param.value
-        });
-        currentPos += typeLength[type];
-      } 
-      // Dynamic types like string, bytes, and arrays are more complex
-      // We're simplifying by just assigning the rest of the calldata
-      else {
-        // For dynamic types, we'll just highlight what's remaining
-        if (currentPos < remainingCalldata.length) {
+      if (isDynamic) {
+        hasAnyDynamicParams = true;
+      }
+      
+      return {
+        ...param,
+        baseType,
+        isDynamic
+      };
+    });
+    
+    // If no dynamic parameters, we can do simple static allocation
+    if (!hasAnyDynamicParams) {
+      let currentPos = 0;
+      
+      parameterTypes.forEach(param => {
+        const type = param.baseType;
+        
+        // Handle static types
+        if (type in typeLength) {
           segments.push({
             start: currentPos,
-            end: remainingCalldata.length,
+            end: currentPos + typeLength[type],
             type: param.type,
             name: param.name,
             value: param.value
           });
+          currentPos += typeLength[type];
+        } else {
+          // Unknown type - just use 32 bytes as default
+          segments.push({
+            start: currentPos,
+            end: currentPos + 64,
+            type: param.type,
+            name: param.name,
+            value: param.value
+          });
+          currentPos += 64;
         }
-      }
-    });
+      });
+    } 
+    // For calldata with dynamic parameters, we need to handle offsets
+    else {
+      let staticParamPos = 0;
+      let dynamicParamPos = 0;
+      const dynamicSegments: Segment[] = [];
+      
+      // Calculate positions for static parts and placeholders for dynamic data
+      parameterTypes.forEach((param, index) => {
+        if (param.isDynamic) {
+          // For dynamic parameters, in the static section we have a pointer (offset)
+          // Try to extract the offset from remaining calldata
+          let offsetHex = '';
+          try {
+            offsetHex = remainingCalldata.slice(staticParamPos, staticParamPos + 64);
+            const offsetValue = parseInt(offsetHex, 16);
+            
+            // Add an entry for the offset pointer in the static section
+            segments.push({
+              start: staticParamPos,
+              end: staticParamPos + 64,
+              type: `${param.type} offset`,
+              name: `${param.name} offset`,
+              value: offsetValue,
+              isOffset: true,
+              offsetValue
+            });
+            
+            // Calculate where this dynamic data should be
+            // Note: this is an approximation and might not be accurate for all cases
+            const dynamicDataStart = offsetValue * 2 - 8; // Convert bytes to hex chars and adjust for 0x
+            
+            // Try to estimate the length of dynamic data
+            let dynamicLength = 64; // Default to 32 bytes
+            
+            // For strings and bytes, the first 32 bytes contain length
+            if (param.type === 'string' || param.type === 'bytes') {
+              try {
+                const lengthHex = remainingCalldata.slice(dynamicDataStart, dynamicDataStart + 64);
+                const length = parseInt(lengthHex, 16);
+                // Length is in bytes, convert to hex chars (x2) and round up to nearest 32 bytes
+                dynamicLength = 64 + (Math.ceil(length * 2 / 64) * 64);
+              } catch (e) {
+                // Fallback to default if we can't parse
+              }
+            }
+            
+            // Add an entry for the actual dynamic data
+            dynamicSegments.push({
+              start: dynamicDataStart,
+              end: dynamicDataStart + dynamicLength,
+              type: param.type,
+              name: param.name,
+              value: param.value,
+              isDynamic: true
+            });
+            
+          } catch (e) {
+            // If we can't parse, just add a basic segment
+            segments.push({
+              start: staticParamPos,
+              end: staticParamPos + 64,
+              type: param.type,
+              name: param.name,
+              value: param.value
+            });
+          }
+          
+          staticParamPos += 64; // Still move forward 32 bytes for the offset
+        } else {
+          // For static parameters, just add them directly
+          const type = param.baseType;
+          const staticLength = type in typeLength ? typeLength[type] : 64;
+          
+          segments.push({
+            start: staticParamPos,
+            end: staticParamPos + staticLength,
+            type: param.type,
+            name: param.name,
+            value: param.value
+          });
+          
+          staticParamPos += staticLength;
+        }
+      });
+      
+      // Now add all the dynamic segments at the end
+      segments.push(...dynamicSegments);
+      
+      // Sort segments by start position to ensure correct rendering order
+      segments.sort((a, b) => a.start - b.start);
+    }
     
     return segments;
-  }, [parsedParameters, remainingCalldata.length]);
+  }, [parsedParameters, remainingCalldata]);
   
   // If we don't have parsed parameters, just return colorized function signature
   if (!parsedParameters || parsedParameters.length === 0) {
@@ -113,12 +238,42 @@ const ColorCodedCalldata = React.memo(function ColorCodedCalldata({
   }
   
   // Colors for different parameter types
-  const getParamColor = (type: string) => {
+  const getParamColor = (segment: Segment) => {
+    const { type, isOffset, isDynamic } = segment;
+    
+    // Special color for offset pointers
+    if (isOffset) return "bg-yellow-500/20 text-yellow-700 dark:text-yellow-300";
+    
+    // Basic type coloring
     if (type.includes("address")) return "bg-blue-500/20 text-blue-700 dark:text-blue-300";
     if (type.includes("uint") || type.includes("int")) return "bg-green-500/20 text-green-700 dark:text-green-300";
     if (type.includes("bool")) return "bg-purple-500/20 text-purple-700 dark:text-purple-300";
-    if (type.includes("string") || type.includes("bytes")) return "bg-orange-500/20 text-orange-700 dark:text-orange-300";
+    
+    // Dynamic types
+    if (isDynamic || type.includes("string") || type.includes("bytes")) {
+      return "bg-orange-500/20 text-orange-700 dark:text-orange-300";
+    }
+    
+    // Arrays
+    if (type.includes("[")) return "bg-pink-500/20 text-pink-700 dark:text-pink-300";
+    
     return "bg-gray-500/20 text-gray-700 dark:text-gray-300";
+  };
+
+  // Format value for tooltip display
+  const formatTooltipValue = (value: unknown): string => {
+    if (value === null || value === undefined) return "null";
+    
+    if (typeof value === 'object') {
+      try {
+        return JSON.stringify(value, (_, v) => 
+          typeof v === 'bigint' ? v.toString() : v, 2);
+      } catch {
+        return String(value);
+      }
+    }
+    
+    return String(value);
   };
 
   // Create colorized calldata using our calculated segments
@@ -128,9 +283,20 @@ const ColorCodedCalldata = React.memo(function ColorCodedCalldata({
     }
 
     const elements: React.ReactNode[] = [];
+    let coveredUntil = 0;
     
     // Add each segment with appropriate coloring and tooltip
     calculateSegments.forEach((segment, index) => {
+      // If there's a gap between segments, add it first
+      if (segment.start > coveredUntil) {
+        elements.push(
+          <span key={`gap-${index}`} className="text-muted-foreground">
+            {remainingCalldata.slice(coveredUntil, segment.start)}
+          </span>
+        );
+      }
+      
+      // Add the segment itself if it's within bounds
       if (segment.start < segment.end && segment.start < remainingCalldata.length) {
         const end = Math.min(segment.end, remainingCalldata.length);
         const segmentText = remainingCalldata.slice(segment.start, end);
@@ -139,7 +305,7 @@ const ColorCodedCalldata = React.memo(function ColorCodedCalldata({
           <TooltipProvider key={`param-${index}`}>
             <Tooltip>
               <TooltipTrigger asChild>
-                <span className={getParamColor(segment.type)}>
+                <span className={getParamColor(segment)}>
                   {segmentText}
                 </span>
               </TooltipTrigger>
@@ -147,25 +313,25 @@ const ColorCodedCalldata = React.memo(function ColorCodedCalldata({
                 <div className="text-xs">
                   <p><span className="font-semibold">Name:</span> {segment.name}</p>
                   <p><span className="font-semibold">Type:</span> {segment.type}</p>
-                  <p><span className="font-semibold">Value:</span> {
-                    typeof segment.value === 'object' 
-                      ? JSON.stringify(segment.value)
-                      : String(segment.value)
-                  }</p>
+                  {segment.isOffset && (
+                    <p><span className="font-semibold">Offset:</span> {segment.offsetValue} bytes</p>
+                  )}
+                  <p><span className="font-semibold">Value:</span> {formatTooltipValue(segment.value)}</p>
                 </div>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
         );
+        
+        coveredUntil = end;
       }
     });
     
     // If there's any calldata not covered by our segments, add it at the end
-    const lastSegment = calculateSegments[calculateSegments.length - 1];
-    if (lastSegment && lastSegment.end < remainingCalldata.length) {
+    if (coveredUntil < remainingCalldata.length) {
       elements.push(
-        <span key="remaining">
-          {remainingCalldata.slice(lastSegment.end)}
+        <span key="remaining" className="text-muted-foreground">
+          {remainingCalldata.slice(coveredUntil)}
         </span>
       );
     }
@@ -210,6 +376,14 @@ const ColorCodedCalldata = React.memo(function ColorCodedCalldata({
         <div className="flex items-center">
           <span className="inline-block w-3 h-3 mr-1 bg-orange-500/20"></span>
           <span>Strings/Bytes</span>
+        </div>
+        <div className="flex items-center">
+          <span className="inline-block w-3 h-3 mr-1 bg-yellow-500/20"></span>
+          <span>Offset Pointers</span>
+        </div>
+        <div className="flex items-center">
+          <span className="inline-block w-3 h-3 mr-1 bg-pink-500/20"></span>
+          <span>Arrays</span>
         </div>
       </div>
     </div>
