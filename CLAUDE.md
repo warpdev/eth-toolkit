@@ -63,29 +63,21 @@ pnpm lint        # Run ESLint
   - IndexedDB integration
   - CRUD operations for saved items
 
-### Code Quality Guidelines
+<code_quality>
+Next.js/React/TypeScript/TailwindCSS frontend code quality standards:
 
-- See @docs/code-quality-guidelines.md
+- Maximize TypeScript type safety (avoid 'any')
+- Limit file/component size (files <300 lines, components <150 lines)
+- Follow Single Responsibility Principle and modularization
+- Optimize performance with memoization (useMemo, useCallback)
+- State management: local(useState), global(Context/jotai), server(React Query/SWR)
+- Maintain consistent naming and folder structure
+- Minimize code duplication and handle errors properly
 
-### Code Organization Principles
+Detailed guide: @docs/code-quality-guidelines.md
+</code_quality>
 
-1. Modular components with single responsibility
-2. Clear separation of business logic and UI
-3. TypeScript types and interfaces for all data
-4. Reusable components and utility functions
-5. State management via jotai atoms
-6. Performance optimization with React hooks (useMemo, useCallback, etc)
 
-### Performance Optimization
-
-1. **Use React.memo** for pure functional components that render often with the same props
-2. **Leverage useMemo** for expensive calculations to prevent unnecessary re-computation
-3. **Apply useCallback** for function references passed to child components as props
-4. **Optimize rerenders** by using proper dependency arrays in hooks
-5. **Avoid inline object/array creation** in render to prevent unnecessary rerenders
-6. **Lazy load components** for code-splitting and reducing initial bundle size
-7. **Extract event handlers** as named functions rather than using inline arrow functions (e.g., use `onClick={handleClick}` instead of `onClick={() => setValue(value)}`)
-8. **Create reusable handlers** with useCallback to maintain referential equality between renders
 
 ## Micro-Interactions
 

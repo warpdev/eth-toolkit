@@ -33,11 +33,6 @@ export function SavedAbiSelector() {
   const [abiName, setAbiName] = useState("");
   const [currentAbiString, setCurrentAbiString] = useState("");
 
-  // Load saved ABIs on mount
-  useEffect(() => {
-    loadSavedAbis();
-  }, [loadSavedAbis]);
-  
   // Memoize the loadSavedAbis function to prevent recreating it on each render
   const loadSavedAbis = useCallback(async () => {
     try {
@@ -51,6 +46,11 @@ export function SavedAbiSelector() {
       setIsLoading(false);
     }
   }, []);
+
+  // Load saved ABIs on mount
+  useEffect(() => {
+    loadSavedAbis();
+  }, [loadSavedAbis]);
 
 
   const handleSelectAbi = async (id: string) => {
