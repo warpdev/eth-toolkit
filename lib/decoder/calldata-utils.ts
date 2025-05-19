@@ -1,4 +1,4 @@
-import { Abi, DecodeFunctionDataReturnType, decodeFunctionData, parseAbi, parseAbiParameters } from "viem";
+import { Abi, DecodeFunctionDataReturnType, decodeFunctionData, parseAbi } from "viem";
 import { getLastSelectedSignature } from "@/lib/storage/abi-storage";
 
 /**
@@ -126,7 +126,7 @@ export async function fetchFunctionSignatures(
     // Check if we found signatures
     if (data.results && data.results.length > 0) {
       // Map to our interface
-      return data.results.map((result: any) => ({
+      return data.results.map((result: { id: number; text_signature: string; hex_signature: string; created_at: string }) => ({
         id: result.id,
         textSignature: result.text_signature,
         hexSignature: result.hex_signature,
@@ -178,7 +178,7 @@ const POPULAR_PROTOCOLS = [
  * @param calldata - The calldata to match against
  * @returns A score (higher is better match)
  */
-function calculateSignatureMatchScore(signature: string, calldata: string): number {
+function calculateSignatureMatchScore(signature: string): number {
   let score = 0;
   
   // Check if it's a popular protocol function

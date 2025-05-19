@@ -19,12 +19,11 @@ import {
   DialogDescription,
   DialogFooter,
   DialogHeader,
-  DialogTitle,
-  DialogTrigger
+  DialogTitle
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Save, Database, Trash2, Plus, Bookmark } from "lucide-react";
+import { Save, Database, Trash2, Bookmark } from "lucide-react";
 
 export function SavedAbiSelector() {
   const setAbiString = useSetAtom(abiStringAtom);
@@ -37,7 +36,7 @@ export function SavedAbiSelector() {
   // Load saved ABIs on mount
   useEffect(() => {
     loadSavedAbis();
-  }, []);
+  }, [loadSavedAbis]);
   
   // Memoize the loadSavedAbis function to prevent recreating it on each render
   const loadSavedAbis = useCallback(async () => {

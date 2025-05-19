@@ -33,7 +33,7 @@ const DB_VERSION = 2;
 // Initialize the database
 async function getDB(): Promise<IDBPDatabase<ABIDatabase>> {
   return openDB<ABIDatabase>(DB_NAME, DB_VERSION, {
-    upgrade(db, oldVersion, newVersion) {
+    upgrade(db, oldVersion) {
       // When creating a new database
       if (oldVersion < 1) {
         // Create a store for ABIs
