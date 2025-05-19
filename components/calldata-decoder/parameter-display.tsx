@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { ParsedParameter } from "@/lib/decoder/calldata-utils";
+import { ParsedParameter } from "@/lib/decoder/types";
 
 interface ParameterDisplayProps {
   parameters: ParsedParameter[];

@@ -11,13 +11,8 @@ import {
   decodeModeAtom
 } from "@/lib/atoms/calldata-atoms";
 import { decodedResultAtom, selectedSignatureIndexAtom } from "@/lib/atoms/decoder-result-atom";
-import { 
-  decodeCalldataWithAbi, 
-  decodeCalldataWithSignatureLookup, 
-  parseAbiFromString,
-  DecodedFunction,
-  DecodedFunctionWithSignatures
-} from "@/lib/decoder/calldata-utils";
+import { DecodedFunction, DecodedFunctionWithSignatures } from "@/lib/decoder/types";
+import { decodeCalldataWithAbi, decodeCalldataWithSignatureLookup, parseAbiFromString } from "@/lib/decoder/decoding-utils";
 import {
   isValidCalldata,
   validateAbi,

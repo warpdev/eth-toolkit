@@ -11,11 +11,9 @@ import {
   decodedResultAtom,
   selectedSignatureIndexAtom 
 } from "@/lib/atoms/decoder-result-atom";
-import { 
-  ParsedParameter,
-  createTemporaryAbiFromSignature,
-  extractParametersFromSignature 
-} from "@/lib/decoder/calldata-utils";
+import { ParsedParameter } from "@/lib/decoder/types";
+import { createTemporaryAbiFromSignature } from "@/lib/decoder/signature-utils";
+import { extractParametersFromSignature } from "@/lib/decoder/parameter-utils";
 
 /**
  * Hook for parsing function parameters from calldata and signature

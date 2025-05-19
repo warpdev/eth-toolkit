@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useMemo } from "react";
-import { ParsedParameter } from "@/lib/decoder/calldata-utils";
+import { ParsedParameter } from "@/lib/decoder/types";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 // Component for color-coding calldata
