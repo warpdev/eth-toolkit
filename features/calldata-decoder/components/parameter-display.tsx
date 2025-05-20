@@ -11,17 +11,28 @@ interface ParameterDisplayProps {
   args?: unknown[];
 }
 
+// Formatter for BigInt values in JSON.stringify
+const bigIntReplacer = (_: string, value: unknown): unknown => 
+  typeof value === 'bigint' ? value.toString() : value;
+
 // Helper to get the string representation of an argument for copying
 const getArgAsString = (arg: unknown): string => {
   if (arg === null || arg === undefined) {
     return "null";
   }
 
+  // Specifically handle arrays
+  if (Array.isArray(arg)) {
+    try {
+      return JSON.stringify(arg, bigIntReplacer, 2);
+    } catch {
+      return String(arg);
+    }
+  }
+
   if (typeof arg === 'object') {
     try {
-      return JSON.stringify(arg, (_, value) => 
-        typeof value === 'bigint' ? value.toString() : value, 2
-      );
+      return JSON.stringify(arg, bigIntReplacer, 2);
     } catch {
       return String(arg);
     }
@@ -32,6 +43,11 @@ const getArgAsString = (arg: unknown): string => {
 
 // Helper to check if a value is likely an ETH amount in Wei
 const isLikelyWeiValue = (value: unknown, type?: string): boolean => {
+  // Skip array types
+  if (type && type.includes('[]')) {
+    return false;
+  }
+  
   // Check parameter type hints
   if (type && (type.includes('uint256') || type.includes('uint128'))) {
     return true;
@@ -54,6 +70,40 @@ const isLikelyWeiValue = (value: unknown, type?: string): boolean => {
 const formatArg = (arg: unknown, type?: string): React.ReactNode => {
   if (arg === null || arg === undefined) {
     return <span className="text-muted-foreground">null</span>;
+  }
+
+  // Array handling - must come before object check since arrays are objects
+  if (Array.isArray(arg)) {
+    // For arrays that might contain ETH values
+    if (type && (type.includes('uint256[]') || type.includes('uint128[]'))) {
+      return (
+        <div className="space-y-2">
+          {arg.map((item, i) => (
+            <div key={i} className="flex flex-col">
+              {typeof item === 'bigint' && isLikelyWeiValue(item, 'uint256') ? (
+                <>
+                  <span>{item.toString()}</span>
+                  <span className="text-xs text-muted-foreground">({formatEther(item)} ETH)</span>
+                </>
+              ) : (
+                <span>{typeof item === 'bigint' ? item.toString() : String(item)}</span>
+              )}
+            </div>
+          ))}
+        </div>
+      );
+    }
+    
+    // Generic array handling
+    try {
+      return (
+        <pre className="whitespace-pre-wrap break-all">
+          {JSON.stringify(arg, bigIntReplacer, 2)}
+        </pre>
+      );
+    } catch {
+      return <span>{String(arg)}</span>;
+    }
   }
 
   // Check if this is likely an ETH value in Wei
@@ -83,15 +133,13 @@ const formatArg = (arg: unknown, type?: string): React.ReactNode => {
   if (typeof arg === 'boolean') {
     return <span>{arg ? 'true' : 'false'}</span>;
   }
-
+  
   // Regular object handling
   if (typeof arg === 'object') {
     try {
       return (
         <pre className="whitespace-pre-wrap break-all">
-          {JSON.stringify(arg, (_, value) => 
-            typeof value === 'bigint' ? value.toString() : value, 2
-          )}
+          {JSON.stringify(arg, bigIntReplacer, 2)}
         </pre>
       );
     } catch {

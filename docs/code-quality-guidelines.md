@@ -77,6 +77,15 @@ You are a quality manager for a Next.js, React, TypeScript, and TailwindCSS base
 - Presentation components: Focus on UI representation, receive data via props
 - Container components: Responsible for data handling and state management
 - Page components: Located in Next.js pages/ or app/ directory, combining layouts and containers
+- Server Components: Use for data fetching and initial rendering without client-side JS
+
+### Server Component Patterns:
+
+- Prefer Next.js async Server Components for data fetching operations
+- Keep Server Components focused on data fetching and initial rendering
+- Extract Client Components for interactive elements with 'use client' directive
+- Use TypeScript interfaces to clearly define data structures passed from Server to Client Components
+- Avoid mixing data fetching and UI interactivity responsibilities in the same component
 
 ### Component Composition:
 
@@ -212,9 +221,13 @@ When reviewing code, check the following items:
 
 Here are examples of recommended code writing:
 
+### Client Component Example
+
 ```typescript
 // Component Example
 // UserProfile.tsx
+"use client";
+
 type UserProfileProps = {
   user: User;
   isEditable?: boolean;
@@ -229,37 +242,28 @@ export function UserProfile({
   const [isUpdating, setIsUpdating] = useState(false);
 
   // Memoize heavy calculations
-  const userDisplayStats = useMemo(
-    () => calculateUserStats(user),
-    [user]
-  );
+  const userDisplayStats = useMemo(() => calculateUserStats(user), [user]);
 
   // Use useCallback for event handlers
-  const handleUpdate = useCallback(
-    async (data: UserUpdateData) => {
-      if (!onUpdate) return;
+  const handleUpdate = useCallback(async (data: UserUpdateData) => {
+    if (!onUpdate) return;
 
-      setIsUpdating(true);
-      try {
-        await onUpdate(data);
-      } catch (error) {
-        console.error("Failed to update user:", error);
-        // Error handling logic
-      } finally {
-        setIsUpdating(false);
-      }
-    },
-    [onUpdate]
-  );
+    setIsUpdating(true);
+    try {
+      await onUpdate(data);
+    } catch (error) {
+      console.error('Failed to update user:', error);
+      // Error handling logic
+    } finally {
+      setIsUpdating(false);
+    }
+  }, [onUpdate]);
 
   // Break into smaller components when complexity increases
   return (
     <div className="flex flex-col gap-4 p-6 rounded-lg bg-white shadow-md">
       <UserAvatar src={user.avatarUrl} size="lg" />
-      <UserInfoSection
-        user={user}
-        stats={userDisplayStats}
-      />
+      <UserInfoSection user={user} stats={userDisplayStats} />
       {isEditable && (
         <UserEditForm
           userData={user}
@@ -272,15 +276,72 @@ export function UserProfile({
 }
 ```
 
+### Server Component Example
+
 ```typescript
-// Hook Example
+// UserDashboard.tsx
+// No "use client" directive - this is a Server Component
+
+// Define types for data structure
+type DashboardData = {
+  user: UserDetails;
+  analytics: AnalyticsData;
+  recentActivity: Activity[];
+};
+
+async function fetchDashboardData(userId: string): Promise<DashboardData> {
+  // Server-side data fetching
+  const user = await db.users.findUnique({ where: { id: userId } });
+  const analytics = await analyticsService.getUserMetrics(userId);
+  const recentActivity = await activityService.getRecentByUser(userId, { limit: 5 });
+
+  return {
+    user,
+    analytics,
+    recentActivity
+  };
+}
+
+export async function UserDashboard({ userId }: { userId: string }) {
+  // Async data fetching directly in the component
+  const dashboardData = await fetchDashboardData(userId);
+
+  return (
+    <div className="space-y-6">
+      <h1 className="text-2xl font-bold">Dashboard</h1>
+
+      {/* Pass fetched data to Client Components */}
+      <UserHeader user={dashboardData.user} />
+      <AnalyticsPanel data={dashboardData.analytics} />
+
+      {/* Render static content directly in Server Component */}
+      <section className="mt-8">
+        <h2 className="text-xl font-semibold mb-4">Recent Activity</h2>
+        <ul className="divide-y divide-gray-200">
+          {dashboardData.recentActivity.map((activity) => (
+            <li key={activity.id} className="py-3">
+              <ActivityItem activity={activity} />
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      {/* Interactivity needs Client Components */}
+      <UserActionButtons userId={userId} />
+    </div>
+  );
+}
+
+// Note: UserHeader, AnalyticsPanel, ActivityItem could be Server Components too
+// UserActionButtons would be a Client Component with "use client" directive
+```
+
+### Custom Hook Example
+
+```typescript
 // hooks/useDebounce.ts
-export function useDebounce<T>(
-  value: T,
-  delay: number = 500
-): T {
-  const [debouncedValue, setDebouncedValue] =
-    useState<T>(value);
+export function useDebounce<T>(value: T, delay: number = 500): T {
+  const [debouncedValue, setDebouncedValue] = useState<T>(value);
 
   useEffect(() => {
     const timer = setTimeout(() => {
