@@ -1,4 +1,4 @@
-import { CalldataDecoder } from "@/components/calldata-decoder/calldata-decoder";
+import { CalldataDecoder } from "@/features/calldata-decoder";
 import { 
   Sidebar, 
   SidebarContent,
