@@ -1,5 +1,6 @@
 "use client";
 
+import { memo } from "react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Segment, formatTooltipValue, getParamColor } from "../lib/calldata-display-utils";
 
@@ -9,7 +10,7 @@ interface CalldataSegmentProps {
   index: number;
 }
 
-export function CalldataSegment({ segment, segmentText, index }: CalldataSegmentProps) {
+function CalldataSegmentComponent({ segment, segmentText, index }: CalldataSegmentProps) {
   return (
     <TooltipProvider key={`param-${index}`}>
       <Tooltip>
@@ -32,3 +33,5 @@ export function CalldataSegment({ segment, segmentText, index }: CalldataSegment
     </TooltipProvider>
   );
 }
+
+export const CalldataSegment = memo(CalldataSegmentComponent);
