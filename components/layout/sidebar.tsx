@@ -22,9 +22,10 @@ type MenuItemProps = {
   icon: React.ReactNode;
   label: string;
   isActive?: boolean;
+  onClick?: () => void;
 };
 
-const MenuItem = ({ icon, label, isActive }: MenuItemProps) => {
+const MenuItem = ({ icon, label, isActive, onClick }: MenuItemProps) => {
   return (
     <SidebarMenuItem className="group/menuitem">
       <SidebarMenuButton
@@ -33,6 +34,7 @@ const MenuItem = ({ icon, label, isActive }: MenuItemProps) => {
           'hover:bg-accent/50 transition-all rounded-md',
           isActive ? 'bg-accent/40 font-medium' : 'bg-transparent'
         )}
+        onClick={onClick}
       >
         <span
           className={cn(
@@ -63,6 +65,24 @@ const EthereumIcon = ({ className }: { className?: string }) => (
 );
 
 export function EnhancedSidebar() {
+  const [currentTab, setCurrentTab] = React.useState<'decoder' | 'encoder'>('decoder');
+  
+  const switchTab = (tab: 'decoder' | 'encoder') => {
+    setCurrentTab(tab);
+    // Find tab elements and click the appropriate one
+    const tabElements = document.querySelectorAll('[role="tab"]');
+    for (let i = 0; i < tabElements.length; i++) {
+      const element = tabElements[i];
+      if (
+        (tab === 'decoder' && element.textContent?.includes('Decoder')) ||
+        (tab === 'encoder' && element.textContent?.includes('Encoder'))
+      ) {
+        (element as HTMLElement).click();
+        break;
+      }
+    }
+  };
+
   return (
     <Sidebar className="border-r border-border/50 bg-sidebar/90 backdrop-blur-md">
       <SidebarHeader className="py-3">
@@ -86,11 +106,14 @@ export function EnhancedSidebar() {
               <MenuItem 
                 icon={<Code size={18} />} 
                 label="Calldata Decoder" 
-                isActive={true} 
+                isActive={currentTab === 'decoder'}
+                onClick={() => switchTab('decoder')}
               />
               <MenuItem
                 icon={<EthereumIcon className="h-[18px] w-[18px]" />}
                 label="Calldata Encoder"
+                isActive={currentTab === 'encoder'}
+                onClick={() => switchTab('encoder')}
               />
             </SidebarMenu>
           </SidebarGroupContent>

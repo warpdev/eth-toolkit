@@ -1,0 +1,85 @@
+import { Abi } from "viem";
+
+/**
+ * Validates if the provided string is a valid ABI JSON
+ */
+export function validateAbi(abiString: string): { valid: boolean; error?: string } {
+  if (!abiString.trim()) {
+    return { valid: false, error: "ABI is empty" };
+  }
+
+  try {
+    const parsed = JSON.parse(abiString);
+    
+    if (!Array.isArray(parsed)) {
+      return { valid: false, error: "ABI must be an array" };
+    }
+    
+    // Check if there are function definitions
+    const hasFunctions = parsed.some(item => item.type === 'function');
+    
+    if (!hasFunctions) {
+      return { valid: false, error: "ABI does not contain any functions" };
+    }
+    
+    return { valid: true };
+  } catch (error) {
+    return { 
+      valid: false, 
+      error: "Invalid JSON format: " + (error instanceof Error ? error.message : String(error))
+    };
+  }
+}
+
+/**
+ * Checks if the provided ABI has the specified function
+ */
+export function validateFunctionExists(abi: Abi, functionName: string): boolean {
+  if (!abi || !Array.isArray(abi) || !functionName) return false;
+  
+  return abi.some(
+    (item) => item.type === 'function' && item.name === functionName
+  );
+}
+
+/**
+ * Validates that all required inputs for a function are provided
+ */
+export function validateFunctionInputs(
+  abi: Abi,
+  functionName: string,
+  inputs: Record<string, string>
+): { valid: boolean; error?: string } {
+  if (!abi || !Array.isArray(abi) || !functionName) {
+    return { valid: false, error: "Invalid ABI or function name" };
+  }
+  
+  // Find the function in the ABI
+  const functionAbi = abi.find(
+    (item) => item.type === 'function' && item.name === functionName
+  );
+  
+  if (!functionAbi) {
+    return { valid: false, error: `Function ${functionName} not found in ABI` };
+  }
+  
+  // Check required inputs
+  for (const input of functionAbi.inputs || []) {
+    const paramName = input.name;
+    
+    // Skip if the parameter has no name (rare but possible)
+    if (!paramName) continue;
+    
+    // Check if the input exists and is not empty
+    if (!inputs[paramName] && inputs[paramName] !== '0' && inputs[paramName] !== 'false') {
+      return { 
+        valid: false, 
+        error: `Missing required parameter: ${paramName} (${input.type})` 
+      };
+    }
+    
+    // Additional type-specific validation could be added here
+  }
+  
+  return { valid: true };
+}
