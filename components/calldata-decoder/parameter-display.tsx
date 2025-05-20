@@ -2,12 +2,32 @@
 
 import React from "react";
 import { ParsedParameter } from "@/lib/decoder/types";
+import { CopyButton } from "./copy-button";
 
 interface ParameterDisplayProps {
   parameters: ParsedParameter[];
   parseError?: string | null;
   args?: unknown[];
 }
+
+// Helper to get the string representation of an argument for copying
+const getArgAsString = (arg: unknown): string => {
+  if (arg === null || arg === undefined) {
+    return "null";
+  }
+
+  if (typeof arg === 'object') {
+    try {
+      return JSON.stringify(arg, (_, value) => 
+        typeof value === 'bigint' ? value.toString() : value, 2
+      );
+    } catch {
+      return String(arg);
+    }
+  }
+
+  return String(arg);
+};
 
 // Helper to format arguments in a readable way
 const formatArg = (arg: unknown): React.ReactNode => {
@@ -72,8 +92,15 @@ export const ParameterDisplay = React.memo(function ParameterDisplay({
                   {param.type}
                 </div>
               </div>
-              <div className="font-mono text-sm overflow-auto">
-                {formatArg(param.value)}
+              <div className="relative overflow-auto group font-mono text-sm">
+                <div className="pr-8">{formatArg(param.value)}</div>
+                <div className="absolute top-0 right-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <CopyButton 
+                    text={getArgAsString(param.value)} 
+                    tooltipText="Copy parameter value" 
+                    successMessage="Parameter value copied!"
+                  />
+                </div>
               </div>
             </div>
           ))}
@@ -100,8 +127,15 @@ export const ParameterDisplay = React.memo(function ParameterDisplay({
                 <div className="font-medium text-sm text-muted-foreground">
                   Arg {index + 1}:
                 </div>
-                <div className="font-mono text-sm">
-                  {formatArg(arg)}
+                <div className="relative group font-mono text-sm">
+                  <div className="pr-8">{formatArg(arg)}</div>
+                  <div className="absolute top-0 right-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <CopyButton 
+                      text={getArgAsString(arg)} 
+                      tooltipText="Copy argument value" 
+                      successMessage="Argument value copied!"
+                    />
+                  </div>
                 </div>
               </div>
             ))}

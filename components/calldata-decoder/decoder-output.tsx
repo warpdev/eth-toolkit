@@ -18,6 +18,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ColorCodedCalldata } from "./color-coded-calldata";
 import { FunctionSignatureSelector } from "./function-signature-selector";
 import { ParameterDisplay } from "./parameter-display";
+import { CopyButton } from "./copy-button";
 import { useParseParameters } from "@/lib/hooks/use-parse-parameters";
 
 // Extracted skeleton component to prevent recreation on each render
@@ -98,7 +99,16 @@ export const DecoderOutput = React.memo(function DecoderOutput() {
         
         {/* Function name */}
         <div className="space-y-2">
-          <h3 className="text-sm font-medium">Function Name</h3>
+          <h3 className="flex items-center justify-between text-sm font-medium">
+            <span>Function Name</span>
+            {currentFunctionName && (
+              <CopyButton
+                text={currentFunctionName}
+                tooltipText="Copy function name"
+                successMessage="Function name copied!"
+              />
+            )}
+          </h3>
           <div className="p-3 bg-muted rounded-md font-mono text-sm">
             {currentFunctionName}
           </div>
@@ -113,7 +123,16 @@ export const DecoderOutput = React.memo(function DecoderOutput() {
         
         {/* Raw calldata */}
         <div className="space-y-2">
-          <h3 className="text-sm font-medium">Raw Calldata</h3>
+          <h3 className="flex items-center justify-between text-sm font-medium">
+            <span>Raw Calldata</span>
+            {calldata && (
+              <CopyButton 
+                text={calldata} 
+                tooltipText="Copy raw calldata" 
+                successMessage="Raw calldata copied!"
+              />
+            )}
+          </h3>
           <div className="p-3 bg-muted rounded-md font-mono text-sm break-all">
             {calldata && <ColorCodedCalldata 
               calldata={calldata} 
