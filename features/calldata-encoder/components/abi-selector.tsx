@@ -6,6 +6,7 @@ import { abiStringAtom } from "../atoms/encoder-atoms";
 import { Button } from "@/components/ui/button";
 import { Upload } from "lucide-react";
 import { toast } from "sonner";
+import { validateAbiString } from "@/lib/utils";
 
 export function AbiSelector() {
   const setAbiString = useSetAtom(abiStringAtom);
@@ -30,8 +31,15 @@ export function AbiSelector() {
       try {
         const content = e.target?.result as string;
         
-        // Try to parse as JSON to validate format
-        JSON.parse(content);
+        // Validate ABI format
+        const validation = validateAbiString(content);
+        if (!validation.isValid) {
+          toast.error("Invalid ABI format", {
+            description: validation.error || "The file does not contain a valid ABI",
+            duration: 3000
+          });
+          return;
+        }
         
         // Set ABI string
         setAbiString(content);

@@ -11,14 +11,23 @@ import {
   encodeErrorAtom,
   encodedCalldataAtom 
 } from "../atoms/encoder-atoms";
-import { 
-  parseAbiFromString, 
-  encodeCalldataWithAbi, 
-  transformInputsForEncoding 
-} from "../lib/encoding-utils";
-import { validateAbi, validateFunctionInputs } from "../lib/validation";
-import { generateInputFieldsFromAbi } from "../lib/parameter-utils";
-import { EncodedFunction } from "../lib/types";
+import {
+  encodeFunctionData, Abi
+} from "viem";
+import {
+  parseAbiFromString,
+  validateAbiString,
+  validateFunctionInputs as validateInputs,
+  generateParametersFromAbi,
+  transformInputsForEncoding,
+  FunctionParameter,
+  EncodedFunction,
+  ErrorType,
+  getAbiValidationError,
+  getEncodingError,
+  getParameterError,
+  normalizeError
+} from "@/lib/utils";
 
 /**
  * Hook for encoding calldata functionality
@@ -34,14 +43,15 @@ export function useEncodeCalldata() {
   const [encodedCalldata, setEncodedCalldata] = useAtom(encodedCalldataAtom);
 
   /**
-   * Parse ABI from string input
+   * Parse ABI from string input with improved error handling
    */
   const parseAbi = useCallback(() => {
     // Validate ABI
-    const validation = validateAbi(abiString);
-    if (!validation.valid) {
+    const validation = validateAbiString(abiString);
+    if (!validation.isValid) {
+      const error = getAbiValidationError(validation.error);
       setAbi(null);
-      setEncodeError(validation.error || "Invalid ABI");
+      setEncodeError(error.message);
       return false;
     }
 
@@ -49,7 +59,8 @@ export function useEncodeCalldata() {
     try {
       const parsedAbi = parseAbiFromString(abiString);
       if (!parsedAbi) {
-        setEncodeError("Failed to parse ABI");
+        const error = getAbiValidationError("Failed to parse ABI structure");
+        setEncodeError(error.message);
         return false;
       }
       
@@ -57,7 +68,8 @@ export function useEncodeCalldata() {
       setEncodeError(null);
       return true;
     } catch (error) {
-      setEncodeError(`Error parsing ABI: ${error instanceof Error ? error.message : String(error)}`);
+      const normalizedError = normalizeError(error, ErrorType.INVALID_ABI);
+      setEncodeError(normalizedError.message);
       return false;
     }
   }, [abiString, setAbi, setEncodeError]);
@@ -87,7 +99,7 @@ export function useEncodeCalldata() {
   }, [setFunctionInputs]);
 
   /**
-   * Validate the current encoding setup
+   * Validate the current encoding setup with improved error handling
    */
   const validateEncodingSetup = useCallback(() => {
     if (!abi || !selectedFunction) {
@@ -96,9 +108,10 @@ export function useEncodeCalldata() {
     }
 
     // Validate all required inputs are provided
-    const inputValidation = validateFunctionInputs(abi, selectedFunction, functionInputs);
+    const inputValidation = validateInputs(abi, selectedFunction, functionInputs);
     if (!inputValidation.valid) {
-      setEncodeError(inputValidation.error || "Invalid inputs");
+      const error = getParameterError(inputValidation.error);
+      setEncodeError(error.message);
       return false;
     }
 
@@ -112,7 +125,7 @@ export function useEncodeCalldata() {
     if (!abi || !selectedFunction) return null;
     
     // Get function parameters from ABI
-    const functionParams = generateInputFieldsFromAbi(abi, selectedFunction);
+    const functionParams = generateParametersFromAbi(abi, selectedFunction);
     
     // Transform inputs to appropriate types
     const transformedInputs = transformInputsForEncoding(functionInputs, functionParams);
@@ -142,6 +155,7 @@ export function useEncodeCalldata() {
 
   /**
    * Encode calldata using the current ABI, selected function, and inputs
+   * with improved error handling
    */
   const encodeCalldata = useCallback(async () => {
     // Validate setup first
@@ -159,23 +173,19 @@ export function useEncodeCalldata() {
       // Prepare inputs for encoding
       const prepared = prepareInputsForEncoding();
       if (!prepared) {
-        setEncodeError("Failed to prepare inputs");
+        const error = getParameterError("Failed to prepare inputs");
+        setEncodeError(error.message);
         return null;
       }
       
       const { functionParams, transformedInputs } = prepared;
       
-      // Encode calldata
-      const encodedDataResult = await encodeCalldataWithAbi(abi, selectedFunction, transformedInputs);
-      
-      // Check if we got an error
-      if (typeof encodedDataResult !== 'string' && 'error' in encodedDataResult) {
-        setEncodeError(encodedDataResult.error);
-        return { error: encodedDataResult.error };
-      }
-      
-      // Now we know encodedDataResult is a string
-      const encodedData = encodedDataResult as string;
+      // Encode calldata using viem
+      const encodedData = encodeFunctionData({
+        abi: abi as Abi,
+        functionName: selectedFunction,
+        args: transformedInputs,
+      });
       
       // Create result object
       const result = createResultObject(
@@ -190,9 +200,9 @@ export function useEncodeCalldata() {
       
       return result;
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      setEncodeError(`Error encoding calldata: ${errorMessage}`);
-      return { error: errorMessage };
+      const normalizedError = normalizeError(error, ErrorType.ENCODING_ERROR);
+      setEncodeError(normalizedError.message);
+      return { error: normalizedError.message };
     } finally {
       setIsEncoding(false);
     }

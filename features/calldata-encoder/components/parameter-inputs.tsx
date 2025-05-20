@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback } from "react";
+import React, { useCallback, useMemo } from "react";
 import { useAtom, useAtomValue } from "jotai";
 import { abiAtom, selectedFunctionAtom, functionInputsAtom } from "../atoms/encoder-atoms";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,8 +8,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
-import { generateInputFieldsFromAbi, getPlaceholderForType, getInputTypeForParameterType } from "../lib/parameter-utils";
-import { FunctionParameter } from "../lib/types";
+import { 
+  generateParametersFromAbi, 
+  getPlaceholderForType, 
+  getInputTypeForParameterType,
+  FunctionParameter 
+} from "@/lib/utils";
 
 // Interface for shared parameter input props
 interface ParameterFieldProps {
@@ -110,7 +114,7 @@ export const ParameterInputs = React.memo(function ParameterInputs() {
   
   // Get function parameters from ABI using memoization
   const functionParams = useMemo(() => 
-    generateInputFieldsFromAbi(abi, selectedFunction),
+    generateParametersFromAbi(abi, selectedFunction),
     [abi, selectedFunction]
   );
   

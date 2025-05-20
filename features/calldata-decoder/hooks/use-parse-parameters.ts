@@ -11,7 +11,10 @@ import {
   decodedResultAtom,
   selectedSignatureIndexAtom 
 } from "@/features/calldata-decoder/atoms/decoder-result-atom";
-import { ParsedParameter } from "@/features/calldata-decoder/lib/types";
+import { 
+  ParsedParameter,
+  normalizeCalldata
+} from "@/lib/utils";
 import { createTemporaryAbiFromSignature } from "@/features/calldata-decoder/lib/signature-utils";
 import { extractParametersFromSignature } from "@/features/calldata-decoder/lib/parameter-utils";
 
@@ -91,7 +94,7 @@ export function useParseParameters() {
 
     try {
       // Normalize calldata
-      const fullCalldata = calldata.startsWith("0x") ? calldata : `0x${calldata}`;
+      const fullCalldata = normalizeCalldata(calldata);
       
       // Create temporary ABI from the selected signature
       const tempAbi = createTemporaryAbiFromSignature(selectedSignature);

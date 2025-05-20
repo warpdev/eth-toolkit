@@ -1,9 +1,34 @@
 import { Abi } from "viem";
+import { FunctionInfo, FunctionParameter, AbiValidationResult } from "../types/calldata-types";
+
+/**
+ * Type guard for ABI function items
+ */
+function isAbiFunction(
+  item: Abi[number]
+): item is Extract<Abi[number], { type: 'function'; name: string; inputs: readonly unknown[] }> {
+  return item.type === 'function' && typeof item.name === 'string' && Array.isArray(item.inputs);
+}
+
+/**
+ * Type guard for ABI function inputs
+ */
+function isValidFunctionInput(
+  input: unknown
+): input is { name: string; type: string; components?: unknown[] } {
+  return (
+    typeof input === 'object' &&
+    input !== null &&
+    'name' in input &&
+    'type' in input &&
+    typeof (input as any).type === 'string'
+  );
+}
 
 /**
  * Validates if the provided string is a valid ABI JSON
  */
-export function validateAbiString(abiString: string): { isValid: boolean; error?: string } {
+export function validateAbiString(abiString: string): AbiValidationResult {
   if (!abiString || !abiString.trim()) {
     return { isValid: false, error: "ABI is empty" };
   }
@@ -107,4 +132,64 @@ export function validateFunctionInputs(
   }
   
   return { valid: true };
+}
+
+/**
+ * Extract all functions from an ABI with proper type checking
+ */
+export function extractFunctionsFromAbi(abi: Abi): FunctionInfo[] {
+  if (!abi || !Array.isArray(abi)) return [];
+
+  return abi.filter(isAbiFunction).map((func) => {
+    const inputs = func.inputs || [];
+
+    // Safely map the inputs with validated types
+    const validatedInputs = inputs.filter(isValidFunctionInput).map((input) => ({
+      name: input.name,
+      type: input.type,
+      components: Array.isArray(input.components)
+        ? input.components.filter(isValidFunctionInput)
+        : undefined,
+    }));
+
+    const signature = `${func.name}(${validatedInputs.map((input) => input.type).join(',')})`;
+
+    return {
+      name: func.name,
+      signature,
+      inputs: validatedInputs,
+    };
+  });
+}
+
+/**
+ * Get function details from ABI by name
+ */
+export function getFunctionFromAbi(
+  abi: Abi,
+  functionName: string
+): FunctionInfo | null {
+  if (!abi || !Array.isArray(abi) || !functionName) return null;
+  
+  // Extract all functions
+  const functions = extractFunctionsFromAbi(abi);
+  
+  // Find the specific function
+  return functions.find(func => func.name === functionName) || null;
+}
+
+/**
+ * Get function details from ABI by signature
+ */
+export function getFunctionBySignature(
+  abi: Abi,
+  signature: string
+): FunctionInfo | null {
+  if (!abi || !Array.isArray(abi) || !signature) return null;
+  
+  // Extract all functions
+  const functions = extractFunctionsFromAbi(abi);
+  
+  // Find the specific function by signature
+  return functions.find(func => func.signature === signature) || null;
 }

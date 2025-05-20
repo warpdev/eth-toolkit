@@ -3,8 +3,7 @@
 import { useAtomValue } from "jotai";
 import { useCallback, useMemo } from "react";
 import { abiAtom } from "../atoms/encoder-atoms";
-import { FunctionInfo } from "../lib/types";
-import { extractFunctionsFromAbi } from "../lib/encoding-utils";
+import { FunctionInfo, extractFunctionsFromAbi } from "@/lib/utils";
 
 /**
  * Hook for handling function selection from an ABI

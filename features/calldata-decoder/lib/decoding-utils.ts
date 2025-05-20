@@ -1,23 +1,14 @@
 import { Abi, decodeFunctionData } from "viem";
-import { DecodedFunction, DecodedFunctionWithSignatures, ParsedParameter } from "./types";
+import { 
+  DecodedFunction, 
+  DecodedFunctionWithSignatures, 
+  ParsedParameter,
+  normalizeCalldata,
+  extractFunctionSelector,
+  extractCalldataParameters
+} from "@/lib/utils";
 import { fetchFunctionSignatures, findBestSignatureMatch, createTemporaryAbiFromSignature } from "./signature-utils";
 import { extractParametersFromSignature } from "./parameter-utils";
-
-/**
- * Parse ABI from string
- * 
- * @param abiString - ABI JSON string
- * @returns Parsed ABI or null if invalid
- */
-export function parseAbiFromString(abiString: string): Abi | null {
-  try {
-    const parsedAbi = JSON.parse(abiString) as Abi;
-    return parsedAbi;
-  } catch (error) {
-    console.error("Error parsing ABI:", error);
-    return null;
-  }
-}
 
 /**
  * Decode calldata using a provided ABI
@@ -29,17 +20,11 @@ export function parseAbiFromString(abiString: string): Abi | null {
 export async function decodeCalldataWithAbi(
   calldata: string, 
   abi: Abi
-): Promise<DecodedFunction> {
+): Promise<DecodedFunctionWithSignatures> {
   try {
-    // Extract just the function selector if full calldata is provided
-    const functionSelector = calldata.startsWith("0x") 
-      ? calldata.slice(0, 10) 
-      : `0x${calldata.slice(0, 8)}`;
-      
-    // Extract the full calldata
-    const fullCalldata = calldata.startsWith("0x") 
-      ? calldata 
-      : `0x${calldata}`;
+    // Extract function selector and normalize calldata
+    const functionSelector = extractFunctionSelector(calldata);
+    const fullCalldata = normalizeCalldata(calldata);
 
     // Attempt to decode using viem
     const decoded = decodeFunctionData({
@@ -47,16 +32,19 @@ export async function decodeCalldataWithAbi(
       data: fullCalldata as `0x${string}`,
     });
 
-    return {
+    // Create the result object
+    const result: DecodedFunctionWithSignatures = {
       functionName: decoded.functionName,
       functionSig: functionSelector,
       args: decoded.args ? [...decoded.args] : [],
     };
+
+    return result;
   } catch (error) {
     console.error("Error decoding calldata:", error);
     return {
       functionName: "Unknown Function",
-      functionSig: calldata.slice(0, 10),
+      functionSig: extractFunctionSelector(calldata),
       args: [],
       error: error instanceof Error ? error.message : "Unknown error decoding calldata",
     };
@@ -73,15 +61,9 @@ export async function decodeCalldataWithSignatureLookup(
   calldata: string
 ): Promise<DecodedFunctionWithSignatures> {
   try {
-    // Extract just the function selector
-    const functionSelector = calldata.startsWith("0x") 
-      ? calldata.slice(0, 10) 
-      : `0x${calldata.slice(0, 8)}`;
-    
-    // Normalize the full calldata
-    const fullCalldata = calldata.startsWith("0x") 
-      ? calldata 
-      : `0x${calldata}`;
+    // Extract function selector and normalize calldata
+    const functionSelector = extractFunctionSelector(calldata);
+    const fullCalldata = normalizeCalldata(calldata);
       
     // Lookup the function signatures
     const signatures = await fetchFunctionSignatures(functionSelector);
@@ -126,7 +108,7 @@ export async function decodeCalldataWithSignatureLookup(
     } catch (decodeError) {
       console.warn("Error decoding parameters:", decodeError);
       // Fallback to showing raw parameters if decoding fails
-      const rawParams = calldata.length > 10 ? calldata.slice(10) : "";
+      const rawParams = extractCalldataParameters(calldata);
       args = [rawParams];
     }
     
@@ -143,7 +125,7 @@ export async function decodeCalldataWithSignatureLookup(
     console.error("Error decoding with signature lookup:", error);
     return {
       functionName: "Unknown Function",
-      functionSig: calldata.slice(0, 10),
+      functionSig: extractFunctionSelector(calldata),
       args: [],
       error: error instanceof Error ? error.message : "Unknown error decoding calldata",
     };

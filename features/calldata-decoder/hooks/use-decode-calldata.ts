@@ -11,16 +11,22 @@ import {
   decodeModeAtom
 } from "@/features/calldata-decoder/atoms/calldata-atoms";
 import { decodedResultAtom, selectedSignatureIndexAtom } from "@/features/calldata-decoder/atoms/decoder-result-atom";
-import { DecodedFunction, DecodedFunctionWithSignatures } from "@/features/calldata-decoder/lib/types";
-import { decodeCalldataWithAbi, decodeCalldataWithSignatureLookup, parseAbiFromString } from "@/features/calldata-decoder/lib/decoding-utils";
-import {
+import { 
+  DecodedFunctionWithSignatures,
+  parseAbiFromString,
+  validateAbiString,
   isValidCalldata,
-  validateAbi,
-  normalizeCalldata
-} from "@/features/calldata-decoder/lib/validation";
+  normalizeCalldata,
+  ErrorType,
+  getAbiValidationError,
+  getCalldataValidationError,
+  getDecodingError,
+  normalizeError
+} from "@/lib/utils";
+import { decodeCalldataWithAbi, decodeCalldataWithSignatureLookup } from "@/features/calldata-decoder/lib/decoding-utils";
 
 /**
- * Hook for decoding calldata
+ * Hook for decoding calldata with improved error handling
  */
 export function useDecodeCalldata() {
   const calldata = useAtomValue(calldataAtom);
@@ -41,16 +47,18 @@ export function useDecodeCalldata() {
     }
 
     // Validate ABI before parsing
-    const { isValid, error } = validateAbi(abiString);
-    if (!isValid) {
-      setDecodeError(error || "Invalid ABI format. Please check your input.");
+    const validation = validateAbiString(abiString);
+    if (!validation.isValid) {
+      const error = getAbiValidationError(validation.error);
+      setDecodeError(error.message);
       return false;
     }
 
     const parsedAbi = parseAbiFromString(abiString);
     
     if (!parsedAbi) {
-      setDecodeError("Invalid ABI format. Please check your input.");
+      const error = getAbiValidationError("Failed to parse ABI structure");
+      setDecodeError(error.message);
       return false;
     }
 
@@ -68,10 +76,8 @@ export function useDecodeCalldata() {
     }
 
     if (!isValidCalldata(calldata)) {
-      setDecodeError(
-        "Invalid calldata format. Calldata must be a hex string, start with 0x, " +
-        "and have at least 4 bytes for the function selector."
-      );
+      const error = getCalldataValidationError();
+      setDecodeError(error.message);
       return false;
     }
 
@@ -82,7 +88,7 @@ export function useDecodeCalldata() {
   const setSelectedIndex = useSetAtom(selectedSignatureIndexAtom);
 
   /**
-   * Decode the calldata
+   * Decode the calldata with improved error handling
    */
   const decodeCalldata = useCallback(async (): Promise<DecodedFunctionWithSignatures | null> => {
     setIsDecoding(true);
@@ -98,14 +104,15 @@ export function useDecodeCalldata() {
 
       // Normalize the calldata
       const normalizedCalldata = normalizeCalldata(calldata);
-      let result: DecodedFunction | DecodedFunctionWithSignatures | null = null;
+      let result: DecodedFunctionWithSignatures | null = null;
 
       if (decodeMode === "abi") {
         // Make sure we have a valid ABI
         const isValidAbi = parseAbi();
         
         if (!isValidAbi || !abi) {
-          setDecodeError("Invalid ABI. Please check your input.");
+          const error = getAbiValidationError("Invalid or missing ABI");
+          setDecodeError(error.message);
           return null;
         }
 
@@ -127,10 +134,10 @@ export function useDecodeCalldata() {
       
       // Store the result in the atom
       setDecodedResult(result);
-      return result as DecodedFunctionWithSignatures;
+      return result;
     } catch (error) {
-      console.error("Error decoding calldata:", error);
-      setDecodeError(error instanceof Error ? error.message : "Unknown error decoding calldata");
+      const normalizedError = normalizeError(error, ErrorType.DECODING_ERROR);
+      setDecodeError(normalizedError.message);
       return null;
     } finally {
       setIsDecoding(false);
