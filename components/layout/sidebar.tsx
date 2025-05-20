@@ -17,36 +17,59 @@ import {
 import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { cn } from '@/lib/utils';
 import { siEthereum } from 'simple-icons';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 
 type MenuItemProps = {
   icon: React.ReactNode;
   label: string;
   isActive?: boolean;
+  href?: string;
   onClick?: () => void;
 };
 
-const MenuItem = ({ icon, label, isActive, onClick }: MenuItemProps) => {
+const MenuItem = ({ icon, label, isActive, href, onClick }: MenuItemProps) => {
+  const content = (
+    <>
+      <span
+        className={cn(
+          'mr-2.5 scale-75 transition-colors duration-200',
+          isActive ? 'text-foreground' : 'text-muted-foreground',
+          'group-hover/menuitem:text-foreground'
+        )}
+      >
+        {icon}
+      </span>
+      <span className="text-sm font-medium">{label}</span>
+    </>
+  );
+
   return (
     <SidebarMenuItem className="group/menuitem">
-      <SidebarMenuButton
-        isActive={isActive}
-        className={cn(
-          'hover:bg-accent/50 transition-all rounded-md',
-          isActive ? 'bg-accent/40 font-medium' : 'bg-transparent'
-        )}
-        onClick={onClick}
-      >
-        <span
+      {href ? (
+        <Link href={href} className="w-full">
+          <SidebarMenuButton
+            isActive={isActive}
+            className={cn(
+              'hover:bg-accent/50 transition-all rounded-md w-full',
+              isActive ? 'bg-accent/40 font-medium' : 'bg-transparent'
+            )}
+          >
+            {content}
+          </SidebarMenuButton>
+        </Link>
+      ) : (
+        <SidebarMenuButton
+          isActive={isActive}
           className={cn(
-            'mr-2.5 scale-75 transition-colors duration-200',
-            isActive ? 'text-foreground' : 'text-muted-foreground',
-            'group-hover/menuitem:text-foreground'
+            'hover:bg-accent/50 transition-all rounded-md',
+            isActive ? 'bg-accent/40 font-medium' : 'bg-transparent'
           )}
+          onClick={onClick}
         >
-          {icon}
-        </span>
-        <span className="text-sm font-medium">{label}</span>
-      </SidebarMenuButton>
+          {content}
+        </SidebarMenuButton>
+      )}
     </SidebarMenuItem>
   );
 };
@@ -65,23 +88,7 @@ const EthereumIcon = ({ className }: { className?: string }) => (
 );
 
 export function EnhancedSidebar() {
-  const [currentTab, setCurrentTab] = React.useState<'decoder' | 'encoder'>('decoder');
-  
-  const switchTab = (tab: 'decoder' | 'encoder') => {
-    setCurrentTab(tab);
-    // Find tab elements and click the appropriate one
-    const tabElements = document.querySelectorAll('[role="tab"]');
-    for (let i = 0; i < tabElements.length; i++) {
-      const element = tabElements[i];
-      if (
-        (tab === 'decoder' && element.textContent?.includes('Decoder')) ||
-        (tab === 'encoder' && element.textContent?.includes('Encoder'))
-      ) {
-        (element as HTMLElement).click();
-        break;
-      }
-    }
-  };
+  const pathname = usePathname();
 
   return (
     <Sidebar className="border-r border-border/50 bg-sidebar/90 backdrop-blur-md">
@@ -106,14 +113,14 @@ export function EnhancedSidebar() {
               <MenuItem 
                 icon={<Code size={18} />} 
                 label="Calldata Decoder" 
-                isActive={currentTab === 'decoder'}
-                onClick={() => switchTab('decoder')}
+                isActive={pathname === '/calldata/decoder'}
+                href="/calldata/decoder"
               />
               <MenuItem
                 icon={<EthereumIcon className="h-[18px] w-[18px]" />}
                 label="Calldata Encoder"
-                isActive={currentTab === 'encoder'}
-                onClick={() => switchTab('encoder')}
+                isActive={pathname === '/calldata/encoder'}
+                href="/calldata/encoder"
               />
             </SidebarMenu>
           </SidebarGroupContent>
