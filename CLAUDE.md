@@ -63,22 +63,6 @@ pnpm lint        # Run ESLint
   - IndexedDB integration
   - CRUD operations for saved items
 
-<code_quality>
-Next.js/React/TypeScript/TailwindCSS frontend code quality standards:
-
-- Maximize TypeScript type safety (avoid 'any')
-- Limit file/component size (files <300 lines, components <150 lines)
-- Follow Single Responsibility Principle and modularization
-- Optimize performance with memoization (useMemo, useCallback)
-- State management: local(useState), global(Context/jotai), server(React Query/SWR)
-- Maintain consistent naming and folder structure
-- Minimize code duplication and handle errors properly
-
-Detailed guide: @docs/code-quality-guidelines.md
-</code_quality>
-
-
-
 ## Micro-Interactions
 
 Micro-interactions are critical to our application's user experience. They provide instant feedback, guide users, and create a polished, responsive feel.
@@ -119,3 +103,43 @@ When working with libraries from our Technology Stack:
 2. Always document the purpose of newly added packages
 3. Group related packages together in the Technology Stack section
 4. Include links to official documentation when available
+
+## Code Quality Guidelines
+
+Next.js/React/TypeScript/TailwindCSS frontend code quality standards:
+
+- Maximize TypeScript type safety (avoid 'any')
+- Limit file/component size (files <300 lines, components <150 lines)
+- Follow Single Responsibility Principle and modularization
+- Optimize performance with memoization (useMemo, useCallback)
+- State management: local(useState), global(Context/jotai), server(React Query/SWR)
+- Maintain consistent naming and folder structure
+- Minimize code duplication and handle errors properly
+
+### Code Style (Prettier)
+
+All code must follow these formatting rules:
+
+```js
+{
+  "semi": true,        // Use semicolons at the end of statements
+  "singleQuote": true, // Use single quotes for strings
+  "tabWidth": 2,       // Use 2 spaces for indentation
+  "trailingComma": "es5", // Add trailing commas where valid in ES5
+  "printWidth": 100,   // Line length max 100 characters
+  "bracketSameLine": false, // Closing brackets on new lines
+  "jsxSingleQuote": false,  // Use double quotes in JSX
+  "arrowParens": "always"   // Always include parentheses around arrow function parameters
+}
+```
+
+Format code with:
+
+```bash
+pnpm format      # Format all files
+pnpm format:check # Check formatting
+```
+
+**IMPORTANT**: Always run `pnpm format` before committing changes to ensure consistent code style across the codebase.
+
+Detailed guide: @docs/code-quality-guidelines.md

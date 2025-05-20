@@ -1,0 +1,19 @@
+# Build output
+.next/
+build/
+dist/
+out/
+
+# Node modules
+node_modules/
+
+# Lock files
+pnpm-lock.yaml
+
+# Generated files
+public/
+
+# Misc
+.DS_Store
+.env
+.env.*
