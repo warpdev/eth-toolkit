@@ -1,5 +1,5 @@
 import { Abi, decodeFunctionData } from "viem";
-import { DecodedFunction, DecodedFunctionWithSignatures } from "./types";
+import { DecodedFunction, DecodedFunctionWithSignatures, ParsedParameter } from "./types";
 import { fetchFunctionSignatures, findBestSignatureMatch, createTemporaryAbiFromSignature } from "./signature-utils";
 import { extractParametersFromSignature } from "./parameter-utils";
 
@@ -109,7 +109,7 @@ export async function decodeCalldataWithSignatureLookup(
     const tempAbi = createTemporaryAbiFromSignature(bestSignature);
     
     let args: unknown[] = [];
-    let parsedParameters: any[] = [];
+    let parsedParameters: ParsedParameter[] = [];
     
     try {
       // Try to decode the calldata using the temporary ABI

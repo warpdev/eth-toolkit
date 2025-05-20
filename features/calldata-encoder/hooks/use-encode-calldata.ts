@@ -87,18 +87,65 @@ export function useEncodeCalldata() {
   }, [setFunctionInputs]);
 
   /**
-   * Encode calldata using the current ABI, selected function, and inputs
+   * Validate the current encoding setup
    */
-  const encodeCalldata = useCallback(async () => {
+  const validateEncodingSetup = useCallback(() => {
     if (!abi || !selectedFunction) {
       setEncodeError("ABI and function must be selected");
-      return null;
+      return false;
     }
 
     // Validate all required inputs are provided
     const inputValidation = validateFunctionInputs(abi, selectedFunction, functionInputs);
     if (!inputValidation.valid) {
       setEncodeError(inputValidation.error || "Invalid inputs");
+      return false;
+    }
+
+    return true;
+  }, [abi, selectedFunction, functionInputs, setEncodeError]);
+
+  /**
+   * Prepare function inputs for encoding
+   */
+  const prepareInputsForEncoding = useCallback(() => {
+    if (!abi || !selectedFunction) return null;
+    
+    // Get function parameters from ABI
+    const functionParams = generateInputFieldsFromAbi(abi, selectedFunction);
+    
+    // Transform inputs to appropriate types
+    const transformedInputs = transformInputsForEncoding(functionInputs, functionParams);
+    
+    return {
+      functionParams,
+      transformedInputs
+    };
+  }, [abi, selectedFunction, functionInputs]);
+
+  /**
+   * Create the final result object
+   */
+  const createResultObject = useCallback((
+    functionName: string,
+    functionParams: FunctionParameter[],
+    transformedInputs: unknown[],
+    encodedData: string
+  ): EncodedFunction => {
+    return {
+      functionName,
+      functionSig: `${functionName}(${functionParams.map(p => p.type).join(',')})`,
+      args: transformedInputs,
+      encodedData
+    };
+  }, []);
+
+  /**
+   * Encode calldata using the current ABI, selected function, and inputs
+   */
+  const encodeCalldata = useCallback(async () => {
+    // Validate setup first
+    if (!validateEncodingSetup()) {
       return null;
     }
 
@@ -106,22 +153,37 @@ export function useEncodeCalldata() {
     setEncodeError(null);
 
     try {
-      // Get function parameters from ABI
-      const functionParams = generateInputFieldsFromAbi(abi, selectedFunction);
+      // If validation passed, we know these variables are defined
+      // We can safely use our hook variables
       
-      // Transform inputs to appropriate types
-      const transformedInputs = transformInputsForEncoding(functionInputs, functionParams);
+      // Prepare inputs for encoding
+      const prepared = prepareInputsForEncoding();
+      if (!prepared) {
+        setEncodeError("Failed to prepare inputs");
+        return null;
+      }
+      
+      const { functionParams, transformedInputs } = prepared;
       
       // Encode calldata
-      const encodedData = await encodeCalldataWithAbi(abi, selectedFunction, transformedInputs);
+      const encodedDataResult = await encodeCalldataWithAbi(abi, selectedFunction, transformedInputs);
+      
+      // Check if we got an error
+      if (typeof encodedDataResult !== 'string' && 'error' in encodedDataResult) {
+        setEncodeError(encodedDataResult.error);
+        return { error: encodedDataResult.error };
+      }
+      
+      // Now we know encodedDataResult is a string
+      const encodedData = encodedDataResult as string;
       
       // Create result object
-      const result: EncodedFunction = {
-        functionName: selectedFunction,
-        functionSig: `${selectedFunction}(${functionParams.map(p => p.type).join(',')})`,
-        args: transformedInputs,
+      const result = createResultObject(
+        selectedFunction,
+        functionParams,
+        transformedInputs,
         encodedData
-      };
+      );
       
       // Update state with result
       setEncodedCalldata(encodedData);
@@ -137,7 +199,9 @@ export function useEncodeCalldata() {
   }, [
     abi, 
     selectedFunction, 
-    functionInputs, 
+    validateEncodingSetup,
+    prepareInputsForEncoding,
+    createResultObject,
     setIsEncoding, 
     setEncodeError,
     setEncodedCalldata

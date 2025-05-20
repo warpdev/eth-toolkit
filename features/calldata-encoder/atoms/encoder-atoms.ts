@@ -7,7 +7,7 @@ import { Abi } from "viem";
 export const abiStringAtom = atom<string>("");
 export const abiAtom = atom<Abi | null>(null);
 export const selectedFunctionAtom = atom<string | null>(null);
-export const functionInputsAtom = atom<Record<string, any>>({});
+export const functionInputsAtom = atom<Record<string, string>>({});
 
 // Processing state
 export const isEncodingAtom = atom<boolean>(false);

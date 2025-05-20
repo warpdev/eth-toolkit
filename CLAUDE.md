@@ -143,3 +143,7 @@ pnpm format:check # Check formatting
 **IMPORTANT**: Always run `pnpm format` before committing changes to ensure consistent code style across the codebase.
 
 Detailed guide: @docs/code-quality-guidelines.md
+
+## Code Commenting Guidelines
+
+- Use comments only to explain 'why' code is needed, not 'what' it does

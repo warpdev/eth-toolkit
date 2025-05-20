@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback } from "react";
+import React, { useCallback, useMemo } from "react";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { selectedFunctionAtom, abiAtom, functionInputsAtom } from "../atoms/encoder-atoms";
 import { useFunctionSelector } from "../hooks/use-function-selector";
@@ -16,7 +16,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 
-export function FunctionSelector() {
+export const FunctionSelector = React.memo(function FunctionSelector() {
   const abi = useAtomValue(abiAtom);
   const [selectedFunction, setSelectedFunction] = useAtom(selectedFunctionAtom);
   const setFunctionInputs = useSetAtom(functionInputsAtom);
@@ -39,6 +39,44 @@ export function FunctionSelector() {
     );
   }
   
+  // Memoize select options to prevent unnecessary re-renders
+  const selectOptions = useMemo(() => (
+    Object.entries(functionsByName).map(([funcName, functions]) => (
+      <SelectGroup key={funcName}>
+        {functions.length > 1 && (
+          <SelectLabel>{funcName} ({functions.length} overloads)</SelectLabel>
+        )}
+        {functions.map((func, index) => (
+          <SelectItem 
+            key={`${func.name}-${index}`} 
+            value={func.name}
+            title={func.signature}
+          >
+            {isOverloadedFunction(func.name) 
+              ? `${func.name}(${func.inputs.map(i => i.type).join(', ')})`
+              : func.name
+            }
+          </SelectItem>
+        ))}
+      </SelectGroup>
+    ))
+  ), [functionsByName, isOverloadedFunction]);
+  
+  // Memoize selected function signature display
+  const selectedFunctionSignatures = useMemo(() => {
+    if (!selectedFunction) return null;
+    
+    return (
+      <div className="mt-2 text-sm text-muted-foreground">
+        {functionsByName[selectedFunction]?.map((func, index) => (
+          <div key={index} className="font-mono">
+            {func.signature}
+          </div>
+        ))}
+      </div>
+    );
+  }, [selectedFunction, functionsByName]);
+  
   return (
     <Card>
       <CardHeader>
@@ -56,40 +94,14 @@ export function FunctionSelector() {
                 <SelectValue placeholder="Select a function" />
               </SelectTrigger>
               <SelectContent>
-                {Object.entries(functionsByName).map(([funcName, functions]) => (
-                  <SelectGroup key={funcName}>
-                    {functions.length > 1 && (
-                      <SelectLabel>{funcName} ({functions.length} overloads)</SelectLabel>
-                    )}
-                    {functions.map((func, index) => (
-                      <SelectItem 
-                        key={`${func.name}-${index}`} 
-                        value={func.name}
-                        title={func.signature}
-                      >
-                        {isOverloadedFunction(func.name) 
-                          ? `${func.name}(${func.inputs.map(i => i.type).join(', ')})`
-                          : func.name
-                        }
-                      </SelectItem>
-                    ))}
-                  </SelectGroup>
-                ))}
+                {selectOptions}
               </SelectContent>
             </Select>
           </div>
           
-          {selectedFunction && (
-            <div className="mt-2 text-sm text-muted-foreground">
-              {functionsByName[selectedFunction]?.map((func, index) => (
-                <div key={index} className="font-mono">
-                  {func.signature}
-                </div>
-              ))}
-            </div>
-          )}
+          {selectedFunctionSignatures}
         </div>
       </CardContent>
     </Card>
   );
-}
+});
