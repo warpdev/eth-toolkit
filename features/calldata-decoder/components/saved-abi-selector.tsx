@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useSetAtom } from "jotai";
 import { toast } from "sonner";
 import { ABIRecord, getAllABIs, loadABI, saveABI, deleteABI } from "@/lib/storage/abi-storage";
-import { abiStringAtom } from "@/lib/atoms/calldata-atoms";
+import { abiStringAtom } from "../atoms/calldata-atoms";
 import {
   DropdownMenu,
   DropdownMenuContent,

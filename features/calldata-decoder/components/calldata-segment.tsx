@@ -1,7 +1,7 @@
 "use client";
 
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Segment, formatTooltipValue, getParamColor } from "@/lib/decoder/calldata-display-utils";
+import { Segment, formatTooltipValue, getParamColor } from "../lib/calldata-display-utils";
 
 interface CalldataSegmentProps {
   segment: Segment;

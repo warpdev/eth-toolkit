@@ -96,10 +96,10 @@ export function useParseParameters() {
       // Create temporary ABI from the selected signature
       const tempAbi = createTemporaryAbiFromSignature(selectedSignature);
       
-      // Decode the calldata
+      // Decode the calldata - type assertion needed for viem's strict types
       const decodedData = decodeFunctionData({
         abi: tempAbi,
-        data: fullCalldata,
+        data: fullCalldata as `0x${string}`,
       });
       
       // Extract and return parameters

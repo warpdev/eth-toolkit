@@ -44,13 +44,13 @@ export async function decodeCalldataWithAbi(
     // Attempt to decode using viem
     const decoded = decodeFunctionData({
       abi,
-      data: fullCalldata,
+      data: fullCalldata as `0x${string}`,
     });
 
     return {
       functionName: decoded.functionName,
       functionSig: functionSelector,
-      args: decoded.args || [],
+      args: decoded.args ? [...decoded.args] : [],
     };
   } catch (error) {
     console.error("Error decoding calldata:", error);
@@ -109,17 +109,17 @@ export async function decodeCalldataWithSignatureLookup(
     const tempAbi = createTemporaryAbiFromSignature(bestSignature);
     
     let args: unknown[] = [];
-    let parsedParameters = [];
+    let parsedParameters: any[] = [];
     
     try {
       // Try to decode the calldata using the temporary ABI
       const decodedData = decodeFunctionData({
         abi: tempAbi,
-        data: fullCalldata,
+        data: fullCalldata as `0x${string}`,
       });
       
       // Use the decoded args
-      args = decodedData.args || [];
+      args = decodedData.args ? [...decodedData.args] : [];
       
       // Extract parameter information
       parsedParameters = extractParametersFromSignature(bestSignature, decodedData);

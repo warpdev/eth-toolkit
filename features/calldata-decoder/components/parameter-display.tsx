@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { ParsedParameter } from "@/lib/decoder/types";
+import { ParsedParameter } from "../lib/types";
 import { CopyButton } from "./copy-button";
 import { formatEther } from "viem";
 

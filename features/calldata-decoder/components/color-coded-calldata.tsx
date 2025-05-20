@@ -1,8 +1,8 @@
 "use client";
 
 import { useMemo } from "react";
-import { ParsedParameter } from "@/lib/decoder/types";
-import { calculateSegments } from "@/lib/decoder/calldata-display-utils";
+import { ParsedParameter } from "../lib/types";
+import { calculateSegments } from "../lib/calldata-display-utils";
 import { FunctionSignature } from "./function-signature";
 import { CalldataSegment } from "./calldata-segment";
 import { CalldataLegend } from "./calldata-legend";

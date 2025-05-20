@@ -1,7 +1,7 @@
 "use client";
 
 import { useSetAtom } from "jotai";
-import { abiStringAtom } from "@/lib/atoms/calldata-atoms";
+import { abiStringAtom } from "../atoms/calldata-atoms";
 import { SAMPLE_ABIS } from "@/lib/sample-data/sample-abis";
 import { ChevronDown } from "lucide-react";
 import {

@@ -2,8 +2,8 @@
 
 import React, { useCallback } from "react";
 import { useAtom } from "jotai";
-import { selectedSignatureIndexAtom } from "@/lib/atoms/decoder-result-atom";
-import { DecodedFunctionWithSignatures } from "@/lib/decoder/types";
+import { selectedSignatureIndexAtom } from "../atoms/decoder-result-atom";
+import { DecodedFunctionWithSignatures } from "../lib/types";
 import { saveSignatureSelection } from "@/lib/storage/abi-storage";
 import {
   Select,

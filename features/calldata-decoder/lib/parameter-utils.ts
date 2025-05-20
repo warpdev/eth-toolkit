@@ -68,7 +68,7 @@ export function extractParametersFromSignature(
       const { name, type } = parseParameter(param, index);
       
       // Map the decoded value to the parameter
-      const value = index < decodedData.args.length ? decodedData.args[index] : undefined;
+      const value = decodedData.args && index < decodedData.args.length ? decodedData.args[index] : undefined;
       
       return { name, type, value };
     });
