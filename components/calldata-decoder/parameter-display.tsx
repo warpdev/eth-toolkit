@@ -3,6 +3,7 @@
 import React from "react";
 import { ParsedParameter } from "@/lib/decoder/types";
 import { CopyButton } from "./copy-button";
+import { formatEther } from "viem";
 
 interface ParameterDisplayProps {
   parameters: ParsedParameter[];
@@ -29,10 +30,50 @@ const getArgAsString = (arg: unknown): string => {
   return String(arg);
 };
 
+// Helper to check if a value is likely an ETH amount in Wei
+const isLikelyWeiValue = (value: unknown, type?: string): boolean => {
+  // Check parameter type hints
+  if (type && (type.includes('uint256') || type.includes('uint128'))) {
+    return true;
+  }
+  
+  // Check if it's a bigint with significant size (at least 1e15 wei = 0.001 ETH)
+  if (typeof value === 'bigint' && value >= 1000000000000000n) {
+    return true;
+  }
+  
+  // Check if it's a string representation of a large number
+  if (typeof value === 'string' && /^\d+$/.test(value) && value.length >= 15) {
+    return true;
+  }
+  
+  return false;
+};
+
 // Helper to format arguments in a readable way
-const formatArg = (arg: unknown): React.ReactNode => {
+const formatArg = (arg: unknown, type?: string): React.ReactNode => {
   if (arg === null || arg === undefined) {
     return <span className="text-muted-foreground">null</span>;
+  }
+
+  // Check if this is likely an ETH value in Wei
+  if (isLikelyWeiValue(arg, type)) {
+    try {
+      const wei = typeof arg === 'string' ? BigInt(arg) : arg as bigint;
+      const eth = formatEther(wei);
+      
+      return (
+        <div className="flex flex-col">
+          <span>{wei.toString()}</span>
+          <span className="text-xs text-muted-foreground">({eth} ETH)</span>
+        </div>
+      );
+    } catch (e) {
+      // Fallback to regular formatting if conversion fails
+      if (typeof arg === 'bigint') {
+        return <span>{arg.toString()}</span>;
+      }
+    }
   }
 
   if (typeof arg === 'bigint') {
@@ -93,7 +134,7 @@ export const ParameterDisplay = React.memo(function ParameterDisplay({
                 </div>
               </div>
               <div className="relative overflow-auto group font-mono text-sm">
-                <div className="pr-8">{formatArg(param.value)}</div>
+                <div className="pr-8">{formatArg(param.value, param.type)}</div>
                 <div className="absolute top-0 right-0 opacity-0 group-hover:opacity-100 transition-opacity">
                   <CopyButton 
                     text={getArgAsString(param.value)} 
