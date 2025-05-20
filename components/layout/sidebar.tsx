@@ -10,6 +10,9 @@ import {
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
+  SidebarGroup,
+  SidebarGroupLabel,
+  SidebarGroupContent,
 } from '@/components/ui/sidebar';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { cn } from '@/lib/utils';
@@ -72,15 +75,43 @@ export function EnhancedSidebar() {
         <div className="mb-3 px-3">
           <div className="h-px w-full bg-border/40"></div>
         </div>
-        <SidebarMenu className="space-y-0.5 px-2">
-          <MenuItem icon={<Code size={18} />} label="Calldata Decoder" isActive={true} />
-          <MenuItem
-            icon={<EthereumIcon className="h-[18px] w-[18px]" />}
-            label="Calldata Encoder"
-          />
-          <MenuItem icon={<Settings size={18} />} label="Settings" />
-        </SidebarMenu>
+        
+        {/* Calldata Section */}
+        <SidebarGroup>
+          <SidebarGroupLabel className="px-3 text-xs uppercase tracking-wider font-medium text-muted-foreground/70">
+            Calldata
+          </SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu className="space-y-0.5 px-2 mt-1">
+              <MenuItem 
+                icon={<Code size={18} />} 
+                label="Calldata Decoder" 
+                isActive={true} 
+              />
+              <MenuItem
+                icon={<EthereumIcon className="h-[18px] w-[18px]" />}
+                label="Calldata Encoder"
+              />
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+        
+        {/* System Section */}
+        <SidebarGroup className="mt-2">
+          <SidebarGroupLabel className="px-3 text-xs uppercase tracking-wider font-medium text-muted-foreground/70">
+            System
+          </SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu className="space-y-0.5 px-2 mt-1">
+              <MenuItem 
+                icon={<Settings size={18} />} 
+                label="Settings" 
+              />
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
       </SidebarContent>
+      
       <SidebarFooter>
         <div className="border-t border-border/30 p-2.5">
           <div className="flex items-center justify-between">
