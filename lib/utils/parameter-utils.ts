@@ -259,3 +259,45 @@ export function createParsedParameters(
     };
   });
 }
+
+/**
+ * Extract parameter information from function signature and decoded args
+ * 
+ * @param signature - Function signature (e.g. "transfer(address to,uint256 amount)")
+ * @param decodedData - Decoded function data from viem
+ * @returns Array of parsed parameters with types and values
+ */
+export function extractParametersFromSignature(
+  signature: string, 
+  decodedData: any
+): ParsedParameter[] {
+  try {
+    // Get the parameter section from the signature
+    const paramSection = extractParameterSection(signature);
+    
+    if (!paramSection || paramSection.length === 0) {
+      return []; // No parameters
+    }
+    
+    // Handle empty args
+    if (!decodedData.args || decodedData.args.length === 0) {
+      return [];
+    }
+    
+    // Split parameter section into individual parameters
+    const paramParts = paramSection.split(',');
+    
+    return paramParts.map((param, index) => {
+      // Parse parameter to get name and type
+      const { name, type } = parseParameter(param, index);
+      
+      // Map the decoded value to the parameter
+      const value = decodedData.args && index < decodedData.args.length ? decodedData.args[index] : undefined;
+      
+      return { name, type, value };
+    });
+  } catch (error) {
+    console.error("Error extracting parameters:", error);
+    return [];
+  }
+}

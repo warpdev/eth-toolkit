@@ -15,10 +15,10 @@ import {
   ParsedParameter
 } from "@/lib/types";
 import {
-  normalizeCalldata
+  normalizeCalldata,
+  extractParametersFromSignature
 } from "@/lib/utils";
 import { createTemporaryAbiFromSignature } from "@/features/calldata-decoder/lib/signature-utils";
-import { extractParametersFromSignature } from "@/features/calldata-decoder/lib/parameter-utils";
 
 /**
  * Hook for parsing function parameters from calldata and signature

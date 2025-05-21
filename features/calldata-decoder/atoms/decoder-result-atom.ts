@@ -1,5 +1,5 @@
 import { atom } from "jotai";
-import { DecodedFunctionWithSignatures } from "../lib/types";
+import { DecodedFunctionWithSignatures } from "@/lib/types";
 
 /**
  * Atom for storing the decoded function result
