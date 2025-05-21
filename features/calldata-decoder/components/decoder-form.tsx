@@ -23,7 +23,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { useDecodeCalldata } from '@/features/calldata-decoder/hooks/use-decode-calldata';
-import { AbiSelector } from './abi-selector';
+import { AbiSelector } from '@/components/shared/abi-selector';
 import { SavedAbiSelector } from './saved-abi-selector';
 import { DecodingHistory } from './DecodingHistory';
 
@@ -147,7 +147,11 @@ export const DecoderForm = React.memo(function DecoderForm({ onDecodeSuccess }: 
           <TabsContent value="abi" className="space-y-4 pt-4">
             <div className="space-y-2">
               <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                <AbiSelector />
+                <AbiSelector 
+                  abiStringAtom={abiStringAtom}
+                  showSamples={true}
+                  showUpload={false}
+                />
                 <SavedAbiSelector />
               </div>
               <Textarea
