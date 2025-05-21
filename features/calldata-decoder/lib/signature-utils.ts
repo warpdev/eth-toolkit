@@ -1,5 +1,5 @@
 import { parseAbi } from 'viem';
-import { FunctionSignature } from './types';
+import { FunctionSignature } from '@/lib/types';
 import { getLastSelectedSignature } from '@/lib/storage/abi-storage';
 
 /**

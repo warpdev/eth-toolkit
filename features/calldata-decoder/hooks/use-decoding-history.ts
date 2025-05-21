@@ -9,7 +9,7 @@ import {
   clearDecodingHistory
 } from '@/lib/storage/abi-storage';
 import { decodingHistoryAtom, isHistoryPanelOpenAtom } from '../atoms/decoder-history-atom';
-import { DecodedFunctionWithSignatures } from '../lib/types';
+import { DecodedFunctionWithSignatures } from '@/lib/types';
 
 export function useDecodingHistory() {
   const [history, setHistory] = useAtom(decodingHistoryAtom);

@@ -3,7 +3,7 @@
 import React, { useCallback } from "react";
 import { useAtom } from "jotai";
 import { selectedSignatureIndexAtom } from "../atoms/decoder-result-atom";
-import { DecodedFunctionWithSignatures } from "../lib/types";
+import { DecodedFunctionWithSignatures } from "@/lib/types";
 import { saveSignatureSelection } from "@/lib/storage/abi-storage";
 import {
   Select,
@@ -90,7 +90,7 @@ export const FunctionSignatureSelector = React.memo(function FunctionSignatureSe
           <SelectValue placeholder="Select a function signature" />
         </SelectTrigger>
         <SelectContent>
-          {decodedResult.possibleSignatures.map((sig, index) => (
+          {decodedResult.possibleSignatures.map((sig: string, index: number) => (
             <SelectItem 
               key={index} 
               value={index.toString()} 

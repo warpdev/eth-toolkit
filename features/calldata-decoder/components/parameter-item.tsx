@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { ParsedParameter } from '../lib/types';
+import { ParsedParameter } from '@/lib/types';
 import { CopyButton } from '@/components/shared/copy-button';
 import { FormatArg, getArgAsString } from './parameter-formatters';
 

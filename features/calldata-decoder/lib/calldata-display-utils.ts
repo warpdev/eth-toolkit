@@ -1,4 +1,4 @@
-import { ParsedParameter } from "./types";
+import { ParsedParameter } from "@/lib/types";
 import { isDynamicType } from "./calldata-common";
 
 export interface Segment {

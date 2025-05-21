@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useMemo } from "react";
-import { ParsedParameter } from "../lib/types";
+import { ParsedParameter } from "@/lib/types";
 import { ParameterItem } from "./parameter-item";
 import { RawArgItem } from "./raw-arg-item";
 

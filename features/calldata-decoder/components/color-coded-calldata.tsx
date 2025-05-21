@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useMemo, useCallback } from "react";
-import { ParsedParameter } from "../lib/types";
+import { ParsedParameter } from "@/lib/types";
 import { calculateSegments } from "../lib/calldata-display-utils";
 import { FunctionSignature } from "./function-signature";
 import { CalldataSegment } from "./calldata-segment";

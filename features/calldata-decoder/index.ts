@@ -3,8 +3,6 @@ import { CalldataDecoder } from './components/calldata-decoder';
 
 // Export main components
 export { CalldataDecoder };
-export * from './lib/types';
-
-// Export hooks for external use
+// Now exporting common types from the lib/types
 export { useDecodeCalldata } from './hooks/use-decode-calldata';
 export { useParseParameters } from './hooks/use-parse-parameters';

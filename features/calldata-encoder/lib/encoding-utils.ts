@@ -1,7 +1,7 @@
 'use client';
 
 import { Abi, encodeFunctionData, parseAbi } from 'viem';
-import { EncodedFunction, FunctionInfo, FunctionParameter } from './types';
+import { EncodedFunction, FunctionInfo, FunctionParameter } from '@/lib/types';
 
 /**
  * Check if the parsed JSON is a valid Abi

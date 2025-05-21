@@ -7,10 +7,10 @@ import {
 import {
   normalizeCalldata,
   extractFunctionSelector,
-  extractCalldataParameters
+  extractCalldataParameters,
+  extractParametersFromSignature
 } from "@/lib/utils";
 import { fetchFunctionSignatures, findBestSignatureMatch, createTemporaryAbiFromSignature } from "./signature-utils";
-import { extractParametersFromSignature } from "./parameter-utils";
 
 /**
  * Decode calldata using a provided ABI

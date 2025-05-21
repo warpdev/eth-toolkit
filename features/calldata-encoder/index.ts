@@ -4,8 +4,7 @@ import { CalldataEncoder } from './components/calldata-encoder';
 // Export main component
 export { CalldataEncoder };
 
-// Export types for external use
-export * from './lib/types';
+// Now exporting common types from the lib/types
 
 // Export hooks for external use
 export { useEncodeCalldata } from './hooks/use-encode-calldata';
