@@ -25,6 +25,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useDecodeCalldata } from "@/features/calldata-decoder/hooks/use-decode-calldata";
 import { AbiSelector } from "./abi-selector";
 import { SavedAbiSelector } from "./saved-abi-selector";
+import { DecodingHistory } from "./DecodingHistory";
 
 interface DecoderFormProps {
   onDecodeSuccess?: () => void;
@@ -149,7 +150,7 @@ export const DecoderForm = React.memo(function DecoderForm({ onDecodeSuccess }: 
           </TabsContent>
         </Tabs>
       </CardContent>
-      <CardFooter>
+      <CardFooter className="flex justify-between items-center">
         <Button
           onClick={handleDecode}
           disabled={isDecoding || !calldata}
@@ -168,6 +169,7 @@ export const DecoderForm = React.memo(function DecoderForm({ onDecodeSuccess }: 
             "Decode Calldata"
           )}
         </Button>
+        <DecodingHistory />
       </CardFooter>
     </Card>
   );

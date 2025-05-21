@@ -2,6 +2,7 @@
 
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { useCallback } from "react";
+import { useDecodingHistory } from "./use-decoding-history";
 import { 
   calldataAtom, 
   abiAtom, 
@@ -36,6 +37,8 @@ export function useDecodeCalldata() {
   
   const setIsDecoding = useSetAtom(isDecodingAtom);
   const setDecodeError = useSetAtom(decodeErrorAtom);
+  
+  const { addToHistory } = useDecodingHistory();
 
   /**
    * Parse the ABI from the input string
@@ -134,6 +137,11 @@ export function useDecodeCalldata() {
       
       // Store the result in the atom
       setDecodedResult(result);
+      
+      if (result && !result.error) {
+        addToHistory(normalizedCalldata, result);
+      }
+      
       return result;
     } catch (error) {
       const normalizedError = normalizeError(error, ErrorType.DECODING_ERROR);

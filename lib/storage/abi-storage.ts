@@ -1,6 +1,7 @@
 "use client";
 
 import { openDB, DBSchema, IDBPDatabase } from 'idb';
+import { DecodedFunctionWithSignatures } from '@/features/calldata-decoder/lib/types';
 
 // Define the database schema
 interface ABIDatabase extends DBSchema {
@@ -28,11 +29,21 @@ interface ABIDatabase extends DBSchema {
     };
     indexes: { 'by-last-used': number };
   };
+  'decoding-history': {
+    key: string;
+    value: {
+      id: string;
+      calldata: string;
+      result: DecodedFunctionWithSignatures;
+      timestamp: number;
+    };
+    indexes: { 'by-timestamp': number };
+  };
 }
 
 // Database name and version
 const DB_NAME = 'eth-toolkit-db';
-const DB_VERSION = 3;
+const DB_VERSION = 4;
 
 // Initialize the database
 async function getDB(): Promise<IDBPDatabase<ABIDatabase>> {
@@ -84,6 +95,16 @@ async function getDB(): Promise<IDBPDatabase<ABIDatabase>> {
           }
         } catch (error) {
           console.error('Error during database upgrade:', error);
+        }
+      }
+      
+      // Upgrade to version 4: Add decoding history store
+      if (oldVersion < 4) {
+        // Create a store for decoding history
+        if (!db.objectStoreNames.contains('decoding-history')) {
+          const historyStore = db.createObjectStore('decoding-history', { keyPath: 'id' });
+          // Create an index for sorting by timestamp
+          historyStore.createIndex('by-timestamp', 'timestamp');
         }
       }
     },
@@ -190,13 +211,17 @@ export async function deleteABI(id: string): Promise<void> {
   await db.delete('abis', id);
 }
 
-/**
- * Interface for signature history records
- */
 export interface SignatureHistoryRecord {
   hexSignature: string;  // Hex signature (e.g., 0x70a08231)
   selectedSignature: string; // Selected text signature (e.g., balanceOf(address))
   lastUsed: number;
+}
+
+export interface DecodingHistoryRecord {
+  id: string;
+  calldata: string;
+  result: DecodedFunctionWithSignatures;
+  timestamp: number;
 }
 
 /**
@@ -319,5 +344,57 @@ export async function getFavoriteABIs(limit = 50): Promise<ABIRecord[]> {
   } catch (error) {
     console.error('Error getting favorite ABIs:', error);
     return [];
+  }
+}
+
+export async function saveDecodingResult(
+  calldata: string,
+  result: DecodedFunctionWithSignatures
+): Promise<string> {
+  const db = await getDB();
+  
+  const id = crypto.randomUUID();
+  const timestamp = Date.now();
+  
+  const historyRecord: DecodingHistoryRecord = {
+    id,
+    calldata,
+    result,
+    timestamp
+  };
+  
+  await db.put('decoding-history', historyRecord);
+  return id;
+}
+
+export async function getDecodingHistory(limit = 20): Promise<DecodingHistoryRecord[]> {
+  const db = await getDB();
+  
+  try {
+    const index = db.transaction('decoding-history').store.index('by-timestamp');
+    const histories = await index.getAll(null, limit);
+    
+    return histories.sort((a, b) => b.timestamp - a.timestamp);
+  } catch (error) {
+    console.error('Error getting decoding history:', error);
+    return [];
+  }
+}
+
+export async function deleteDecodingRecord(id: string): Promise<void> {
+  const db = await getDB();
+  await db.delete('decoding-history', id);
+}
+
+export async function clearDecodingHistory(): Promise<void> {
+  const db = await getDB();
+  
+  try {
+    const tx = db.transaction('decoding-history', 'readwrite');
+    await tx.objectStore('decoding-history').clear();
+    await tx.done;
+  } catch (error) {
+    console.error('Error clearing decoding history:', error);
+    throw error;
   }
 }
