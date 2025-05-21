@@ -1,57 +1,19 @@
-import { Abi, decodeFunctionData } from "viem";
-import { 
-  DecodedFunction, 
-  DecodedFunctionWithSignatures, 
-  ParsedParameter
-} from "@/lib/types";
+/**
+ * @deprecated This file is maintained for backward compatibility.
+ * Please import from @/lib/utils/calldata-processing.ts instead.
+ */
+
+import { DecodedFunctionWithSignatures } from "@/lib/types";
+import { decodeCalldataWithAbi } from "@/lib/utils/calldata-processing";
 import {
   normalizeCalldata,
   extractFunctionSelector,
-  extractCalldataParameters,
-  extractParametersFromSignature
+  extractCalldataParameters
 } from "@/lib/utils";
 import { fetchFunctionSignatures, findBestSignatureMatch, createTemporaryAbiFromSignature } from "./signature-utils";
 
-/**
- * Decode calldata using a provided ABI
- * 
- * @param calldata - The calldata hex string to decode
- * @param abi - The contract ABI to use for decoding
- * @returns The decoded function data or an error
- */
-export async function decodeCalldataWithAbi(
-  calldata: string, 
-  abi: Abi
-): Promise<DecodedFunctionWithSignatures> {
-  try {
-    // Extract function selector and normalize calldata
-    const functionSelector = extractFunctionSelector(calldata);
-    const fullCalldata = normalizeCalldata(calldata);
-
-    // Attempt to decode using viem
-    const decoded = decodeFunctionData({
-      abi,
-      data: fullCalldata as `0x${string}`,
-    });
-
-    // Create the result object
-    const result: DecodedFunctionWithSignatures = {
-      functionName: decoded.functionName,
-      functionSig: functionSelector,
-      args: decoded.args ? [...decoded.args] : [],
-    };
-
-    return result;
-  } catch (error) {
-    console.error("Error decoding calldata:", error);
-    return {
-      functionName: "Unknown Function",
-      functionSig: extractFunctionSelector(calldata),
-      args: [],
-      error: error instanceof Error ? error.message : "Unknown error decoding calldata",
-    };
-  }
-}
+// Re-export the common decoding function
+export { decodeCalldataWithAbi };
 
 /**
  * Decode calldata using the 4bytes API for function signature lookup
@@ -93,20 +55,16 @@ export async function decodeCalldataWithSignatureLookup(
     const tempAbi = createTemporaryAbiFromSignature(bestSignature);
     
     let args: unknown[] = [];
-    let parsedParameters: ParsedParameter[] = [];
+    let parsedParameters = [];
     
     try {
       // Try to decode the calldata using the temporary ABI
-      const decodedData = decodeFunctionData({
-        abi: tempAbi,
-        data: fullCalldata as `0x${string}`,
-      });
+      const decodedData = await decodeCalldataWithAbi(calldata, tempAbi);
       
       // Use the decoded args
-      args = decodedData.args ? [...decodedData.args] : [];
+      args = decodedData.args || [];
       
-      // Extract parameter information
-      parsedParameters = extractParametersFromSignature(bestSignature, decodedData);
+      // Further parameter processing can be done here if needed
     } catch (decodeError) {
       console.warn("Error decoding parameters:", decodeError);
       // Fallback to showing raw parameters if decoding fails
@@ -114,14 +72,13 @@ export async function decodeCalldataWithSignatureLookup(
       args = [rawParams];
     }
     
-    // Return the result with possible signatures and parsed parameters
+    // Return the result with possible signatures
     return {
       functionName,
       functionSig: bestSignature,
       args,
       possibleSignatures: signatures.map(sig => sig.textSignature),
-      selectedSignatureIndex: index,
-      parsedParameters
+      selectedSignatureIndex: index
     };
   } catch (error) {
     console.error("Error decoding with signature lookup:", error);

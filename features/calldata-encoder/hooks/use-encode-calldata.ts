@@ -11,9 +11,11 @@ import {
   encodeErrorAtom,
   encodedCalldataAtom 
 } from "../atoms/encoder-atoms";
-import {
-  encodeFunctionData, Abi
-} from "viem";
+import { Abi } from "viem";
+import { 
+  encodeCalldataWithAbi,
+  createEncodedFunctionResult
+} from "@/lib/utils/calldata-processing";
 import {
   FunctionParameter,
   EncodedFunction
@@ -147,12 +149,8 @@ export function useEncodeCalldata() {
     transformedInputs: unknown[],
     encodedData: string
   ): EncodedFunction => {
-    return {
-      functionName,
-      functionSig: `${functionName}(${functionParams.map(p => p.type).join(',')})`,
-      args: transformedInputs,
-      encodedData
-    };
+    const signature = `${functionName}(${functionParams.map(p => p.type).join(',')})`;
+    return createEncodedFunctionResult(functionName, signature, transformedInputs, encodedData);
   }, []);
 
   /**
@@ -182,12 +180,18 @@ export function useEncodeCalldata() {
       
       const { functionParams, transformedInputs } = prepared;
       
-      // Encode calldata using viem
-      const encodedData = encodeFunctionData({
-        abi: abi as Abi,
-        functionName: selectedFunction || "",
-        args: transformedInputs,
-      });
+      // Encode calldata using our shared utility
+      const encodingResult = await encodeCalldataWithAbi(
+        abi as Abi,
+        selectedFunction || "",
+        transformedInputs
+      );
+      
+      if (typeof encodingResult === "object" && "error" in encodingResult) {
+        throw new Error(encodingResult.error);
+      }
+      
+      const encodedData = encodingResult;
       
       // Create result object
       const result = createResultObject(

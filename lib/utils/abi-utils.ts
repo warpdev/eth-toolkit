@@ -27,6 +27,9 @@ function isValidFunctionInput(
 
 /**
  * Validates if the provided string is a valid ABI JSON
+ * 
+ * @param abiString - ABI JSON string to validate
+ * @returns Validation result with isValid flag and optional error message
  */
 export function validateAbiString(abiString: string): AbiValidationResult {
   if (!abiString || !abiString.trim()) {
@@ -53,6 +56,15 @@ export function validateAbiString(abiString: string): AbiValidationResult {
       return { isValid: false, error: "ABI does not contain any functions" };
     }
     
+    // Check if function items have required properties
+    for (const item of parsed) {
+      if (item.type === "function" || !item.type) {
+        if (!item.name && item.type !== "fallback" && item.type !== "receive") {
+          return { isValid: false, error: "Function items must have a name property" };
+        }
+      }
+    }
+    
     return { isValid: true };
   } catch (error) {
     return { 
@@ -60,6 +72,15 @@ export function validateAbiString(abiString: string): AbiValidationResult {
       error: "Invalid JSON format: " + (error instanceof Error ? error.message : String(error))
     };
   }
+}
+
+/**
+ * Legacy compatibility function for validateAbiString, with different return structure
+ * @deprecated Use validateAbiString instead
+ */
+export function validateAbi(abiString: string): { valid: boolean; error?: string } {
+  const result = validateAbiString(abiString);
+  return { valid: result.isValid, error: result.error };
 }
 
 /**

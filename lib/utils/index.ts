@@ -5,6 +5,7 @@ import { twMerge } from "tailwind-merge"
 export * from "./abi-utils";
 export * from "./calldata-utils";
 export * from "./parameter-utils";
+export * from "./calldata-processing";
 export * from "./error-utils";
 
 /**
