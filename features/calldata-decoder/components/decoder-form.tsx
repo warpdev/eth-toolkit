@@ -119,7 +119,7 @@ export const DecoderForm = React.memo(function DecoderForm({ onDecodeSuccess }: 
             value={calldata}
             onChange={handleCalldataChange}
             onKeyDown={handleCalldataKeyDown}
-            className="font-mono h-32"
+            className="font-mono h-32 break-all"
           />
         </div>
 
@@ -144,7 +144,7 @@ export const DecoderForm = React.memo(function DecoderForm({ onDecodeSuccess }: 
                 placeholder="Paste contract ABI JSON here..." 
                 value={abiString}
                 onChange={handleAbiStringChange}
-                className="font-mono h-48"
+                className="font-mono h-48 break-all"
               />
             </div>
           </TabsContent>

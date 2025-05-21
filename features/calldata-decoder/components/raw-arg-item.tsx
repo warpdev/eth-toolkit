@@ -14,7 +14,7 @@ export const RawArgItem = React.memo(function RawArgItem({
   index
 }: RawArgItemProps) {
   return (
-    <div className="p-3 grid grid-cols-[auto_1fr] gap-4">
+    <div className="p-3 grid grid-cols-1 md:grid-cols-[auto_1fr] gap-4">
       <div className="font-medium text-sm text-muted-foreground">
         Arg {index + 1}:
       </div>
