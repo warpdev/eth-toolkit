@@ -4,7 +4,7 @@ import React from "react";
 import { useAtomValue } from "jotai";
 import { encodedCalldataAtom, selectedFunctionAtom, abiAtom } from "../atoms/encoder-atoms";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { CopyButton } from "./copy-button";
+import { CopyButton } from "@/components/shared/copy-button";
 import { cn } from "@/lib/utils";
 import { useFunctionSelector } from "../hooks/use-function-selector";
 

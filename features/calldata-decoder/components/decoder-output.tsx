@@ -18,7 +18,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ColorCodedCalldata } from "./color-coded-calldata";
 import { FunctionSignatureSelector } from "./function-signature-selector";
 import { ParameterDisplay } from "./parameter-display";
-import { CopyButton } from "./copy-button";
+import { CopyButton } from "@/components/shared/copy-button";
 import { useParseParameters } from "@/features/calldata-decoder/hooks/use-parse-parameters";
 
 // Extracted skeleton component to prevent recreation on each render

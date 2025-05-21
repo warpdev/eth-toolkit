@@ -2,7 +2,7 @@
 
 import React from "react";
 import { FormatArg, getArgAsString } from "./parameter-formatters";
-import { CopyButton } from "./copy-button";
+import { CopyButton } from "@/components/shared/copy-button";
 
 interface RawArgItemProps {
   arg: unknown;
