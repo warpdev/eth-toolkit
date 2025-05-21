@@ -191,7 +191,7 @@ export function transformInputForType(value: string, type: string): unknown {
         const baseType = type.slice(0, -2);
         return arrayValues.map((val) => transformInputForType(String(val), baseType));
       }
-    } catch (e) {
+    } catch {
       throw new Error(`Invalid array format for type ${type}`);
     }
   }
@@ -201,7 +201,7 @@ export function transformInputForType(value: string, type: string): unknown {
     // Convert to BigInt for all integer types
     try {
       return BigInt(value);
-    } catch (e) {
+    } catch {
       throw new Error(`Invalid integer value for type ${type}`);
     }
   }

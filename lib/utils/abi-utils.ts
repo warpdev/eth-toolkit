@@ -1,5 +1,5 @@
 import { Abi } from "viem";
-import { FunctionInfo, FunctionParameter, AbiValidationResult } from "../types/calldata-types";
+import { FunctionInfo, AbiValidationResult } from "../types/calldata-types";
 
 /**
  * Type guard for ABI function items
@@ -21,7 +21,7 @@ function isValidFunctionInput(
     input !== null &&
     'name' in input &&
     'type' in input &&
-    typeof (input as any).type === 'string'
+    typeof (input as Record<string, unknown>).type === 'string'
   );
 }
 

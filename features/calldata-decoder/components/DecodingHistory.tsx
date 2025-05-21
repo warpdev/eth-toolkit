@@ -67,7 +67,7 @@ export function DecodingHistory() {
       </div>
       
       <div className="text-sm text-muted-foreground truncate mb-2">
-        {item.calldata}
+        {item.calldata.substring(0, 14)}...{item.calldata.substring(item.calldata.length - 4)}
       </div>
       
       <div className="flex items-center text-xs text-muted-foreground">

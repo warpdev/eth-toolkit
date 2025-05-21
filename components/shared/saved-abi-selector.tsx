@@ -9,8 +9,7 @@ import {
   loadABI, 
   saveABI, 
   deleteABI, 
-  toggleABIFavorite,
-  getFavoriteABIs 
+  toggleABIFavorite
 } from '@/lib/storage/abi-storage';
 import {
   DropdownMenu,
