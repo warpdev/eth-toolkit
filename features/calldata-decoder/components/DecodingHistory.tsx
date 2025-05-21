@@ -84,7 +84,7 @@ export function DecodingHistory() {
           <Button
             variant="outline"
             size="sm"
-            className="flex items-center gap-1 h-8"
+            className="flex items-center gap-1 h-8 w-full sm:w-auto"
           >
             <Clock className="h-4 w-4" />
             History

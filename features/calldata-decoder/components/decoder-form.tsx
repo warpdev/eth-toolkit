@@ -136,7 +136,7 @@ export const DecoderForm = React.memo(function DecoderForm({ onDecodeSuccess }: 
           </TabsContent>
           <TabsContent value="abi" className="space-y-4 pt-4">
             <div className="space-y-2">
-              <div className="flex justify-between items-center">
+              <div className="flex flex-col sm:flex-row gap-2 sm:justify-between sm:items-center">
                 <AbiSelector />
                 <SavedAbiSelector />
               </div>
@@ -150,12 +150,12 @@ export const DecoderForm = React.memo(function DecoderForm({ onDecodeSuccess }: 
           </TabsContent>
         </Tabs>
       </CardContent>
-      <CardFooter className="flex justify-between items-center">
+      <CardFooter className="flex flex-col sm:flex-row gap-4 sm:justify-between sm:items-center">
         <Button
           onClick={handleDecode}
           disabled={isDecoding || !calldata}
           size="lg"
-          className="relative"
+          className="relative w-full sm:w-auto"
         >
           {isDecoding ? (
             <>
