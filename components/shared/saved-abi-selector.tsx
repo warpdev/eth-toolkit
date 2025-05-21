@@ -73,7 +73,7 @@ export function SavedAbiSelector({
     loadSavedAbis();
   }, [loadSavedAbis]);
 
-  const handleSelectAbi = async (id: string) => {
+  const handleSelectAbi = useCallback(async (id: string) => {
     try {
       const abi = await loadABI(id);
       if (abi) {
@@ -87,15 +87,15 @@ export function SavedAbiSelector({
       console.error('Error loading ABI:', error);
       toast.error('Failed to load ABI');
     }
-  };
+  }, [setAbiString, loadSavedAbis]);
 
-  const handleSaveCurrentAbi = (currentAbi: string) => {
+  const handleSaveCurrentAbi = useCallback((currentAbi: string) => {
     setCurrentAbiString(currentAbi);
     setAbiName('');
     setShowSaveDialog(true);
-  };
+  }, []);
 
-  const handleSaveAbi = async () => {
+  const handleSaveAbi = useCallback(async () => {
     if (!abiName.trim()) {
       toast.error('Please enter a name for the ABI');
       return;
@@ -115,9 +115,9 @@ export function SavedAbiSelector({
       console.error('Error saving ABI:', error);
       toast.error("Failed to save ABI. Make sure it's valid JSON.");
     }
-  };
+  }, [abiName, currentAbiString, loadSavedAbis, setShowSaveDialog]);
 
-  const handleDeleteAbi = async (id: string, name: string, e: React.MouseEvent) => {
+  const handleDeleteAbi = useCallback(async (id: string, name: string, e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent triggering the parent click handler
 
     try {
@@ -130,9 +130,9 @@ export function SavedAbiSelector({
       console.error('Error deleting ABI:', error);
       toast.error('Failed to delete ABI');
     }
-  };
+  }, [loadSavedAbis]);
   
-  const handleToggleFavorite = async (id: string, name: string, e: React.MouseEvent) => {
+  const handleToggleFavorite = useCallback(async (id: string, name: string, e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent triggering the parent click handler
     
     try {
@@ -145,7 +145,16 @@ export function SavedAbiSelector({
       console.error('Error toggling favorite status:', error);
       toast.error('Failed to update favorite status');
     }
-  };
+  }, [loadSavedAbis]);
+
+  const handleSaveClick = useCallback(() => {
+    const abiTextarea = document.querySelector(
+      'textarea[placeholder*="Paste contract ABI"]'
+    ) as HTMLTextAreaElement;
+    if (abiTextarea) {
+      handleSaveCurrentAbi(abiTextarea.value);
+    }
+  }, [handleSaveCurrentAbi]);
 
   return (
     <div className="flex items-center gap-2">
@@ -180,14 +189,7 @@ export function SavedAbiSelector({
       <Button
         variant="outline"
         size={buttonSize}
-        onClick={() => {
-          const abiTextarea = document.querySelector(
-            'textarea[placeholder*="Paste contract ABI"]'
-          ) as HTMLTextAreaElement;
-          if (abiTextarea) {
-            handleSaveCurrentAbi(abiTextarea.value);
-          }
-        }}
+        onClick={handleSaveClick}
       >
         <Save className="mr-2 h-4 w-4" />
         {saveButtonText}

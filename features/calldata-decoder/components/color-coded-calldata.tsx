@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useCallback } from "react";
+import React, { useMemo, useCallback } from "react";
 import { ParsedParameter } from "../lib/types";
 import { calculateSegments } from "../lib/calldata-display-utils";
 import { FunctionSignature } from "./function-signature";
@@ -12,7 +12,7 @@ interface ColorCodedCalldataProps {
   parsedParameters?: ParsedParameter[];
 }
 
-export function ColorCodedCalldata({ calldata, parsedParameters }: ColorCodedCalldataProps) {
+export const ColorCodedCalldata = React.memo(function ColorCodedCalldata({ calldata, parsedParameters }: ColorCodedCalldataProps) {
   const normalizedCalldata = calldata.startsWith("0x") ? calldata : `0x${calldata}`;
   const functionSignature = normalizedCalldata.slice(0, 10);
   const remainingCalldata = normalizedCalldata.slice(10);
@@ -86,4 +86,4 @@ export function ColorCodedCalldata({ calldata, parsedParameters }: ColorCodedCal
       <CalldataLegend />
     </div>
   );
-}
+});

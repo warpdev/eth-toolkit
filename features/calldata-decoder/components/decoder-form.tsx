@@ -47,18 +47,15 @@ export const DecoderForm = React.memo(function DecoderForm({ onDecodeSuccess }: 
     }
   }, [abiString, decodeMode, parseAbi]);
   
-  // Create toast options object only when decodeError changes
-  const errorToastOptions = useMemo(() => ({
-    description: decodeError,
-    duration: 5000
-  }), [decodeError]);
-  
   // Watch for decode errors and show toast
   useEffect(() => {
     if (decodeError) {
-      toast.error("Decode Error", errorToastOptions);
+      toast.error("Decode Error", {
+        description: decodeError,
+        duration: 5000
+      });
     }
-  }, [decodeError, errorToastOptions]);
+  }, [decodeError]);
   
   const handleDecode = useCallback(async () => {
     const result = await decodeCalldata();
