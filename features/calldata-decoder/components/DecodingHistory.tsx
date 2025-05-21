@@ -4,7 +4,7 @@ import { useDecodingHistory } from '../hooks/use-decoding-history';
 import { Button } from '@/components/ui/button';
 import { X, Trash2, Clock, ChevronRight } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetFooter } from '@/components/ui/sheet';
 import { 
   Dialog, 
   DialogContent, 
@@ -90,18 +90,29 @@ export function DecodingHistory() {
             History
           </Button>
         </SheetTrigger>
-        <SheetContent side="right" className="w-[350px] sm:w-[450px] p-0">
+        <SheetContent side="right" className="w-[350px] sm:w-[450px] p-0 flex flex-col">
           <SheetHeader className="p-4 border-b">
-            <div className="flex justify-between items-center">
-              <SheetTitle>Decoding History</SheetTitle>
+            <SheetTitle>Decoding History</SheetTitle>
+          </SheetHeader>
+          <ScrollArea className="flex-1">
+            {history.length === 0 ? (
+              <div className="p-8 text-center text-muted-foreground">
+                No decoding history yet.
+              </div>
+            ) : (
+              historyItems
+            )}
+          </ScrollArea>
+          {history.length > 0 && (
+            <SheetFooter className="p-4 border-t mt-auto">
               <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                 <DialogTrigger asChild>
                   <Button
-                    variant="ghost"
-                    size="icon"
-                    disabled={history.length === 0}
+                    variant="destructive"
+                    size="sm"
+                    className="w-full"
                   >
-                    <Trash2 className="h-4 w-4" />
+                    <Trash2 className="h-4 w-4 mr-2" /> Clear All History
                   </Button>
                 </DialogTrigger>
                 <DialogContent>
@@ -127,17 +138,8 @@ export function DecodingHistory() {
                   </DialogFooter>
                 </DialogContent>
               </Dialog>
-            </div>
-          </SheetHeader>
-          <ScrollArea className="h-[calc(100vh-80px)]">
-            {history.length === 0 ? (
-              <div className="p-8 text-center text-muted-foreground">
-                No decoding history yet.
-              </div>
-            ) : (
-              historyItems
-            )}
-          </ScrollArea>
+            </SheetFooter>
+          )}
         </SheetContent>
       </Sheet>
     </>
