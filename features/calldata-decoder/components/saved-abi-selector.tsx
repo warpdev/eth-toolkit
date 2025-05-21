@@ -8,6 +8,7 @@ export function SavedAbiSelector() {
     <SharedSavedAbiSelector 
       abiAtom={abiStringAtom}
       showDeleteOption={true}
+      showFavoriteOption={true}
       saveButtonText="Save Current ABI"
     />
   );

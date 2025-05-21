@@ -3,7 +3,15 @@
 import { useEffect, useState, useCallback } from 'react';
 import { PrimitiveAtom, useSetAtom } from 'jotai';
 import { toast } from 'sonner';
-import { ABIRecord, getAllABIs, loadABI, saveABI, deleteABI } from '@/lib/storage/abi-storage';
+import { 
+  ABIRecord, 
+  getAllABIs, 
+  loadABI, 
+  saveABI, 
+  deleteABI, 
+  toggleABIFavorite,
+  getFavoriteABIs 
+} from '@/lib/storage/abi-storage';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -23,11 +31,13 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Save, Database, Trash2, Bookmark } from 'lucide-react';
+import { Save, Database, Trash2 } from 'lucide-react';
+import { StarIcon } from './star-icon';
 
 type SavedAbiSelectorProps = {
   abiAtom: PrimitiveAtom<string>;
   showDeleteOption?: boolean;
+  showFavoriteOption?: boolean;
   buttonSize?: 'default' | 'sm' | 'lg' | 'icon';
   saveButtonText?: string;
   loadButtonText?: string;
@@ -36,6 +46,7 @@ type SavedAbiSelectorProps = {
 export function SavedAbiSelector({
   abiAtom,
   showDeleteOption = true,
+  showFavoriteOption = true,
   buttonSize = 'sm',
   saveButtonText = 'Save ABI',
   loadButtonText = 'Load Saved ABI',
@@ -120,6 +131,21 @@ export function SavedAbiSelector({
       toast.error('Failed to delete ABI');
     }
   };
+  
+  const handleToggleFavorite = async (id: string, name: string, e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent triggering the parent click handler
+    
+    try {
+      const isFavorite = await toggleABIFavorite(id);
+      toast.success(`${isFavorite ? 'Added to' : 'Removed from'} favorites: ${name}`);
+      
+      // Refresh the list
+      loadSavedAbis();
+    } catch (error) {
+      console.error('Error toggling favorite status:', error);
+      toast.error('Failed to update favorite status');
+    }
+  };
 
   return (
     <div className="flex items-center gap-2">
@@ -190,21 +216,31 @@ export function SavedAbiSelector({
               <DropdownMenuItem
                 key={abi.id}
                 onClick={() => handleSelectAbi(abi.id)}
-                className={showDeleteOption ? 'flex justify-between' : ''}
+                className="flex justify-between"
               >
                 <div className="flex items-center">
-                  <Bookmark className="mr-2 h-4 w-4" />
+                  {showFavoriteOption && (
+                    <button 
+                      className="mr-2 flex items-center" 
+                      aria-label={abi.isFavorite ? "Remove from favorites" : "Add to favorites"}
+                      onClick={(e) => handleToggleFavorite(abi.id, abi.name, e)}
+                    >
+                      <StarIcon filled={abi.isFavorite} className="h-4 w-4 transition-colors hover:text-amber-500" />
+                    </button>
+                  )}
                   <span>{abi.name}</span>
                 </div>
-                {showDeleteOption && (
-                  <button
-                    onClick={(e) => handleDeleteAbi(abi.id, abi.name, e)}
-                    className="p-1"
-                    aria-label={`Delete ${abi.name} ABI`}
-                  >
-                    <Trash2 className="text-muted-foreground hover:text-destructive h-4 w-4" />
-                  </button>
-                )}
+                <div className="flex">
+                  {showDeleteOption && (
+                    <button
+                      onClick={(e) => handleDeleteAbi(abi.id, abi.name, e)}
+                      className="p-1"
+                      aria-label={`Delete ${abi.name} ABI`}
+                    >
+                      <Trash2 className="text-muted-foreground hover:text-destructive h-4 w-4" />
+                    </button>
+                  )}
+                </div>
               </DropdownMenuItem>
             ))
           )}
