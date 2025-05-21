@@ -21,7 +21,7 @@ export {
 export {
   transformInputForType,
   transformInputsForEncoding
-} from '@/lib/utils';
+} from '@/lib/utils/calldata-processing';
 
 // ABI validation from shared utils
 export {

@@ -179,4 +179,6 @@ Detailed guide: @docs/code-quality-guidelines.md
 
 ## Code Commenting Guidelines
 
-- Use comments only to explain 'why' code is needed, not 'what' it does
+- Preserve JSDoc comments for documenting functions, components, parameters, return types, and usage examples
+- For regular comments (non-JSDoc), use them primarily to explain 'why' code is needed, not 'what' it does
+- Keep comments concise, up-to-date, and meaningful

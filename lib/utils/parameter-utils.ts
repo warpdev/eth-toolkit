@@ -29,12 +29,9 @@ export function extractParameterSection(signature: string): string {
  * @returns Object with parameter name and type
  */
 export function parseParameter(param: string, index: number): { name: string; type: string } {
-  // Split parameter into type and name parts
   const parts = param.trim().split(' ');
   
-  // Extract type and name
   const type = parts[0];
-  // Use the name if available, otherwise use the index
   const name = parts.length > 1 ? parts[1] : `param${index}`;
   
   return { name, type };
@@ -120,21 +117,17 @@ export function estimateParametersEncodedLength(paramTypes: string[]): number {
  * Generate a placeholder value based on the parameter type
  */
 export function getPlaceholderForType(type: string): string {
-  // Handle arrays
   if (type.endsWith('[]')) {
     const baseType = type.slice(0, -2);
     return `[${getPlaceholderForType(baseType)}, ...]`;
   }
   
-  // Handle fixed-size arrays like uint256[3]
   const fixedArrayMatch = type.match(/^(.+)\[(\d+)\]$/);
   if (fixedArrayMatch) {
     const [, baseType, size] = fixedArrayMatch;
     const placeholders = Array(Number(size)).fill(getPlaceholderForType(baseType));
     return `[${placeholders.join(', ')}]`;
   }
-  
-  // Handle common types
   if (type.startsWith('uint') || type.startsWith('int')) {
     return '0';
   }
@@ -179,70 +172,6 @@ export function getInputTypeForParameterType(type: string): string {
   return 'text';
 }
 
-/**
- * Validate and transform inputs based on the parameter type
- */
-export function transformInputForType(value: string, type: string): unknown {
-  // Handle arrays
-  if (type.endsWith('[]')) {
-    try {
-      const arrayValues = JSON.parse(value);
-      if (Array.isArray(arrayValues)) {
-        const baseType = type.slice(0, -2);
-        return arrayValues.map((val) => transformInputForType(String(val), baseType));
-      }
-    } catch {
-      throw new Error(`Invalid array format for type ${type}`);
-    }
-  }
-
-  // Handle basic types
-  if (type.startsWith('uint') || type.startsWith('int')) {
-    // Convert to BigInt for all integer types
-    try {
-      return BigInt(value);
-    } catch {
-      throw new Error(`Invalid integer value for type ${type}`);
-    }
-  }
-
-  if (type === 'bool') {
-    const lowerValue = value.toLowerCase();
-    return lowerValue === 'true' || lowerValue === '1';
-  }
-
-  if (type === 'address') {
-    // Simple validation for Ethereum address
-    if (!/^0x[0-9a-fA-F]{40}$/.test(value)) {
-      throw new Error('Invalid Ethereum address format');
-    }
-    return value;
-  }
-
-  if (type.startsWith('bytes')) {
-    // For fixed-length bytes
-    if (type !== 'bytes' && !/^0x[0-9a-fA-F]*$/.test(value)) {
-      throw new Error(`Invalid hex format for type ${type}`);
-    }
-    return value;
-  }
-
-  // Default for other types (string, etc.)
-  return value;
-}
-
-/**
- * Transform a record of inputs to the correct types based on function parameters
- */
-export function transformInputsForEncoding(
-  inputsRecord: Record<string, string>,
-  functionInputs: FunctionParameter[]
-): unknown[] {
-  return functionInputs.map((param) => {
-    const inputValue = inputsRecord[param.name] || '';
-    return transformInputForType(inputValue, param.type);
-  });
-}
 
 /**
  * Create parsed parameters from raw values and function parameters

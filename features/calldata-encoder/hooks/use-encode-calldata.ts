@@ -25,13 +25,13 @@ import {
   validateAbiString,
   validateFunctionInputs as validateInputs,
   generateParametersFromAbi,
-  transformInputsForEncoding,
   ErrorType,
   getAbiValidationError,
   getEncodingError,
   getParameterError,
   normalizeError
 } from "@/lib/utils";
+import { transformInputsForEncoding } from "@/lib/utils/calldata-processing";
 
 /**
  * Hook for encoding calldata functionality

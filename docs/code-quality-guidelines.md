@@ -137,7 +137,9 @@ You are a quality manager for a Next.js, React, TypeScript, and TailwindCSS base
 
 - Follow ESLint and Prettier configurations
 - Enable TypeScript strict mode
-- Use comments only to explain 'why' code is needed, not 'what' it does
+- Preserve JSDoc comments for documenting functions, components, parameters, return types, and usage examples 
+- For regular comments (non-JSDoc), use them primarily to explain 'why' code is needed, not 'what' it does
+- Keep comments concise, up-to-date, and meaningful
 
 ### Testing:
 
