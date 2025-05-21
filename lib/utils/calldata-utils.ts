@@ -60,3 +60,33 @@ export function isValidCalldata(calldata: string): boolean {
 
   return isHex && hasMinLength && hasEvenLength;
 }
+
+/**
+ * Determines if a type is a dynamic Ethereum type
+ * 
+ * @param type Ethereum type string (e.g., 'string', 'bytes', 'uint256[]')
+ * @returns True if the type is dynamic
+ */
+export function isDynamicType(type: string): boolean {
+  // Basic dynamic types
+  if (type === 'string' || type === 'bytes') return true;
+  
+  // Arrays with dynamic length
+  if (type.endsWith('[]')) return true;
+  
+  // Fixed length arrays are not dynamic themselves
+  if (type.match(/\[\d+\]$/)) return false;
+  
+  return false;
+}
+
+/**
+ * Gets the size of an Ethereum type in bytes when encoded in calldata
+ * 
+ * @param type Ethereum type string
+ * @returns Size in bytes (32 for most types due to padding)
+ */
+export function getTypeSize(): number {
+  // Most Ethereum types are padded to 32 bytes
+  return 32;
+}

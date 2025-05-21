@@ -1,5 +1,5 @@
 import { ParsedParameter } from "@/lib/types";
-import { isDynamicType } from "./calldata-common";
+import { isDynamicType } from "@/lib/utils/calldata-utils";
 
 export interface Segment {
   start: number;
