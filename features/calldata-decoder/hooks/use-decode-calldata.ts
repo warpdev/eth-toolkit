@@ -13,7 +13,9 @@ import {
 } from "@/features/calldata-decoder/atoms/calldata-atoms";
 import { decodedResultAtom, selectedSignatureIndexAtom } from "@/features/calldata-decoder/atoms/decoder-result-atom";
 import { 
-  DecodedFunctionWithSignatures,
+  DecodedFunctionWithSignatures 
+} from "@/lib/types";
+import {
   parseAbiFromString,
   validateAbiString,
   isValidCalldata,

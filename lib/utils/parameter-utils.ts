@@ -61,7 +61,7 @@ export function generateParametersFromAbi(
   if (!functionAbi || !functionAbi.inputs) return [];
   
   // Map the inputs to our parameter interface
-  return functionAbi.inputs.map((input) => ({
+  return functionAbi.inputs.map((input: any) => ({
     name: input.name || `param${input.type}`,
     type: input.type,
     components: input.components as FunctionParameter[] | undefined

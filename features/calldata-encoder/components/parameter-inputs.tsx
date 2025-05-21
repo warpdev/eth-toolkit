@@ -9,10 +9,12 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { 
+  FunctionParameter 
+} from "@/lib/types";
+import {
   generateParametersFromAbi, 
   getPlaceholderForType, 
-  getInputTypeForParameterType,
-  FunctionParameter 
+  getInputTypeForParameterType
 } from "@/lib/utils";
 
 // Interface for shared parameter input props

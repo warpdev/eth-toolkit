@@ -22,7 +22,11 @@ export const ColorCodedCalldata = React.memo(function ColorCodedCalldata({ calld
     [parsedParameters, remainingCalldata]
   );
   
-  const renderSegment = useCallback((segment, index, segmentText) => (
+  const renderSegment = useCallback((
+    segment: { start: number; end: number; name: string; type: string; value: unknown; },
+    index: number, 
+    segmentText: string
+  ) => (
     <CalldataSegment
       key={`param-${index}`}
       segment={segment}

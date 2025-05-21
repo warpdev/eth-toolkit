@@ -15,13 +15,15 @@ import {
   encodeFunctionData, Abi
 } from "viem";
 import {
+  FunctionParameter,
+  EncodedFunction
+} from "@/lib/types";
+import {
   parseAbiFromString,
   validateAbiString,
   validateFunctionInputs as validateInputs,
   generateParametersFromAbi,
   transformInputsForEncoding,
-  FunctionParameter,
-  EncodedFunction,
   ErrorType,
   getAbiValidationError,
   getEncodingError,
@@ -183,13 +185,13 @@ export function useEncodeCalldata() {
       // Encode calldata using viem
       const encodedData = encodeFunctionData({
         abi: abi as Abi,
-        functionName: selectedFunction,
+        functionName: selectedFunction || "",
         args: transformedInputs,
       });
       
       // Create result object
       const result = createResultObject(
-        selectedFunction,
+        selectedFunction || "",
         functionParams,
         transformedInputs,
         encodedData

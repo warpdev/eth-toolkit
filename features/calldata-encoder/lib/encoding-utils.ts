@@ -102,7 +102,16 @@ export function extractFunctionsFromAbi(abi: Abi): FunctionInfo[] {
       name: input.name,
       type: input.type,
       components: Array.isArray(input.components)
-        ? input.components.filter(isValidFunctionInput)
+        ? input.components.filter(isValidFunctionInput).map(comp => ({
+            name: comp.name, 
+            type: comp.type,
+            components: Array.isArray(comp.components) 
+              ? comp.components.filter(isValidFunctionInput).map(subComp => ({
+                  name: subComp.name,
+                  type: subComp.type
+                }))
+              : undefined
+          }))
         : undefined,
     }));
 

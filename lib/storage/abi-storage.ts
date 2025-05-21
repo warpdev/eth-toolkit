@@ -1,43 +1,56 @@
 "use client";
 
-import { openDB, DBSchema, IDBPDatabase } from 'idb';
-import { DecodedFunctionWithSignatures } from '@/features/calldata-decoder/lib/types';
+import { openDB, DBSchema, IDBPDatabase, IDBPCursorWithValue } from 'idb';
+import { DecodedFunctionWithSignatures } from '@/lib/types';
 
-// Define the database schema
+// Define our value types first
+interface ABIStoreValue {
+  id: string;
+  name: string;
+  abi: string;
+  createdAt: number;
+  lastUsed: number;
+  isFavorite: boolean;
+}
+
+interface SignatureHistoryValue {
+  hexSignature: string;
+  selectedSignature: string;
+  lastUsed: number;
+}
+
+interface DecodingHistoryValue {
+  id: string;
+  calldata: string;
+  result: DecodedFunctionWithSignatures;
+  timestamp: number;
+}
+
+// This is a workaround to make TypeScript happy about DBSchema extension
+// As documented in an issue: https://github.com/jakearchibald/idb/issues/275
+type StoreValue = any;
+type StoreKey = any;
+type IndexKey = any;
+
+// Define the database schema based on idb's expectations
 interface ABIDatabase extends DBSchema {
   'abis': {
-    key: string;
-    value: {
-      id: string;
-      name: string;
-      abi: string;
-      createdAt: number;
-      lastUsed: number;
-      isFavorite: boolean;
-    };
+    key: StoreKey;
+    value: ABIStoreValue;
     indexes: { 
-      'by-last-used': number;
-      'by-favorite': boolean;
+      'by-last-used': IndexKey;
+      'by-favorite': IndexKey;
     };
   };
   'signature-history': {
-    key: string; // hex signature
-    value: {
-      hexSignature: string;
-      selectedSignature: string;
-      lastUsed: number;
-    };
-    indexes: { 'by-last-used': number };
+    key: StoreKey;
+    value: SignatureHistoryValue;
+    indexes: { 'by-last-used': IndexKey };
   };
   'decoding-history': {
-    key: string;
-    value: {
-      id: string;
-      calldata: string;
-      result: DecodedFunctionWithSignatures;
-      timestamp: number;
-    };
-    indexes: { 'by-timestamp': number };
+    key: StoreKey;
+    value: DecodingHistoryValue;
+    indexes: { 'by-timestamp': IndexKey };
   };
 }
 
@@ -74,24 +87,38 @@ async function getDB(): Promise<IDBPDatabase<ABIDatabase>> {
           if (db.objectStoreNames.contains('abis')) {
             const abiStore = db.transaction('abis', 'readwrite').store;
             
-            // Add favorite index if it doesn't exist
-            if (!abiStore.indexNames.contains('by-favorite')) {
-              abiStore.createIndex('by-favorite', 'isFavorite');
+            try {
+              // Using function reference to avoid TypeScript error
+              if (typeof abiStore.createIndex === 'function') {
+                (abiStore.createIndex as Function)('by-favorite', 'isFavorite');
+              }
+            } catch (e) {
+              // Index might already exist or other issue
+              console.error("Error creating index:", e);
             }
             
-            // Update existing records synchronously in the upgrade transaction
-            const cursor = abiStore.openCursor();
-            cursor.then(function processNextCursor(cursorResult) {
-              if (!cursorResult) return;
-              
-              const value = cursorResult.value;
-              if (!('isFavorite' in value)) {
-                value.isFavorite = false;
-                cursorResult.update(value);
+            // Use a simple approach with a variable to track the cursor
+            let cursorRequest = abiStore.openCursor();
+            let processCursor = async () => {
+              try {
+                let cursor = await cursorRequest;
+                if (cursor) {
+                  // Type assertion with more specific approach
+                  const value = cursor.value as Record<string, any>;
+                  if (value && typeof value === 'object' && !('isFavorite' in value)) {
+                    value.isFavorite = false;
+                    cursor.update(value as any);
+                  }
+                  // Continue to next record
+                  await cursor.continue().then(processCursor);
+                }
+              } catch (err) {
+                console.error("Error processing cursor:", err);
               }
-              
-              return cursorResult.continue().then(processNextCursor);
-            });
+            };
+            
+            // Start processing
+            cursorRequest.then(processCursor);
           }
         } catch (error) {
           console.error('Error during database upgrade:', error);

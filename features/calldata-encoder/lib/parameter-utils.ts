@@ -15,7 +15,7 @@ export function generateInputFieldsFromAbi(abi: Abi, functionName: string): Func
   if (!functionAbi || !functionAbi.inputs) return [];
   
   // Map the inputs to our FunctionParameter interface
-  return functionAbi.inputs.map((input) => ({
+  return functionAbi.inputs.map((input: any) => ({
     name: input.name || `param${input.type}`,
     type: input.type,
     components: input.components

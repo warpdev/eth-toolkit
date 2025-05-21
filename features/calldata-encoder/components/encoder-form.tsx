@@ -59,7 +59,7 @@ export const EncoderForm = React.memo(function EncoderForm({ onEncodeSuccess }: 
   // Handle encode action
   const handleEncode = useCallback(async () => {
     const result = await encodeCalldata();
-    if (result && !result.error && onEncodeSuccess) {
+    if (result && 'functionName' in result && onEncodeSuccess) {
       toast.success("Calldata Encoded", {
         description: `Successfully encoded ${result.functionName}`,
         duration: 3000

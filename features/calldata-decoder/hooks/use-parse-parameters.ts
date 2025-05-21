@@ -12,7 +12,9 @@ import {
   selectedSignatureIndexAtom 
 } from "@/features/calldata-decoder/atoms/decoder-result-atom";
 import { 
-  ParsedParameter,
+  ParsedParameter
+} from "@/lib/types";
+import {
   normalizeCalldata
 } from "@/lib/utils";
 import { createTemporaryAbiFromSignature } from "@/features/calldata-decoder/lib/signature-utils";
