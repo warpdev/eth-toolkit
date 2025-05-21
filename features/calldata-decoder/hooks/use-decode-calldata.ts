@@ -26,8 +26,7 @@ import {
   getDecodingError,
   normalizeError
 } from "@/lib/utils";
-import { decodeCalldataWithAbi } from "@/lib/utils/calldata-processing";
-import { decodeCalldataWithSignatureLookup } from "@/features/calldata-decoder/lib/decoding-utils";
+import { decodeCalldataWithAbi, decodeCalldataWithSignatureLookup } from "@/lib/utils/calldata-processing";
 
 /**
  * Hook for decoding calldata with improved error handling

@@ -16,9 +16,9 @@ import {
 } from "@/lib/types";
 import {
   normalizeCalldata,
-  extractParametersFromSignature
+  extractParametersFromSignature,
+  createTemporaryAbiFromSignature
 } from "@/lib/utils";
-import { createTemporaryAbiFromSignature } from "@/features/calldata-decoder/lib/signature-utils";
 
 /**
  * Hook for parsing function parameters from calldata and signature

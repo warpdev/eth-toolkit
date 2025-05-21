@@ -1,3 +1,7 @@
+/**
+ * Utilities for working with Ethereum function signatures and 4bytes API
+ */
+
 import { parseAbi } from 'viem';
 import { FunctionSignature } from '@/lib/types';
 import { getLastSelectedSignature } from '@/lib/storage/abi-storage';

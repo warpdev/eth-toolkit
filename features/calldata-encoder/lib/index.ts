@@ -4,12 +4,31 @@ export type {
   FunctionParameter,
   FunctionInfo
 } from '@/lib/types';
-export * from './encoding-utils';
+// Encoding utilities from shared utils
+export {
+  encodeCalldataWithAbi,
+  createEncodedFunctionResult
+} from '@/lib/utils';
+
+// Parameter utilities from shared utils
 export {
   getPlaceholderForType,
   getInputTypeForParameterType,
-  generateParametersFromAbi,
+  generateParametersFromAbi
+} from '@/lib/utils';
+
+// Input transformation utilities from shared utils
+export {
   transformInputForType,
   transformInputsForEncoding
 } from '@/lib/utils';
-export * from './validation';
+
+// ABI validation from shared utils
+export {
+  validateAbiString,
+  validateFunctionExists,
+  validateFunctionInputs,
+  extractFunctionsFromAbi,
+  getFunctionFromAbi,
+  getFunctionBySignature
+} from '@/lib/utils';

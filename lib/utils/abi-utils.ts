@@ -74,14 +74,6 @@ export function validateAbiString(abiString: string): AbiValidationResult {
   }
 }
 
-/**
- * Legacy compatibility function for validateAbiString, with different return structure
- * @deprecated Use validateAbiString instead
- */
-export function validateAbi(abiString: string): { valid: boolean; error?: string } {
-  const result = validateAbiString(abiString);
-  return { valid: result.isValid, error: result.error };
-}
 
 /**
  * Parses ABI from string, with validation

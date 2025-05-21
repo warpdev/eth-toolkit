@@ -10,11 +10,21 @@ export type {
   FunctionSignature
 } from "@/lib/types";
 
-// Decoding utilities
-export * from "./decoding-utils";
+// Decoding utilities from shared utils
+export {
+  decodeCalldataWithAbi,
+  decodeCalldataWithSignatureLookup
+} from "@/lib/utils";
 
-// Signature utilities
-export * from "./signature-utils";
+// Signature utilities from shared utils
+export {
+  fetchFunctionSignatures,
+  fetchFunctionSignature,
+  createTemporaryAbiFromSignature,
+  isValidFunctionSignature,
+  calculateSignatureMatchScore,
+  findBestSignatureMatch
+} from "@/lib/utils";
 
 // Parameter utilities (imported from shared utils)
 export {

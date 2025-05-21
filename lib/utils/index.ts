@@ -4,9 +4,23 @@ import { twMerge } from "tailwind-merge"
 // Re-export utility functions
 export * from "./abi-utils";
 export * from "./calldata-utils";
-export * from "./parameter-utils";
-export * from "./calldata-processing";
 export * from "./error-utils";
+export * from "./signature-utils";
+
+// Export from parameter-utils except those duplicated in calldata-processing
+export {
+  getPlaceholderForType,
+  getInputTypeForParameterType,
+  generateParametersFromAbi,
+  extractParameterSection,
+  parseParameter,
+  estimateParameterEncodedLength,
+  estimateParametersEncodedLength,
+  extractParametersFromSignature
+} from "./parameter-utils";
+
+// Export from calldata-processing, including the duplicated functions
+export * from "./calldata-processing";
 
 /**
  * Utility for combining Tailwind CSS classes
