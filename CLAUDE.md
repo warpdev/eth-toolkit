@@ -36,6 +36,9 @@ pnpm start       # Start production server
 
 # Code quality
 pnpm lint        # Run ESLint
+pnpm type-check  # Run TypeScript type checking
+pnpm format      # Format all files with Prettier
+pnpm format:check # Check formatting without making changes
 ```
 
 ## Architecture Notes
@@ -62,6 +65,26 @@ pnpm lint        # Run ESLint
 - **Storage Management**:
   - IndexedDB integration
   - CRUD operations for saved items
+
+### Directory Structure
+
+The project follows a feature-based organization:
+
+- `/app`: Next.js app router pages and layouts
+- `/components`: Shared UI components
+  - `/layout`: Layout components (sidebar, header, etc.)
+  - `/shared`: Reusable components across features
+  - `/ui`: shadcn/ui components
+- `/features`: Feature-specific code
+  - `/calldata-decoder`: Calldata decoding functionality
+  - `/calldata-encoder`: Calldata encoding functionality
+- `/hooks`: Custom React hooks
+- `/lib`: Utilities and shared logic
+  - `/config`: Application configuration
+  - `/storage`: IndexedDB storage implementation
+  - `/types`: TypeScript types and interfaces
+  - `/utils`: Utility functions
+- `/providers`: React context providers
 
 ## Micro-Interactions
 
@@ -96,6 +119,16 @@ When working with libraries from our Technology Stack:
    ```
 3. Always check full documentation when implementing complex features
 4. Add comments referencing official documentation for non-obvious usage patterns
+
+## Local Storage Architecture
+
+The application uses IndexedDB (via the `idb` library) for persistent local storage with the following stores:
+
+- **abis**: Stores ABI JSON for saved contracts
+- **signature-history**: Tracks user-selected function signatures
+- **decoding-history**: Saves recent calldata decoding operations
+
+Data models include proper indexing to support sorting by date, favorites, and other criteria.
 
 ## Package Management
 
