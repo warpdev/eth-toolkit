@@ -107,23 +107,13 @@ export const ParameterInputs = React.memo(function ParameterInputs() {
   const selectedFunction = useAtomValue(selectedFunctionAtom);
   const [functionInputs, setFunctionInputs] = useAtom(functionInputsAtom);
   
-  // If no function is selected
-  if (!abi || !selectedFunction) {
-    return null;
-  }
-  
-  // Get function parameters from ABI using memoization
+  // Get function parameters from ABI using memoization - always call this hook
   const functionParams = useMemo(() => 
-    generateParametersFromAbi(abi, selectedFunction),
+    abi && selectedFunction ? generateParametersFromAbi(abi, selectedFunction) : [],
     [abi, selectedFunction]
   );
   
-  // If function has no parameters
-  if (functionParams.length === 0) {
-    return <EmptyParametersNotice />;
-  }
-  
-  // Handle parameter input change
+  // Handle parameter input change - always call this hook
   const handleValueChange = useCallback((name: string, value: string) => {
     setFunctionInputs(prev => ({
       ...prev,
@@ -131,8 +121,12 @@ export const ParameterInputs = React.memo(function ParameterInputs() {
     }));
   }, [setFunctionInputs]);
   
-  // Create memoized parameter field rendering logic
+  // Create memoized parameter field rendering logic - always call this hook
   const renderParameterFields = useMemo(() => {
+    if (!abi || !selectedFunction || functionParams.length === 0) {
+      return [];
+    }
+    
     return functionParams.map((param, index) => {
       const paramName = param.name || `param${index}`;
       const inputType = getInputTypeForParameterType(param.type);
@@ -173,7 +167,17 @@ export const ParameterInputs = React.memo(function ParameterInputs() {
         />
       );
     });
-  }, [functionParams, functionInputs, handleValueChange]);
+  }, [abi, selectedFunction, functionParams, functionInputs, handleValueChange]);
+  
+  // Return early after all hooks are called
+  if (!abi || !selectedFunction) {
+    return null;
+  }
+  
+  // If function has no parameters, show notice (after all hooks are called)
+  if (functionParams.length === 0) {
+    return <EmptyParametersNotice />;
+  }
   
   return (
     <Card>
