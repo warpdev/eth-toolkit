@@ -1,20 +1,21 @@
-"use client";
+'use client';
 
-import { useAtom, useAtomValue, useSetAtom } from "jotai";
-import { useCallback } from "react";
-import { useDecodingHistory } from "./use-decoding-history";
-import { 
-  calldataAtom, 
-  abiAtom, 
+import { useAtom, useAtomValue, useSetAtom } from 'jotai';
+import { useCallback } from 'react';
+import { useDecodingHistory } from './use-decoding-history';
+import {
+  calldataAtom,
+  abiAtom,
   abiStringAtom,
-  isDecodingAtom, 
+  isDecodingAtom,
   decodeErrorAtom,
-  decodeModeAtom
-} from "@/features/calldata-decoder/atoms/calldata-atoms";
-import { decodedResultAtom, selectedSignatureIndexAtom } from "@/features/calldata-decoder/atoms/decoder-result-atom";
-import { 
-  DecodedFunctionWithSignatures 
-} from "@/lib/types";
+  decodeModeAtom,
+} from '@/features/calldata-decoder/atoms/calldata-atoms';
+import {
+  decodedResultAtom,
+  selectedSignatureIndexAtom,
+} from '@/features/calldata-decoder/atoms/decoder-result-atom';
+import { DecodedFunctionWithSignatures } from '@/lib/types';
 import {
   parseAbiFromString,
   validateAbiString,
@@ -24,9 +25,12 @@ import {
   getAbiValidationError,
   getCalldataValidationError,
   getDecodingError,
-  normalizeError
-} from "@/lib/utils";
-import { decodeCalldataWithAbi, decodeCalldataWithSignatureLookup } from "@/lib/utils/calldata-processing";
+  normalizeError,
+} from '@/lib/utils';
+import {
+  decodeCalldataWithAbi,
+  decodeCalldataWithSignatureLookup,
+} from '@/lib/utils/calldata-processing';
 
 /**
  * Hook for decoding calldata with improved error handling
@@ -36,10 +40,10 @@ export function useDecodeCalldata() {
   const [abi, setAbi] = useAtom(abiAtom);
   const abiString = useAtomValue(abiStringAtom);
   const decodeMode = useAtomValue(decodeModeAtom);
-  
+
   const setIsDecoding = useSetAtom(isDecodingAtom);
   const setDecodeError = useSetAtom(decodeErrorAtom);
-  
+
   const { addToHistory } = useDecodingHistory();
 
   /**
@@ -60,9 +64,9 @@ export function useDecodeCalldata() {
     }
 
     const parsedAbi = parseAbiFromString(abiString);
-    
+
     if (!parsedAbi) {
-      const error = getAbiValidationError("Failed to parse ABI structure");
+      const error = getAbiValidationError('Failed to parse ABI structure');
       setDecodeError(error.message);
       return false;
     }
@@ -76,7 +80,7 @@ export function useDecodeCalldata() {
    */
   const validateCalldataInput = useCallback((): boolean => {
     if (!calldata) {
-      setDecodeError("Calldata is required");
+      setDecodeError('Calldata is required');
       return false;
     }
 
@@ -111,12 +115,12 @@ export function useDecodeCalldata() {
       const normalizedCalldata = normalizeCalldata(calldata);
       let result: DecodedFunctionWithSignatures | null = null;
 
-      if (decodeMode === "abi") {
+      if (decodeMode === 'abi') {
         // Make sure we have a valid ABI
         const isValidAbi = parseAbi();
-        
+
         if (!isValidAbi || !abi) {
-          const error = getAbiValidationError("Invalid or missing ABI");
+          const error = getAbiValidationError('Invalid or missing ABI');
           setDecodeError(error.message);
           return null;
         }
@@ -126,24 +130,27 @@ export function useDecodeCalldata() {
       } else {
         // Decode using signature lookup
         result = await decodeCalldataWithSignatureLookup(normalizedCalldata);
-        
+
         // If we have a selected signature index from the result, use it
-        if ('selectedSignatureIndex' in result && typeof result.selectedSignatureIndex === 'number') {
+        if (
+          'selectedSignatureIndex' in result &&
+          typeof result.selectedSignatureIndex === 'number'
+        ) {
           setSelectedIndex(result.selectedSignatureIndex);
         }
       }
-      
+
       if (result && result.error) {
         setDecodeError(result.error);
       }
-      
+
       // Store the result in the atom
       setDecodedResult(result);
-      
+
       if (result && !result.error) {
         addToHistory(normalizedCalldata, result);
       }
-      
+
       return result;
     } catch (error) {
       const normalizedError = normalizeError(error, ErrorType.DECODING_ERROR);
@@ -153,19 +160,19 @@ export function useDecodeCalldata() {
       setIsDecoding(false);
     }
   }, [
-    calldata, 
-    decodeMode, 
-    abi, 
-    parseAbi, 
-    validateCalldataInput, 
-    setIsDecoding, 
-    setDecodeError, 
-    setDecodedResult, 
-    setSelectedIndex
+    calldata,
+    decodeMode,
+    abi,
+    parseAbi,
+    validateCalldataInput,
+    setIsDecoding,
+    setDecodeError,
+    setDecodedResult,
+    setSelectedIndex,
   ]);
 
   return {
     decodeCalldata,
-    parseAbi
+    parseAbi,
   };
 }

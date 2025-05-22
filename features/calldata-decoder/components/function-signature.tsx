@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface FunctionSignatureProps {
   signature: string;
@@ -12,7 +12,7 @@ export function FunctionSignature({ signature }: FunctionSignatureProps) {
       <TooltipProvider>
         <Tooltip>
           <TooltipTrigger asChild>
-            <span className="font-bold text-primary bg-primary/20">{signature}</span>
+            <span className="text-primary bg-primary/20 font-bold">{signature}</span>
           </TooltipTrigger>
           <TooltipContent side="top">
             <p>Function Signature (4 bytes)</p>

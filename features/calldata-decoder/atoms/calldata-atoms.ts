@@ -1,15 +1,15 @@
-import { atom } from "jotai";
-import { Abi } from "viem";
+import { atom } from 'jotai';
+import { Abi } from 'viem';
 
 /**
  * Atom for storing the calldata string input
  */
-export const calldataAtom = atom<string>("");
+export const calldataAtom = atom<string>('');
 
 /**
  * Atom for storing the ABI input as a string
  */
-export const abiStringAtom = atom<string>("");
+export const abiStringAtom = atom<string>('');
 
 /**
  * Atom for storing the parsed ABI
@@ -31,4 +31,4 @@ export const decodeErrorAtom = atom<string | null>(null);
  * - "signature": Use 4bytes API to lookup the function signature
  * - "abi": Use provided ABI for decoding
  */
-export const decodeModeAtom = atom<"signature" | "abi">("signature");
+export const decodeModeAtom = atom<'signature' | 'abi'>('signature');

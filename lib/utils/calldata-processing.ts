@@ -3,29 +3,29 @@
  */
 
 import { Abi, encodeFunctionData, decodeFunctionData } from 'viem';
-import { 
-  EncodedFunction, 
+import {
+  EncodedFunction,
   DecodedFunction,
   DecodedFunctionWithSignatures,
-  FunctionInfo, 
+  FunctionInfo,
   FunctionParameter,
-  ParsedParameter
+  ParsedParameter,
 } from '@/lib/types';
-import { 
+import {
   normalizeCalldata,
   extractFunctionSelector,
-  extractCalldataParameters
+  extractCalldataParameters,
 } from './calldata-utils';
 import { parseAbiFromString } from './abi-utils';
 import {
   fetchFunctionSignatures,
   findBestSignatureMatch,
-  createTemporaryAbiFromSignature
+  createTemporaryAbiFromSignature,
 } from './signature-utils';
 
 /**
  * Encode calldata using a provided ABI and inputs
- * 
+ *
  * @param abi - Contract ABI
  * @param functionName - Name of the function to encode
  * @param args - Function arguments
@@ -47,22 +47,19 @@ export async function encodeCalldataWithAbi(
   } catch (error) {
     console.error('Error encoding calldata:', error);
     return {
-      error: error instanceof Error ? error.message : "Unknown error encoding calldata"
+      error: error instanceof Error ? error.message : 'Unknown error encoding calldata',
     };
   }
 }
 
 /**
  * Decode calldata using a provided ABI
- * 
+ *
  * @param calldata - The calldata hex string to decode
  * @param abi - The contract ABI to use for decoding
  * @returns The decoded function data or an error
  */
-export async function decodeCalldataWithAbi(
-  calldata: string, 
-  abi: Abi
-): Promise<DecodedFunction> {
+export async function decodeCalldataWithAbi(calldata: string, abi: Abi): Promise<DecodedFunction> {
   try {
     // Extract function selector and normalize calldata
     const functionSelector = extractFunctionSelector(calldata);
@@ -83,19 +80,19 @@ export async function decodeCalldataWithAbi(
 
     return result;
   } catch (error) {
-    console.error("Error decoding calldata:", error);
+    console.error('Error decoding calldata:', error);
     return {
-      functionName: "Unknown Function",
+      functionName: 'Unknown Function',
       functionSig: extractFunctionSelector(calldata),
       args: [],
-      error: error instanceof Error ? error.message : "Unknown error decoding calldata",
+      error: error instanceof Error ? error.message : 'Unknown error decoding calldata',
     };
   }
 }
 
 /**
  * Validate and transform inputs based on the parameter type
- * 
+ *
  * @param value - String value to transform
  * @param type - Ethereum parameter type
  * @returns Transformed value for the given type
@@ -151,7 +148,7 @@ export function transformInputForType(value: string, type: string): unknown {
 
 /**
  * Transform a record of inputs to the correct types based on function parameters
- * 
+ *
  * @param inputsRecord - Record of input values by parameter name
  * @param functionInputs - Array of function parameter definitions
  * @returns Array of transformed inputs
@@ -168,7 +165,7 @@ export function transformInputsForEncoding(
 
 /**
  * Creates a full EncodedFunction result from successful encoding
- * 
+ *
  * @param functionName - Name of the encoded function
  * @param signature - Function signature
  * @param args - Function arguments that were encoded
@@ -185,13 +182,13 @@ export function createEncodedFunctionResult(
     functionName,
     functionSig: signature,
     args,
-    encodedData
+    encodedData,
   };
 }
 
 /**
  * Decode calldata using the 4bytes API for function signature lookup
- * 
+ *
  * @param calldata - The calldata hex string to decode
  * @returns The decoded function data or an error
  */
@@ -202,65 +199,65 @@ export async function decodeCalldataWithSignatureLookup(
     // Extract function selector and normalize calldata
     const functionSelector = extractFunctionSelector(calldata);
     const fullCalldata = normalizeCalldata(calldata);
-      
+
     // Lookup the function signatures
     const signatures = await fetchFunctionSignatures(functionSelector);
-    
+
     if (signatures.length === 0) {
       return {
-        functionName: "Unknown Function",
+        functionName: 'Unknown Function',
         functionSig: functionSelector,
         args: [],
-        error: "Function signature not found in 4bytes database",
+        error: 'Function signature not found in 4bytes database',
       };
     }
-    
+
     // Find the best matching signature
     const { bestSignature, index } = await findBestSignatureMatch(
-      signatures, 
+      signatures,
       functionSelector,
       calldata
     );
-    
+
     // Extract function name from the best signature
-    const functionName = bestSignature.split("(")[0];
-    
+    const functionName = bestSignature.split('(')[0];
+
     // Create a temporary ABI from the best signature to decode parameters
     const tempAbi = createTemporaryAbiFromSignature(bestSignature);
-    
+
     let args: unknown[] = [];
     let parsedParameters = [];
-    
+
     try {
       // Try to decode the calldata using the temporary ABI
       const decodedData = await decodeCalldataWithAbi(calldata, tempAbi);
-      
+
       // Use the decoded args
       args = decodedData.args || [];
-      
+
       // Further parameter processing can be done here if needed
     } catch (decodeError) {
-      console.warn("Error decoding parameters:", decodeError);
+      console.warn('Error decoding parameters:', decodeError);
       // Fallback to showing raw parameters if decoding fails
       const rawParams = extractCalldataParameters(calldata);
       args = [rawParams];
     }
-    
+
     // Return the result with possible signatures
     return {
       functionName,
       functionSig: bestSignature,
       args,
-      possibleSignatures: signatures.map(sig => sig.textSignature),
-      selectedSignatureIndex: index
+      possibleSignatures: signatures.map((sig) => sig.textSignature),
+      selectedSignatureIndex: index,
     };
   } catch (error) {
-    console.error("Error decoding with signature lookup:", error);
+    console.error('Error decoding with signature lookup:', error);
     return {
-      functionName: "Unknown Function",
+      functionName: 'Unknown Function',
       functionSig: extractFunctionSelector(calldata),
       args: [],
-      error: error instanceof Error ? error.message : "Unknown error decoding calldata",
+      error: error instanceof Error ? error.message : 'Unknown error decoding calldata',
     };
   }
 }

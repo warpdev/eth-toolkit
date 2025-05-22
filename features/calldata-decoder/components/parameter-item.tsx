@@ -15,7 +15,7 @@ export const ParameterItem = React.memo(function ParameterItem({
   index,
 }: ParameterItemProps) {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-[1fr_1fr] gap-4 p-3">
+    <div className="grid grid-cols-1 gap-4 p-3 md:grid-cols-[1fr_1fr]">
       <div className="space-y-1">
         <div className="text-sm font-medium">{parameter.name}</div>
         <div className="text-muted-foreground font-mono text-xs">{parameter.type}</div>

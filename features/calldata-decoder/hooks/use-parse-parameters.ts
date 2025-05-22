@@ -1,28 +1,23 @@
-"use client";
+'use client';
 
-import React, { useMemo, useCallback } from "react";
-import { useAtomValue } from "jotai";
-import { decodeFunctionData } from "viem";
-import { 
-  calldataAtom,
-  isDecodingAtom 
-} from "@/features/calldata-decoder/atoms/calldata-atoms";
+import React, { useMemo, useCallback } from 'react';
+import { useAtomValue } from 'jotai';
+import { decodeFunctionData } from 'viem';
+import { calldataAtom, isDecodingAtom } from '@/features/calldata-decoder/atoms/calldata-atoms';
 import {
   decodedResultAtom,
-  selectedSignatureIndexAtom 
-} from "@/features/calldata-decoder/atoms/decoder-result-atom";
-import { 
-  ParsedParameter
-} from "@/lib/types";
+  selectedSignatureIndexAtom,
+} from '@/features/calldata-decoder/atoms/decoder-result-atom';
+import { ParsedParameter } from '@/lib/types';
 import {
   normalizeCalldata,
   extractParametersFromSignature,
-  createTemporaryAbiFromSignature
-} from "@/lib/utils";
+  createTemporaryAbiFromSignature,
+} from '@/lib/utils';
 
 /**
  * Hook for parsing function parameters from calldata and signature
- * 
+ *
  * This hook encapsulates the parameter parsing logic that was previously
  * embedded in the DecoderOutput component, providing a cleaner separation
  * of concerns and better reusability.
@@ -45,8 +40,8 @@ export function useParseParameters() {
     ) {
       return decodedResult.possibleSignatures[selectedIndex];
     }
-    
-    return decodedResult?.functionSig || "";
+
+    return decodedResult?.functionSig || '';
   }, [decodedResult, selectedIndex]);
 
   /**
@@ -65,30 +60,30 @@ export function useParseParameters() {
     if (!decodedResult) {
       return [];
     }
-    
+
     if (!calldata) {
-      setParseError("No calldata provided");
+      setParseError('No calldata provided');
       return [];
     }
-    
+
     if (calldata.length <= 10) {
-      setParseError("Calldata too short to contain parameters");
+      setParseError('Calldata too short to contain parameters');
       return [];
     }
-    
+
     if (!selectedSignature) {
-      setParseError("No function signature available");
+      setParseError('No function signature available');
       return [];
     }
-    
+
     if (isDecoding) {
       return [];
     }
 
     // Check if decodedResult already has parsed parameters
     if (
-      decodedResult.parsedParameters && 
-      decodedResult.parsedParameters.length > 0 && 
+      decodedResult.parsedParameters &&
+      decodedResult.parsedParameters.length > 0 &&
       decodedResult.selectedSignatureIndex === selectedIndex
     ) {
       return decodedResult.parsedParameters;
@@ -97,21 +92,21 @@ export function useParseParameters() {
     try {
       // Normalize calldata
       const fullCalldata = normalizeCalldata(calldata);
-      
+
       // Create temporary ABI from the selected signature
       const tempAbi = createTemporaryAbiFromSignature(selectedSignature);
-      
+
       // Decode the calldata - type assertion needed for viem's strict types
       const decodedData = decodeFunctionData({
         abi: tempAbi,
         data: fullCalldata as `0x${string}`,
       });
-      
+
       // Extract and return parameters
       return extractParametersFromSignature(selectedSignature, decodedData);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
-      console.error("Error parsing parameters:", errorMessage);
+      console.error('Error parsing parameters:', errorMessage);
       setParseError(`Failed to parse parameters: ${errorMessage}`);
       return [];
     }
@@ -125,12 +120,15 @@ export function useParseParameters() {
   }, [parseParameters]);
 
   // Memoize the return object to prevent recreation on each render
-  const result = useMemo(() => ({
-    parsedParameters,
-    parseParameters,
-    selectedSignature,
-    parseError
-  }), [parsedParameters, parseParameters, selectedSignature, parseError]);
-  
+  const result = useMemo(
+    () => ({
+      parsedParameters,
+      parseParameters,
+      selectedSignature,
+      parseError,
+    }),
+    [parsedParameters, parseParameters, selectedSignature, parseError]
+  );
+
   return result;
 }

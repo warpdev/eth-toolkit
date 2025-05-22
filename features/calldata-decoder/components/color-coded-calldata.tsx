@@ -1,40 +1,46 @@
-"use client";
+'use client';
 
-import React, { useMemo, useCallback } from "react";
-import { ParsedParameter } from "@/lib/types";
-import { calculateSegments } from "../lib/calldata-display-utils";
-import { FunctionSignature } from "./function-signature";
-import { CalldataSegment } from "./calldata-segment";
-import { CalldataLegend } from "./calldata-legend";
+import React, { useMemo, useCallback } from 'react';
+import { ParsedParameter } from '@/lib/types';
+import { calculateSegments } from '../lib/calldata-display-utils';
+import { FunctionSignature } from './function-signature';
+import { CalldataSegment } from './calldata-segment';
+import { CalldataLegend } from './calldata-legend';
 
 interface ColorCodedCalldataProps {
   calldata: string;
   parsedParameters?: ParsedParameter[];
 }
 
-export const ColorCodedCalldata = React.memo(function ColorCodedCalldata({ calldata, parsedParameters }: ColorCodedCalldataProps) {
-  const normalizedCalldata = calldata.startsWith("0x") ? calldata : `0x${calldata}`;
+export const ColorCodedCalldata = React.memo(function ColorCodedCalldata({
+  calldata,
+  parsedParameters,
+}: ColorCodedCalldataProps) {
+  const normalizedCalldata = calldata.startsWith('0x') ? calldata : `0x${calldata}`;
   const functionSignature = normalizedCalldata.slice(0, 10);
   const remainingCalldata = normalizedCalldata.slice(10);
-  
+
   const segments = useMemo(
     () => calculateSegments(parsedParameters, remainingCalldata),
     [parsedParameters, remainingCalldata]
   );
-  
-  const renderSegment = useCallback((
-    segment: { start: number; end: number; name: string; type: string; value: unknown; },
-    index: number, 
-    segmentText: string
-  ) => (
-    <CalldataSegment
-      key={`param-${index}`}
-      segment={segment}
-      segmentText={segmentText}
-      index={index}
-    />
-  ), []);
-  
+
+  const renderSegment = useCallback(
+    (
+      segment: { start: number; end: number; name: string; type: string; value: unknown },
+      index: number,
+      segmentText: string
+    ) => (
+      <CalldataSegment
+        key={`param-${index}`}
+        segment={segment}
+        segmentText={segmentText}
+        index={index}
+      />
+    ),
+    []
+  );
+
   const colorizedCalldata = useMemo(() => {
     if (!parsedParameters || parsedParameters.length === 0 || segments.length === 0) {
       return <span>{remainingCalldata}</span>;
@@ -42,7 +48,7 @@ export const ColorCodedCalldata = React.memo(function ColorCodedCalldata({ calld
 
     const elements: React.ReactNode[] = [];
     let coveredUntil = 0;
-    
+
     segments.forEach((segment, index) => {
       if (segment.start > coveredUntil) {
         elements.push(
@@ -51,16 +57,16 @@ export const ColorCodedCalldata = React.memo(function ColorCodedCalldata({ calld
           </span>
         );
       }
-      
+
       if (segment.start < segment.end && segment.start < remainingCalldata.length) {
         const end = Math.min(segment.end, remainingCalldata.length);
         const segmentText = remainingCalldata.slice(segment.start, end);
-        
+
         elements.push(renderSegment(segment, index, segmentText));
         coveredUntil = end;
       }
     });
-    
+
     if (coveredUntil < remainingCalldata.length) {
       elements.push(
         <span key="remaining" className="text-muted-foreground">
@@ -68,7 +74,7 @@ export const ColorCodedCalldata = React.memo(function ColorCodedCalldata({ calld
         </span>
       );
     }
-    
+
     return elements;
   }, [parsedParameters, remainingCalldata, segments, renderSegment]);
 

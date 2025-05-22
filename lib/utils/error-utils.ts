@@ -13,7 +13,7 @@ export enum ErrorType {
   DECODING_ERROR = 'decoding_error',
   PARAMETER_ERROR = 'parameter_error',
   NETWORK_ERROR = 'network_error',
-  UNKNOWN_ERROR = 'unknown_error'
+  UNKNOWN_ERROR = 'unknown_error',
 }
 
 /**
@@ -27,27 +27,23 @@ export interface ErrorResponse {
 
 /**
  * Format an error into a standardized error response
- * 
+ *
  * @param type - Type of error
  * @param message - Human-readable error message
  * @param details - Optional additional details about the error
  * @returns Formatted error response
  */
-export function formatError(
-  type: ErrorType,
-  message: string,
-  details?: string
-): ErrorResponse {
+export function formatError(type: ErrorType, message: string, details?: string): ErrorResponse {
   return {
     type,
     message,
-    details
+    details,
   };
 }
 
 /**
  * Convert an unknown error into a standardized error response
- * 
+ *
  * @param error - Error object or string
  * @param defaultType - Default error type to use if not specified
  * @returns Formatted error response
@@ -57,22 +53,14 @@ export function normalizeError(
   defaultType: ErrorType = ErrorType.UNKNOWN_ERROR
 ): ErrorResponse {
   if (error instanceof Error) {
-    return formatError(
-      defaultType,
-      error.message,
-      error.stack
-    );
+    return formatError(defaultType, error.message, error.stack);
   }
-  
+
   if (typeof error === 'string') {
     return formatError(defaultType, error);
   }
-  
-  return formatError(
-    defaultType,
-    'An unknown error occurred',
-    JSON.stringify(error)
-  );
+
+  return formatError(defaultType, 'An unknown error occurred', JSON.stringify(error));
 }
 
 /**
@@ -88,7 +76,7 @@ export function getCalldataValidationError(): ErrorResponse {
 
 /**
  * Get a standardized error message for ABI validation
- * 
+ *
  * @param details - Optional specific validation error
  */
 export function getAbiValidationError(details?: string): ErrorResponse {
@@ -101,7 +89,7 @@ export function getAbiValidationError(details?: string): ErrorResponse {
 
 /**
  * Get a standardized error message for encoding errors
- * 
+ *
  * @param details - Optional specific encoding error
  */
 export function getEncodingError(details?: string): ErrorResponse {
@@ -114,7 +102,7 @@ export function getEncodingError(details?: string): ErrorResponse {
 
 /**
  * Get a standardized error message for decoding errors
- * 
+ *
  * @param details - Optional specific decoding error
  */
 export function getDecodingError(details?: string): ErrorResponse {
@@ -127,7 +115,7 @@ export function getDecodingError(details?: string): ErrorResponse {
 
 /**
  * Get a standardized error message for parameter errors
- * 
+ *
  * @param details - Optional specific parameter error details
  */
 export function getParameterError(details?: string): ErrorResponse {
@@ -140,7 +128,7 @@ export function getParameterError(details?: string): ErrorResponse {
 
 /**
  * Get a standardized error message for network errors
- * 
+ *
  * @param details - Optional specific network error details
  */
 export function getNetworkError(details?: string): ErrorResponse {
@@ -153,7 +141,7 @@ export function getNetworkError(details?: string): ErrorResponse {
 
 /**
  * Format an error message from an error response
- * 
+ *
  * @param error - Error response object
  * @returns Formatted error message string
  */

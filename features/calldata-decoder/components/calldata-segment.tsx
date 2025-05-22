@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { memo } from "react";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Segment, formatTooltipValue, getParamColor } from "../lib/calldata-display-utils";
+import { memo } from 'react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Segment, formatTooltipValue, getParamColor } from '../lib/calldata-display-utils';
 
 interface CalldataSegmentProps {
   segment: Segment;
@@ -15,18 +15,24 @@ function CalldataSegmentComponent({ segment, segmentText, index }: CalldataSegme
     <TooltipProvider key={`param-${index}`}>
       <Tooltip>
         <TooltipTrigger asChild>
-          <span className={getParamColor(segment)}>
-            {segmentText}
-          </span>
+          <span className={getParamColor(segment)}>{segmentText}</span>
         </TooltipTrigger>
         <TooltipContent side="top">
           <div className="text-xs">
-            <p><span className="font-semibold">Name:</span> {segment.name}</p>
-            <p><span className="font-semibold">Type:</span> {segment.type}</p>
+            <p>
+              <span className="font-semibold">Name:</span> {segment.name}
+            </p>
+            <p>
+              <span className="font-semibold">Type:</span> {segment.type}
+            </p>
             {segment.isOffset && (
-              <p><span className="font-semibold">Offset:</span> {segment.offsetValue} bytes</p>
+              <p>
+                <span className="font-semibold">Offset:</span> {segment.offsetValue} bytes
+              </p>
             )}
-            <p><span className="font-semibold">Value:</span> {formatTooltipValue(segment.value)}</p>
+            <p>
+              <span className="font-semibold">Value:</span> {formatTooltipValue(segment.value)}
+            </p>
           </div>
         </TooltipContent>
       </Tooltip>

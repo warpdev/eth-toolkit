@@ -1,16 +1,16 @@
-"use client";
+'use client';
 
-import React, { useMemo } from "react";
-import { formatEther } from "viem";
+import React, { useMemo } from 'react';
+import { formatEther } from 'viem';
 
 // Formatter for BigInt values in JSON.stringify
-export const bigIntReplacer = (_: string, value: unknown): unknown => 
+export const bigIntReplacer = (_: string, value: unknown): unknown =>
   typeof value === 'bigint' ? value.toString() : value;
 
 // Helper to get the string representation of an argument for copying
 export const getArgAsString = (arg: unknown): string => {
   if (arg === null || arg === undefined) {
-    return "null";
+    return 'null';
   }
 
   // Specifically handle arrays
@@ -39,22 +39,22 @@ export const isLikelyWeiValue = (value: unknown, type?: string): boolean => {
   if (type && type.includes('[]')) {
     return false;
   }
-  
+
   // Check parameter type hints
   if (type && (type.includes('uint256') || type.includes('uint128'))) {
     return true;
   }
-  
+
   // Check if it's a bigint with significant size (at least 1e15 wei = 0.001 ETH)
   if (typeof value === 'bigint' && value >= 1000000000000000n) {
     return true;
   }
-  
+
   // Check if it's a string representation of a large number
   if (typeof value === 'string' && /^\d+$/.test(value) && value.length >= 15) {
     return true;
   }
-  
+
   return false;
 };
 
@@ -75,30 +75,31 @@ export const FormatArg: React.FC<FormatArgProps> = React.memo(function FormatArg
     // For arrays that might contain ETH values
     if (type && (type.includes('uint256[]') || type.includes('uint128[]'))) {
       // Memoize the array items to prevent unnecessary re-renders
-      const arrayItems = useMemo(() => 
-        arg.map((item, i) => (
-          <div key={i} className="flex flex-col">
-            {typeof item === 'bigint' && isLikelyWeiValue(item, 'uint256') ? (
-              <>
-                <span>{item.toString()}</span>
-                <span className="text-xs text-muted-foreground">({formatEther(item)} ETH)</span>
-              </>
-            ) : (
-              <span>{typeof item === 'bigint' ? item.toString() : String(item)}</span>
-            )}
-          </div>
-        )), 
+      const arrayItems = useMemo(
+        () =>
+          arg.map((item, i) => (
+            <div key={i} className="flex flex-col">
+              {typeof item === 'bigint' && isLikelyWeiValue(item, 'uint256') ? (
+                <>
+                  <span>{item.toString()}</span>
+                  <span className="text-muted-foreground text-xs">({formatEther(item)} ETH)</span>
+                </>
+              ) : (
+                <span>{typeof item === 'bigint' ? item.toString() : String(item)}</span>
+              )}
+            </div>
+          )),
         [arg]
       );
-      
+
       return <div className="space-y-2">{arrayItems}</div>;
     }
-    
+
     // Generic array handling with memoization
     return useMemo(() => {
       try {
         return (
-          <pre className="whitespace-pre-wrap break-all">
+          <pre className="break-all whitespace-pre-wrap">
             {JSON.stringify(arg, bigIntReplacer, 2)}
           </pre>
         );
@@ -112,13 +113,13 @@ export const FormatArg: React.FC<FormatArgProps> = React.memo(function FormatArg
   if (isLikelyWeiValue(arg, type)) {
     return useMemo(() => {
       try {
-        const wei = typeof arg === 'string' ? BigInt(arg) : arg as bigint;
+        const wei = typeof arg === 'string' ? BigInt(arg) : (arg as bigint);
         const eth = formatEther(wei);
-        
+
         return (
           <div className="flex flex-col">
             <span>{wei.toString()}</span>
-            <span className="text-xs text-muted-foreground">({eth} ETH)</span>
+            <span className="text-muted-foreground text-xs">({eth} ETH)</span>
           </div>
         );
       } catch (e) {
@@ -139,13 +140,13 @@ export const FormatArg: React.FC<FormatArgProps> = React.memo(function FormatArg
   if (typeof arg === 'boolean') {
     return <span>{arg ? 'true' : 'false'}</span>;
   }
-  
+
   // Regular object handling with memoization
   if (typeof arg === 'object') {
     return useMemo(() => {
       try {
         return (
-          <pre className="whitespace-pre-wrap break-all">
+          <pre className="break-all whitespace-pre-wrap">
             {JSON.stringify(arg, bigIntReplacer, 2)}
           </pre>
         );
@@ -159,7 +160,7 @@ export const FormatArg: React.FC<FormatArgProps> = React.memo(function FormatArg
   if (typeof arg === 'string' && arg.match(/^[0-9a-fA-F]*$/)) {
     return (
       <div className="font-mono break-all">
-        <span className="text-sm font-medium text-muted-foreground mr-2">Raw Calldata:</span>
+        <span className="text-muted-foreground mr-2 text-sm font-medium">Raw Calldata:</span>
         {arg}
       </div>
     );

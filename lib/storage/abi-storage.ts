@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import { openDB, DBSchema, IDBPDatabase, IDBPCursorWithValue } from 'idb';
 import { DecodedFunctionWithSignatures } from '@/lib/types';
@@ -34,10 +34,10 @@ type IndexKey = any;
 
 // Define the database schema based on idb's expectations
 interface ABIDatabase extends DBSchema {
-  'abis': {
+  abis: {
     key: StoreKey;
     value: ABIStoreValue;
-    indexes: { 
+    indexes: {
       'by-last-used': IndexKey;
       'by-favorite': IndexKey;
     };
@@ -75,18 +75,20 @@ async function getDB(): Promise<IDBPDatabase<ABIDatabase>> {
       // Upgrade to version 2: Add signature history store
       if (oldVersion < 2) {
         // Create a store for signature selection history
-        const signatureStore = db.createObjectStore('signature-history', { keyPath: 'hexSignature' });
+        const signatureStore = db.createObjectStore('signature-history', {
+          keyPath: 'hexSignature',
+        });
         // Create an index for sorting by last used
         signatureStore.createIndex('by-last-used', 'lastUsed');
       }
-      
+
       // Upgrade to version 3: Add favorite functionality
       if (oldVersion < 3) {
         try {
           // Get transaction to the ABIs store
           if (db.objectStoreNames.contains('abis')) {
             const abiStore = db.transaction('abis', 'readwrite').store;
-            
+
             try {
               // Using function reference to avoid TypeScript error
               if (typeof abiStore.createIndex === 'function') {
@@ -94,9 +96,9 @@ async function getDB(): Promise<IDBPDatabase<ABIDatabase>> {
               }
             } catch (e) {
               // Index might already exist or other issue
-              console.error("Error creating index:", e);
+              console.error('Error creating index:', e);
             }
-            
+
             // Use a simple approach with a variable to track the cursor
             let cursorRequest = abiStore.openCursor();
             let processCursor = async () => {
@@ -113,10 +115,10 @@ async function getDB(): Promise<IDBPDatabase<ABIDatabase>> {
                   await cursor.continue().then(processCursor);
                 }
               } catch (err) {
-                console.error("Error processing cursor:", err);
+                console.error('Error processing cursor:', err);
               }
             };
-            
+
             // Start processing
             cursorRequest.then(processCursor);
           }
@@ -124,7 +126,7 @@ async function getDB(): Promise<IDBPDatabase<ABIDatabase>> {
           console.error('Error during database upgrade:', error);
         }
       }
-      
+
       // Upgrade to version 4: Add decoding history store
       if (oldVersion < 4) {
         // Create a store for decoding history
@@ -158,11 +160,11 @@ export interface ABIRecord {
  */
 export async function saveABI(name: string, abi: string): Promise<string> {
   const db = await getDB();
-  
+
   // Generate a unique ID
   const id = crypto.randomUUID();
   const timestamp = Date.now();
-  
+
   // Create the ABI record
   const abiRecord: ABIRecord = {
     id,
@@ -170,9 +172,9 @@ export async function saveABI(name: string, abi: string): Promise<string> {
     abi,
     createdAt: timestamp,
     lastUsed: timestamp,
-    isFavorite: false
+    isFavorite: false,
   };
-  
+
   // Save to the database
   await db.put('abis', abiRecord);
   return id;
@@ -185,19 +187,19 @@ export async function saveABI(name: string, abi: string): Promise<string> {
  */
 export async function loadABI(id: string): Promise<ABIRecord | null> {
   const db = await getDB();
-  
+
   // Get the ABI record
   const abiRecord = await db.get('abis', id);
-  
+
   if (abiRecord) {
     // Update last used timestamp
     await db.put('abis', {
       ...abiRecord,
-      lastUsed: Date.now()
+      lastUsed: Date.now(),
     });
     return abiRecord;
   }
-  
+
   return null;
 }
 
@@ -209,11 +211,11 @@ export async function loadABI(id: string): Promise<ABIRecord | null> {
  */
 export async function getAllABIs(limit = 50, prioritizeFavorites = true): Promise<ABIRecord[]> {
   const db = await getDB();
-  
+
   // Get ABIs sorted by last used (most recent first)
   const index = db.transaction('abis').store.index('by-last-used');
   const abis = await index.getAll(null, limit);
-  
+
   if (prioritizeFavorites) {
     // Sort first by favorite status (favorites first), then by last used time (descending)
     return abis.sort((a, b) => {
@@ -239,7 +241,7 @@ export async function deleteABI(id: string): Promise<void> {
 }
 
 export interface SignatureHistoryRecord {
-  hexSignature: string;  // Hex signature (e.g., 0x70a08231)
+  hexSignature: string; // Hex signature (e.g., 0x70a08231)
   selectedSignature: string; // Selected text signature (e.g., balanceOf(address))
   lastUsed: number;
 }
@@ -262,15 +264,15 @@ export async function saveSignatureSelection(
   selectedSignature: string
 ): Promise<void> {
   const db = await getDB();
-  
+
   // Always store the hex signature with 0x prefix
   const formattedHexSig = hexSignature.startsWith('0x') ? hexSignature : `0x${hexSignature}`;
-  
+
   // Create or update the history record
   await db.put('signature-history', {
     hexSignature: formattedHexSig,
     selectedSignature,
-    lastUsed: Date.now()
+    lastUsed: Date.now(),
   });
 }
 
@@ -279,14 +281,12 @@ export async function saveSignatureSelection(
  * @param hexSignature Function selector to look up
  * @returns Promise resolving to the selected signature or null if not found
  */
-export async function getLastSelectedSignature(
-  hexSignature: string
-): Promise<string | null> {
+export async function getLastSelectedSignature(hexSignature: string): Promise<string | null> {
   const db = await getDB();
-  
+
   // Always query with 0x prefix
   const formattedHexSig = hexSignature.startsWith('0x') ? hexSignature : `0x${hexSignature}`;
-  
+
   try {
     const record = await db.get('signature-history', formattedHexSig);
     return record ? record.selectedSignature : null;
@@ -303,12 +303,12 @@ export async function getLastSelectedSignature(
  */
 export async function getAllSignatureHistory(limit = 100): Promise<SignatureHistoryRecord[]> {
   const db = await getDB();
-  
+
   try {
     // Get signature history sorted by last used (most recent first)
     const index = db.transaction('signature-history').store.index('by-last-used');
     const records = await index.getAll(null, limit);
-    
+
     // Sort by last used time (descending)
     return records.sort((a, b) => b.lastUsed - a.lastUsed);
   } catch (error) {
@@ -324,24 +324,24 @@ export async function getAllSignatureHistory(limit = 100): Promise<SignatureHist
  */
 export async function toggleABIFavorite(id: string): Promise<boolean> {
   const db = await getDB();
-  
+
   try {
     // Get the current ABI record
     const abiRecord = await db.get('abis', id);
-    
+
     if (!abiRecord) {
       throw new Error(`ABI with ID ${id} not found`);
     }
-    
+
     // Toggle the favorite status
     const updatedRecord = {
       ...abiRecord,
-      isFavorite: !abiRecord.isFavorite
+      isFavorite: !abiRecord.isFavorite,
     };
-    
+
     // Save the updated record
     await db.put('abis', updatedRecord);
-    
+
     // Return the new favorite status
     return updatedRecord.isFavorite;
   } catch (error) {
@@ -357,15 +357,15 @@ export async function toggleABIFavorite(id: string): Promise<boolean> {
  */
 export async function getFavoriteABIs(limit = 50): Promise<ABIRecord[]> {
   const db = await getDB();
-  
+
   try {
     // Create a range to only get records where isFavorite is true
     const range = IDBKeyRange.only(true);
-    
+
     // Get favorite ABIs using the by-favorite index
     const index = db.transaction('abis').store.index('by-favorite');
     const favorites = await index.getAll(range, limit);
-    
+
     // Sort by last used time (descending)
     return favorites.sort((a, b) => b.lastUsed - a.lastUsed);
   } catch (error) {
@@ -379,28 +379,28 @@ export async function saveDecodingResult(
   result: DecodedFunctionWithSignatures
 ): Promise<string> {
   const db = await getDB();
-  
+
   const id = crypto.randomUUID();
   const timestamp = Date.now();
-  
+
   const historyRecord: DecodingHistoryRecord = {
     id,
     calldata,
     result,
-    timestamp
+    timestamp,
   };
-  
+
   await db.put('decoding-history', historyRecord);
   return id;
 }
 
 export async function getDecodingHistory(limit = 20): Promise<DecodingHistoryRecord[]> {
   const db = await getDB();
-  
+
   try {
     const index = db.transaction('decoding-history').store.index('by-timestamp');
     const histories = await index.getAll(null, limit);
-    
+
     return histories.sort((a, b) => b.timestamp - a.timestamp);
   } catch (error) {
     console.error('Error getting decoding history:', error);
@@ -415,7 +415,7 @@ export async function deleteDecodingRecord(id: string): Promise<void> {
 
 export async function clearDecodingHistory(): Promise<void> {
   const db = await getDB();
-  
+
   try {
     const tx = db.transaction('decoding-history', 'readwrite');
     await tx.objectStore('decoding-history').clear();

@@ -1,17 +1,17 @@
-"use client";
+'use client';
 
-import { useAtomValue } from "jotai";
-import { useCallback, useMemo } from "react";
-import { abiAtom } from "../atoms/encoder-atoms";
-import { FunctionInfo } from "@/lib/types";
-import { extractFunctionsFromAbi } from "@/lib/utils";
+import { useAtomValue } from 'jotai';
+import { useCallback, useMemo } from 'react';
+import { abiAtom } from '../atoms/encoder-atoms';
+import { FunctionInfo } from '@/lib/types';
+import { extractFunctionsFromAbi } from '@/lib/utils';
 
 /**
  * Hook for handling function selection from an ABI
  */
 export function useFunctionSelector() {
   const abi = useAtomValue(abiAtom);
-  
+
   /**
    * Extract available functions from the ABI
    */
@@ -19,33 +19,33 @@ export function useFunctionSelector() {
     if (!abi) return [];
     return extractFunctionsFromAbi(abi);
   }, [abi]);
-  
+
   /**
    * Get a function's info by name
    */
   const getFunctionInfo = useCallback(
     (name: string): FunctionInfo | undefined => {
-      return availableFunctions.find(func => func.name === name);
+      return availableFunctions.find((func) => func.name === name);
     },
     [availableFunctions]
   );
-  
+
   /**
    * Group functions by name (useful for overloaded functions)
    */
   const functionsByName = useMemo(() => {
     const grouped: Record<string, FunctionInfo[]> = {};
-    
-    availableFunctions.forEach(func => {
+
+    availableFunctions.forEach((func) => {
       if (!grouped[func.name]) {
         grouped[func.name] = [];
       }
       grouped[func.name].push(func);
     });
-    
+
     return grouped;
   }, [availableFunctions]);
-  
+
   /**
    * Check if a function name is overloaded (has multiple signatures)
    */
@@ -55,12 +55,12 @@ export function useFunctionSelector() {
     },
     [functionsByName]
   );
-  
+
   return {
     availableFunctions,
     functionsByName,
     getFunctionInfo,
     isOverloadedFunction,
-    hasFunctions: availableFunctions.length > 0
+    hasFunctions: availableFunctions.length > 0,
   };
 }

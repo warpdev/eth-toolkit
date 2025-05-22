@@ -7,6 +7,7 @@ This document provides guidance on using shadcn/ui in the Ethereum Developer Too
 shadcn/ui is a collection of reusable, accessible components that you can copy and paste into your projects. Unlike traditional component libraries, shadcn/ui is not installed as a dependency—instead, the components become part of your codebase, giving you complete control over their implementation.
 
 Key benefits:
+
 - Complete customization freedom
 - No external dependencies to manage
 - Accessibility built-in through Radix UI primitives
@@ -25,6 +26,7 @@ shadcn/ui fully supports React 19 features in its latest version. Key improvemen
 - Support for document metadata in components
 
 To use shadcn/ui with React 19:
+
 ```bash
 npx shadcn@canary init
 ```
@@ -39,6 +41,7 @@ The latest shadcn/ui works seamlessly with Tailwind v4, leveraging its new featu
 - Faster rendering through the new Oxide engine
 
 Browser requirements for Tailwind v4:
+
 - Safari 16.4+ (released March 2023)
 - Chrome 111+
 - Firefox 128+
@@ -72,26 +75,26 @@ Components use variants to provide different visual styles without requiring cus
 
 ```tsx
 const buttonVariants = cva(
-  "inline-flex items-center justify-center whitespace-nowrap rounded-md...",
+  'inline-flex items-center justify-center whitespace-nowrap rounded-md...',
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground hover:bg-primary/90",
-        destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/90",
+        default: 'bg-primary text-primary-foreground hover:bg-primary/90',
+        destructive: 'bg-destructive text-destructive-foreground hover:bg-destructive/90',
         // More variants...
       },
       size: {
-        default: "h-10 px-4 py-2",
-        sm: "h-9 rounded-md px-3",
+        default: 'h-10 px-4 py-2',
+        sm: 'h-9 rounded-md px-3',
         // More sizes...
       },
     },
     defaultVariants: {
-      variant: "default",
-      size: "default",
+      variant: 'default',
+      size: 'default',
     },
   }
-)
+);
 ```
 
 This allows for consistent styling and easy customization.
@@ -120,6 +123,7 @@ shadcn/ui prioritizes accessibility through:
 5. **Color Contrast**: Default theme meets WCAG contrast requirements
 
 Example of accessibility implementation:
+
 ```tsx
 // Form component example with accessibility features
 <FormField
@@ -131,9 +135,7 @@ Example of accessibility implementation:
       <FormControl>
         <Input placeholder="example@email.com" {...field} />
       </FormControl>
-      <FormDescription>
-        We'll never share your email.
-      </FormDescription>
+      <FormDescription>We'll never share your email.</FormDescription>
       <FormMessage />
     </FormItem>
   )}
@@ -195,14 +197,12 @@ export function DataCard({ title, data, icon }: DataCardProps) {
   return (
     <Card>
       <CardHeader className="flex flex-row items-center gap-4">
-        {icon && <div className="rounded-full p-2 bg-muted">{icon}</div>}
+        {icon && <div className="bg-muted rounded-full p-2">{icon}</div>}
         <CardTitle>{title}</CardTitle>
       </CardHeader>
-      <CardContent>
-        {data}
-      </CardContent>
+      <CardContent>{data}</CardContent>
     </Card>
-  )
+  );
 }
 ```
 
@@ -215,10 +215,10 @@ Use the Form components with React Hook Form for type-safe forms:
 const form = useForm<z.infer<typeof formSchema>>({
   resolver: zodResolver(formSchema),
   defaultValues: {
-    username: "",
-    email: "",
+    username: '',
+    email: '',
   },
-})
+});
 
 // Form submission
 function onSubmit(values: z.infer<typeof formSchema>) {
@@ -232,12 +232,7 @@ Implement dark mode using the built-in support:
 
 ```tsx
 // Example theme provider setup
-<ThemeProvider 
-  attribute="class" 
-  defaultTheme="system" 
-  enableSystem
-  disableTransitionOnChange
->
+<ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
   {children}
 </ThemeProvider>
 ```
@@ -254,31 +249,31 @@ export function TransactionForm() {
   const form = useForm<z.infer<typeof transactionSchema>>({
     resolver: zodResolver(transactionSchema),
     defaultValues: {
-      to: "",
-      value: "",
-      data: "",
+      to: '',
+      value: '',
+      data: '',
     },
-  })
+  });
 
   async function onSubmit(values: z.infer<typeof transactionSchema>) {
     try {
-      const walletClient = useWalletClient()
+      const walletClient = useWalletClient();
       const hash = await walletClient.sendTransaction({
         to: values.to,
         value: parseEther(values.value),
         data: values.data ? values.data : undefined,
-      })
-      
+      });
+
       toast({
-        title: "Transaction sent",
+        title: 'Transaction sent',
         description: `Hash: ${hash}`,
-      })
+      });
     } catch (error) {
       toast({
-        variant: "destructive",
-        title: "Transaction failed",
+        variant: 'destructive',
+        title: 'Transaction failed',
         description: error.message,
-      })
+      });
     }
   }
 
@@ -302,7 +297,7 @@ export function TransactionForm() {
         <Button type="submit">Send Transaction</Button>
       </form>
     </Form>
-  )
+  );
 }
 ```
 
@@ -314,12 +309,12 @@ export function CalldataDisplay({ data }: { data: string }) {
   const { functionName, args } = decodeFunctionData({
     abi: contractAbi,
     data,
-  })
+  });
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>{functionName || "Unknown Function"}</CardTitle>
+        <CardTitle>{functionName || 'Unknown Function'}</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
@@ -327,16 +322,14 @@ export function CalldataDisplay({ data }: { data: string }) {
             <div key={index} className="grid grid-cols-2 gap-4">
               <div className="font-medium">Argument {index + 1}</div>
               <div className="font-mono text-sm break-all">
-                {typeof arg === 'object' 
-                  ? JSON.stringify(arg) 
-                  : arg.toString()}
+                {typeof arg === 'object' ? JSON.stringify(arg) : arg.toString()}
               </div>
             </div>
           ))}
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }
 ```
 
@@ -345,10 +338,12 @@ export function CalldataDisplay({ data }: { data: string }) {
 ### Common Issues
 
 1. **Peer Dependency Issues with React 19**:
+
    - Use `--legacy-peer-deps` flag with npm
    - Or use `--force` with pnpm/yarn
 
 2. **Styling Inconsistencies**:
+
    - Check for conflicting Tailwind classes
    - Ensure CSS variables are properly set in your globals.css
    - Check for specificity issues in custom styles

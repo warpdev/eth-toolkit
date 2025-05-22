@@ -1,25 +1,20 @@
-"use client";
+'use client';
 
-import React, { useMemo } from "react";
-import { useAtomValue } from "jotai";
-import { 
-  calldataAtom, 
-  isDecodingAtom, 
-  decodeErrorAtom 
-} from "@/features/calldata-decoder/atoms/calldata-atoms";
-import { decodedResultAtom } from "@/features/calldata-decoder/atoms/decoder-result-atom";
-import { 
-  Card,
-  CardHeader,
-  CardTitle,
-  CardContent 
-} from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
-import { ColorCodedCalldata } from "./color-coded-calldata";
-import { FunctionSignatureSelector } from "./function-signature-selector";
-import { ParameterDisplay } from "./parameter-display";
-import { CopyButton } from "@/components/shared/copy-button";
-import { useParseParameters } from "@/features/calldata-decoder/hooks/use-parse-parameters";
+import React, { useMemo } from 'react';
+import { useAtomValue } from 'jotai';
+import {
+  calldataAtom,
+  isDecodingAtom,
+  decodeErrorAtom,
+} from '@/features/calldata-decoder/atoms/calldata-atoms';
+import { decodedResultAtom } from '@/features/calldata-decoder/atoms/decoder-result-atom';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
+import { ColorCodedCalldata } from './color-coded-calldata';
+import { FunctionSignatureSelector } from './function-signature-selector';
+import { ParameterDisplay } from './parameter-display';
+import { CopyButton } from '@/components/shared/copy-button';
+import { useParseParameters } from '@/features/calldata-decoder/hooks/use-parse-parameters';
 
 // Extracted skeleton component to prevent recreation on each render
 const SkeletonGroup = React.memo(function SkeletonGroup() {
@@ -37,17 +32,17 @@ export const DecoderOutput = React.memo(function DecoderOutput() {
   const isDecoding = useAtomValue(isDecodingAtom);
   const decodeError = useAtomValue(decodeErrorAtom);
   const decodedResult = useAtomValue(decodedResultAtom);
-  
+
   // Use our custom hook for parameter parsing
   const { parsedParameters, selectedSignature, parseError } = useParseParameters();
 
   // Get the function name from the current signature - memoized to prevent recalculation
   const currentFunctionName = useMemo(() => {
     if (selectedSignature) {
-      return selectedSignature.split("(")[0];
+      return selectedSignature.split('(')[0];
     }
-    
-    return decodedResult?.functionName || "";
+
+    return decodedResult?.functionName || '';
   }, [selectedSignature, decodedResult?.functionName]);
 
   // Render different states based on current decoding status
@@ -56,47 +51,44 @@ export const DecoderOutput = React.memo(function DecoderOutput() {
       return (
         <div className="space-y-4 p-4">
           <div className="flex items-center space-x-2">
-            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary"></div>
+            <div className="border-primary h-5 w-5 animate-spin rounded-full border-b-2"></div>
             <p className="text-sm font-medium">Decoding calldata...</p>
           </div>
           <SkeletonGroup />
         </div>
       );
     }
-    
+
     if (decodeError) {
       return (
-        <div className="p-4 bg-destructive/10 text-destructive rounded-md">
+        <div className="bg-destructive/10 text-destructive rounded-md p-4">
           <h3 className="font-medium">Error Decoding Calldata</h3>
-          <p className="text-sm mt-1">{decodeError}</p>
+          <p className="mt-1 text-sm">{decodeError}</p>
         </div>
       );
     }
-    
+
     if (!calldata) {
       return (
-        <div className="text-center p-8 text-muted-foreground">
+        <div className="text-muted-foreground p-8 text-center">
           <p>Enter calldata to see the decoded result</p>
         </div>
       );
     }
-    
+
     if (!decodedResult) {
       return (
-        <div className="text-center p-8 text-muted-foreground">
+        <div className="text-muted-foreground p-8 text-center">
           <p>Click &quot;Decode Calldata&quot; to decode</p>
         </div>
       );
     }
-    
+
     return (
       <div className="space-y-6">
         {/* Function signature selector */}
-        <FunctionSignatureSelector 
-          decodedResult={decodedResult} 
-          calldata={calldata} 
-        />
-        
+        <FunctionSignatureSelector decodedResult={decodedResult} calldata={calldata} />
+
         {/* Function name */}
         <div className="space-y-2">
           <h3 className="flex items-center justify-between text-sm font-medium">
@@ -109,35 +101,32 @@ export const DecoderOutput = React.memo(function DecoderOutput() {
               />
             )}
           </h3>
-          <div className="p-3 bg-muted rounded-md font-mono text-sm">
-            {currentFunctionName}
-          </div>
+          <div className="bg-muted rounded-md p-3 font-mono text-sm">{currentFunctionName}</div>
         </div>
-        
+
         {/* Function parameters */}
-        <ParameterDisplay 
-          parameters={parsedParameters} 
+        <ParameterDisplay
+          parameters={parsedParameters}
           parseError={parseError}
           args={decodedResult.args}
         />
-        
+
         {/* Raw calldata */}
         <div className="space-y-2">
           <h3 className="flex items-center justify-between text-sm font-medium">
             <span>Raw Calldata</span>
             {calldata && (
-              <CopyButton 
-                text={calldata} 
-                tooltipText="Copy raw calldata" 
+              <CopyButton
+                text={calldata}
+                tooltipText="Copy raw calldata"
                 successMessage="Raw calldata copied!"
               />
             )}
           </h3>
-          <div className="p-3 bg-muted rounded-md font-mono text-sm break-all">
-            {calldata && <ColorCodedCalldata 
-              calldata={calldata} 
-              parsedParameters={parsedParameters}
-            />}
+          <div className="bg-muted rounded-md p-3 font-mono text-sm break-all">
+            {calldata && (
+              <ColorCodedCalldata calldata={calldata} parsedParameters={parsedParameters} />
+            )}
           </div>
         </div>
       </div>
@@ -149,9 +138,7 @@ export const DecoderOutput = React.memo(function DecoderOutput() {
       <CardHeader>
         <CardTitle>Decoded Output</CardTitle>
       </CardHeader>
-      <CardContent>
-        {renderContent()}
-      </CardContent>
+      <CardContent>{renderContent()}</CardContent>
     </Card>
   );
 });

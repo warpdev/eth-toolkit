@@ -7,14 +7,11 @@ export type {
   DecodedFunction,
   DecodedFunctionWithSignatures,
   ParsedParameter,
-  FunctionSignature
-} from "@/lib/types";
+  FunctionSignature,
+} from '@/lib/types';
 
 // Decoding utilities from shared utils
-export {
-  decodeCalldataWithAbi,
-  decodeCalldataWithSignatureLookup
-} from "@/lib/utils";
+export { decodeCalldataWithAbi, decodeCalldataWithSignatureLookup } from '@/lib/utils';
 
 // Signature utilities from shared utils
 export {
@@ -23,8 +20,8 @@ export {
   createTemporaryAbiFromSignature,
   isValidFunctionSignature,
   calculateSignatureMatchScore,
-  findBestSignatureMatch
-} from "@/lib/utils";
+  findBestSignatureMatch,
+} from '@/lib/utils';
 
 // Parameter utilities (imported from shared utils)
 export {
@@ -32,8 +29,8 @@ export {
   parseParameter,
   estimateParameterEncodedLength,
   estimateParametersEncodedLength,
-  extractParametersFromSignature
-} from "@/lib/utils";
+  extractParametersFromSignature,
+} from '@/lib/utils';
 
 // If any other files need migration in the future, this makes it easier
 // They can simply import from "@/lib/decoder" instead of specific files

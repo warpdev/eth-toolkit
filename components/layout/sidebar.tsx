@@ -33,14 +33,14 @@ const MenuItem = ({ icon, label, isActive, href, onClick }: MenuItemProps) => {
     <>
       <span
         className={cn(
-          'mr-2.5 scale-75 transition-colors duration-200',
+          'mr-3 scale-90 transition-colors duration-200 md:mr-2.5 md:scale-75',
           isActive ? 'text-foreground' : 'text-muted-foreground',
           'group-hover/menuitem:text-foreground'
         )}
       >
         {icon}
       </span>
-      <span className="text-sm font-medium">{label}</span>
+      <span className="text-base font-medium md:text-sm">{label}</span>
     </>
   );
 
@@ -51,7 +51,9 @@ const MenuItem = ({ icon, label, isActive, href, onClick }: MenuItemProps) => {
           <SidebarMenuButton
             isActive={isActive}
             className={cn(
-              'hover:bg-accent/50 transition-all rounded-md w-full',
+              'hover:bg-accent/50 w-full rounded-md transition-all',
+              'min-h-[44px] py-3 md:min-h-auto md:py-2', // Better touch targets on mobile
+              'touch-manipulation active:scale-95', // Touch feedback
               isActive ? 'bg-accent/40 font-medium' : 'bg-transparent'
             )}
           >
@@ -62,7 +64,9 @@ const MenuItem = ({ icon, label, isActive, href, onClick }: MenuItemProps) => {
         <SidebarMenuButton
           isActive={isActive}
           className={cn(
-            'hover:bg-accent/50 transition-all rounded-md',
+            'hover:bg-accent/50 rounded-md transition-all',
+            'min-h-[44px] py-3 md:min-h-auto md:py-2', // Better touch targets on mobile
+            'touch-manipulation active:scale-95', // Touch feedback
             isActive ? 'bg-accent/40 font-medium' : 'bg-transparent'
           )}
           onClick={onClick}
@@ -91,28 +95,31 @@ export function EnhancedSidebar() {
   const pathname = usePathname();
 
   return (
-    <Sidebar className="border-r border-border/50 bg-sidebar/90 backdrop-blur-md">
-      <SidebarHeader className="py-3">
-        <div className="flex items-center gap-2 px-3">
-          <EthereumIcon className="h-4 w-4 text-primary" />
-          <h2 className="font-medium text-base tracking-tight">ETH Toolkit</h2>
+    <Sidebar
+      className="border-border/50 bg-sidebar/90 border-r backdrop-blur-md"
+      collapsible="offcanvas"
+    >
+      <SidebarHeader className="py-4 md:py-3">
+        <div className="flex items-center gap-2 px-4 md:px-3">
+          <EthereumIcon className="text-primary h-5 w-5 md:h-4 md:w-4" />
+          <h2 className="text-lg font-medium tracking-tight md:text-base">ETH Toolkit</h2>
         </div>
       </SidebarHeader>
       <SidebarContent>
         <div className="mb-3 px-3">
-          <div className="h-px w-full bg-border/40"></div>
+          <div className="bg-border/40 h-px w-full"></div>
         </div>
-        
+
         {/* Calldata Section */}
         <SidebarGroup>
-          <SidebarGroupLabel className="px-3 text-xs uppercase tracking-wider font-medium text-muted-foreground/70">
+          <SidebarGroupLabel className="text-muted-foreground/70 px-3 text-xs font-medium tracking-wider uppercase">
             Calldata
           </SidebarGroupLabel>
           <SidebarGroupContent>
-            <SidebarMenu className="space-y-0.5 px-2 mt-1">
-              <MenuItem 
-                icon={<Code size={18} />} 
-                label="Calldata Decoder" 
+            <SidebarMenu className="mt-1 space-y-0.5 px-2">
+              <MenuItem
+                icon={<Code size={18} />}
+                label="Calldata Decoder"
                 isActive={pathname === '/calldata/decoder'}
                 href="/calldata/decoder"
               />
@@ -125,27 +132,24 @@ export function EnhancedSidebar() {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
-        
+
         {/* System Section */}
         <SidebarGroup className="mt-2">
-          <SidebarGroupLabel className="px-3 text-xs uppercase tracking-wider font-medium text-muted-foreground/70">
+          <SidebarGroupLabel className="text-muted-foreground/70 px-3 text-xs font-medium tracking-wider uppercase">
             System
           </SidebarGroupLabel>
           <SidebarGroupContent>
-            <SidebarMenu className="space-y-0.5 px-2 mt-1">
-              <MenuItem 
-                icon={<Settings size={18} />} 
-                label="Settings" 
-              />
+            <SidebarMenu className="mt-1 space-y-0.5 px-2">
+              <MenuItem icon={<Settings size={18} />} label="Settings" />
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
-      
+
       <SidebarFooter>
-        <div className="border-t border-border/30 p-2.5">
+        <div className="border-border/30 border-t p-2.5">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] text-muted-foreground/70">v0.1.0</span>
+            <span className="text-muted-foreground/70 text-[10px]">v0.1.0</span>
             <ThemeToggle />
           </div>
         </div>

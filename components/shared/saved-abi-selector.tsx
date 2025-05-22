@@ -3,13 +3,13 @@
 import { useEffect, useState, useCallback } from 'react';
 import { PrimitiveAtom, useSetAtom } from 'jotai';
 import { toast } from 'sonner';
-import { 
-  ABIRecord, 
-  getAllABIs, 
-  loadABI, 
-  saveABI, 
-  deleteABI, 
-  toggleABIFavorite
+import {
+  ABIRecord,
+  getAllABIs,
+  loadABI,
+  saveABI,
+  deleteABI,
+  toggleABIFavorite,
 } from '@/lib/storage/abi-storage';
 import {
   DropdownMenu,
@@ -72,21 +72,24 @@ export function SavedAbiSelector({
     loadSavedAbis();
   }, [loadSavedAbis]);
 
-  const handleSelectAbi = useCallback(async (id: string) => {
-    try {
-      const abi = await loadABI(id);
-      if (abi) {
-        setAbiString(abi.abi);
-        toast.success(`Loaded ABI: ${abi.name}`);
+  const handleSelectAbi = useCallback(
+    async (id: string) => {
+      try {
+        const abi = await loadABI(id);
+        if (abi) {
+          setAbiString(abi.abi);
+          toast.success(`Loaded ABI: ${abi.name}`);
 
-        // Refresh the list to update last used time
-        loadSavedAbis();
+          // Refresh the list to update last used time
+          loadSavedAbis();
+        }
+      } catch (error) {
+        console.error('Error loading ABI:', error);
+        toast.error('Failed to load ABI');
       }
-    } catch (error) {
-      console.error('Error loading ABI:', error);
-      toast.error('Failed to load ABI');
-    }
-  }, [setAbiString, loadSavedAbis]);
+    },
+    [setAbiString, loadSavedAbis]
+  );
 
   const handleSaveCurrentAbi = useCallback((currentAbi: string) => {
     setCurrentAbiString(currentAbi);
@@ -116,35 +119,41 @@ export function SavedAbiSelector({
     }
   }, [abiName, currentAbiString, loadSavedAbis, setShowSaveDialog]);
 
-  const handleDeleteAbi = useCallback(async (id: string, name: string, e: React.MouseEvent) => {
-    e.stopPropagation(); // Prevent triggering the parent click handler
+  const handleDeleteAbi = useCallback(
+    async (id: string, name: string, e: React.MouseEvent) => {
+      e.stopPropagation(); // Prevent triggering the parent click handler
 
-    try {
-      await deleteABI(id);
-      toast.success(`Deleted ABI: ${name}`);
+      try {
+        await deleteABI(id);
+        toast.success(`Deleted ABI: ${name}`);
 
-      // Refresh the list
-      loadSavedAbis();
-    } catch (error) {
-      console.error('Error deleting ABI:', error);
-      toast.error('Failed to delete ABI');
-    }
-  }, [loadSavedAbis]);
-  
-  const handleToggleFavorite = useCallback(async (id: string, name: string, e: React.MouseEvent) => {
-    e.stopPropagation(); // Prevent triggering the parent click handler
-    
-    try {
-      const isFavorite = await toggleABIFavorite(id);
-      toast.success(`${isFavorite ? 'Added to' : 'Removed from'} favorites: ${name}`);
-      
-      // Refresh the list
-      loadSavedAbis();
-    } catch (error) {
-      console.error('Error toggling favorite status:', error);
-      toast.error('Failed to update favorite status');
-    }
-  }, [loadSavedAbis]);
+        // Refresh the list
+        loadSavedAbis();
+      } catch (error) {
+        console.error('Error deleting ABI:', error);
+        toast.error('Failed to delete ABI');
+      }
+    },
+    [loadSavedAbis]
+  );
+
+  const handleToggleFavorite = useCallback(
+    async (id: string, name: string, e: React.MouseEvent) => {
+      e.stopPropagation(); // Prevent triggering the parent click handler
+
+      try {
+        const isFavorite = await toggleABIFavorite(id);
+        toast.success(`${isFavorite ? 'Added to' : 'Removed from'} favorites: ${name}`);
+
+        // Refresh the list
+        loadSavedAbis();
+      } catch (error) {
+        console.error('Error toggling favorite status:', error);
+        toast.error('Failed to update favorite status');
+      }
+    },
+    [loadSavedAbis]
+  );
 
   const handleSaveClick = useCallback(() => {
     const abiTextarea = document.querySelector(
@@ -156,7 +165,7 @@ export function SavedAbiSelector({
   }, [handleSaveCurrentAbi]);
 
   return (
-    <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
+    <div className="flex w-full flex-col items-center gap-2 sm:w-auto sm:flex-row">
       <Dialog open={showSaveDialog} onOpenChange={setShowSaveDialog}>
         <DialogContent>
           <DialogHeader>
@@ -223,12 +232,15 @@ export function SavedAbiSelector({
               >
                 <div className="flex items-center">
                   {showFavoriteOption && (
-                    <button 
-                      className="mr-2 flex items-center" 
-                      aria-label={abi.isFavorite ? "Remove from favorites" : "Add to favorites"}
+                    <button
+                      className="mr-2 flex items-center"
+                      aria-label={abi.isFavorite ? 'Remove from favorites' : 'Add to favorites'}
                       onClick={(e) => handleToggleFavorite(abi.id, abi.name, e)}
                     >
-                      <StarIcon filled={abi.isFavorite} className="h-4 w-4 transition-colors hover:text-amber-500" />
+                      <StarIcon
+                        filled={abi.isFavorite}
+                        className="h-4 w-4 transition-colors hover:text-amber-500"
+                      />
                     </button>
                   )}
                   <span>{abi.name}</span>

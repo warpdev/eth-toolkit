@@ -7,6 +7,7 @@ This document provides an overview of viem, a TypeScript interface for Ethereum 
 Viem is a lightweight, modular, and type-safe Ethereum library alternative to ethers.js and web3.js. It provides composable primitives for interacting with the Ethereum blockchain with better performance, smaller bundle size, and improved developer experience.
 
 Key advantages:
+
 - Lightweight (35kB minzipped)
 - Tree-shakable (only includes what you use)
 - Type-safe with TypeScript
@@ -24,16 +25,16 @@ Viem provides three main client types:
 Used for reading blockchain data via public RPC methods (eth_blockNumber, eth_getBalance, etc.):
 
 ```typescript
-import { createPublicClient, http } from 'viem'
-import { mainnet } from 'viem/chains'
+import { createPublicClient, http } from 'viem';
+import { mainnet } from 'viem/chains';
 
 const publicClient = createPublicClient({
   chain: mainnet,
-  transport: http('https://eth-mainnet.g.alchemy.com/v2/YOUR_API_KEY')
-})
+  transport: http('https://eth-mainnet.g.alchemy.com/v2/YOUR_API_KEY'),
+});
 
 // Read blockchain data
-const blockNumber = await publicClient.getBlockNumber()
+const blockNumber = await publicClient.getBlockNumber();
 ```
 
 #### 2. Wallet Client
@@ -41,25 +42,25 @@ const blockNumber = await publicClient.getBlockNumber()
 For interacting with Ethereum accounts (sending transactions, signing messages):
 
 ```typescript
-import { createWalletClient, http } from 'viem'
-import { privateKeyToAccount } from 'viem/accounts'
-import { mainnet } from 'viem/chains'
+import { createWalletClient, http } from 'viem';
+import { privateKeyToAccount } from 'viem/accounts';
+import { mainnet } from 'viem/chains';
 
 // Create account from private key
-const account = privateKeyToAccount('0xYOUR_PRIVATE_KEY')
+const account = privateKeyToAccount('0xYOUR_PRIVATE_KEY');
 
 // Create wallet client
 const walletClient = createWalletClient({
   account,
   chain: mainnet,
-  transport: http('https://eth-mainnet.g.alchemy.com/v2/YOUR_API_KEY')
-})
+  transport: http('https://eth-mainnet.g.alchemy.com/v2/YOUR_API_KEY'),
+});
 
 // Send transaction
 const hash = await walletClient.sendTransaction({
   to: '0xA0Cf798816D4b9b9866b5330EEa46a18382f251e',
-  value: parseEther('0.01')
-})
+  value: parseEther('0.01'),
+});
 ```
 
 #### 3. Test Client
@@ -73,22 +74,22 @@ For test environments with additional testing capabilities.
 Create a contract instance to interact with a specific contract:
 
 ```typescript
-import { getContract } from 'viem'
+import { getContract } from 'viem';
 
 const contract = getContract({
   address: '0xContractAddress',
   abi: contractAbi,
   client: {
     public: publicClient,
-    wallet: walletClient
-  }
-})
+    wallet: walletClient,
+  },
+});
 
 // Read contract data
-const balance = await contract.read.balanceOf(['0xUserAddress'])
+const balance = await contract.read.balanceOf(['0xUserAddress']);
 
-// Write to contract 
-const hash = await contract.write.transfer(['0xRecipient', parseEther('10')])
+// Write to contract
+const hash = await contract.write.transfer(['0xRecipient', parseEther('10')]);
 ```
 
 ### Calldata Operations
@@ -98,12 +99,12 @@ const hash = await contract.write.transfer(['0xRecipient', parseEther('10')])
 Decode transaction calldata to human-readable format:
 
 ```typescript
-import { decodeFunctionData } from 'viem'
+import { decodeFunctionData } from 'viem';
 
 const { functionName, args } = decodeFunctionData({
   abi: contractAbi,
-  data: '0x70a08231000000000000000000000000fba3912ca04dd458c843e2ee08967fc04f3579c2'
-})
+  data: '0x70a08231000000000000000000000000fba3912ca04dd458c843e2ee08967fc04f3579c2',
+});
 // Result: { functionName: 'balanceOf', args: ['0xFBA3912Ca04dd458c843e2EE08967fC04f3579c2'] }
 ```
 
@@ -112,13 +113,13 @@ const { functionName, args } = decodeFunctionData({
 Create calldata from a function name and arguments:
 
 ```typescript
-import { encodeFunctionData } from 'viem'
+import { encodeFunctionData } from 'viem';
 
 const data = encodeFunctionData({
   abi: contractAbi,
   functionName: 'transfer',
-  args: ['0xRecipient', parseEther('10')]
-})
+  args: ['0xRecipient', parseEther('10')],
+});
 // Result: '0xa9059cbb000000000000000000000000RecipientAddressWithoutPrefix00000000000000000000000000000000000000000000008ac7230489e80000'
 ```
 
@@ -127,7 +128,7 @@ const data = encodeFunctionData({
 #### Decoding Event Logs
 
 ```typescript
-import { decodeEventLog } from 'viem'
+import { decodeEventLog } from 'viem';
 
 const { eventName, args } = decodeEventLog({
   abi: contractAbi,
@@ -135,9 +136,9 @@ const { eventName, args } = decodeEventLog({
   topics: [
     '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef',
     '0x000000000000000000000000f39fd6e51aad88f6f4ce6ab8827279cfffb92266',
-    '0x000000000000000000000000a0b86991c6218b36c1d19d4a2e9eb0ce3606eb48'
-  ]
-})
+    '0x000000000000000000000000a0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+  ],
+});
 // Result: { eventName: 'Transfer', args: { from: '0xf39f...', to: '0xa0b8...', value: 1n } }
 ```
 
@@ -149,8 +150,8 @@ const logs = await publicClient.getContractEvents({
   address: '0xContractAddress',
   eventName: 'Transfer',
   fromBlock: 16330000n,
-  toBlock: 16330050n
-})
+  toBlock: 16330050n,
+});
 ```
 
 ### ABI Manipulation
@@ -158,36 +159,36 @@ const logs = await publicClient.getContractEvents({
 #### Parsing ABIs
 
 ```typescript
-import { parseAbi } from 'viem'
+import { parseAbi } from 'viem';
 
 const abi = parseAbi([
   'function balanceOf(address) view returns (uint256)',
   'function transfer(address to, uint256 value) returns (bool)',
-  'event Transfer(address indexed from, address indexed to, uint256 value)'
-])
+  'event Transfer(address indexed from, address indexed to, uint256 value)',
+]);
 ```
 
 #### Working with ABI Types
 
 ```typescript
-import { parseAbiItem, parseAbiParameters } from 'viem'
+import { parseAbiItem, parseAbiParameters } from 'viem';
 
-const abiItem = parseAbiItem('function transfer(address to, uint256 value) returns (bool)')
-const parameters = parseAbiParameters('address to, uint256 value')
+const abiItem = parseAbiItem('function transfer(address to, uint256 value) returns (bool)');
+const parameters = parseAbiParameters('address to, uint256 value');
 ```
 
 ## Error Handling
 
 ```typescript
-import { ContractFunctionExecutionError } from 'viem'
+import { ContractFunctionExecutionError } from 'viem';
 
 try {
-  await contract.write.transfer(['0xRecipient', parseEther('1000')])
+  await contract.write.transfer(['0xRecipient', parseEther('1000')]);
 } catch (error) {
   if (error instanceof ContractFunctionExecutionError) {
-    console.log('Contract execution error:', error.message)
+    console.log('Contract execution error:', error.message);
   } else {
-    console.error('Unknown error:', error)
+    console.error('Unknown error:', error);
   }
 }
 ```

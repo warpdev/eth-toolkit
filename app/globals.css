@@ -1,5 +1,5 @@
-@import "tailwindcss";
-@import "tw-animate-css";
+@import 'tailwindcss';
+@import 'tw-animate-css';
 
 @custom-variant dark (&:is(:where(.dark, .dark *)));
 
@@ -118,5 +118,41 @@
   }
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+/* Safe area support for mobile devices */
+@layer utilities {
+  .pb-safe-area-inset-bottom {
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  }
+
+  .pt-safe-area-inset-top {
+    padding-top: max(1rem, env(safe-area-inset-top));
+  }
+
+  .px-safe-area-inset-left {
+    padding-left: env(safe-area-inset-left);
+  }
+
+  .pr-safe-area-inset-right {
+    padding-right: env(safe-area-inset-right);
+  }
+
+  .safe-area-pb {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  /* Touch interaction improvements */
+  .touch-manipulation {
+    touch-action: manipulation;
+  }
+}
+
+/* Viewport improvements for mobile */
+@supports (-webkit-touch-callout: none) {
+  /* iOS specific styles */
+  body {
+    -webkit-overflow-scrolling: touch;
   }
 }

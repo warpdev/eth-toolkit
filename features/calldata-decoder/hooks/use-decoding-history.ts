@@ -1,12 +1,12 @@
-"use client";
+'use client';
 
 import { useAtom } from 'jotai';
 import { useCallback, useEffect } from 'react';
-import { 
+import {
   saveDecodingResult,
-  getDecodingHistory, 
-  deleteDecodingRecord, 
-  clearDecodingHistory
+  getDecodingHistory,
+  deleteDecodingRecord,
+  clearDecodingHistory,
 } from '@/lib/storage/abi-storage';
 import { decodingHistoryAtom, isHistoryPanelOpenAtom } from '../atoms/decoder-history-atom';
 import { DecodedFunctionWithSignatures } from '@/lib/types';
@@ -24,20 +24,26 @@ export function useDecodingHistory() {
     loadHistory();
   }, [loadHistory]);
 
-  const addToHistory = useCallback(async (calldata: string, result: DecodedFunctionWithSignatures) => {
-    if (result.error || !result.functionName) {
-      return null;
-    }
+  const addToHistory = useCallback(
+    async (calldata: string, result: DecodedFunctionWithSignatures) => {
+      if (result.error || !result.functionName) {
+        return null;
+      }
 
-    const id = await saveDecodingResult(calldata, result);
-    await loadHistory();
-    return id;
-  }, [loadHistory]);
+      const id = await saveDecodingResult(calldata, result);
+      await loadHistory();
+      return id;
+    },
+    [loadHistory]
+  );
 
-  const removeFromHistory = useCallback(async (id: string) => {
-    await deleteDecodingRecord(id);
-    await loadHistory();
-  }, [loadHistory]);
+  const removeFromHistory = useCallback(
+    async (id: string) => {
+      await deleteDecodingRecord(id);
+      await loadHistory();
+    },
+    [loadHistory]
+  );
 
   const clearHistory = useCallback(async () => {
     await clearDecodingHistory();
@@ -45,7 +51,7 @@ export function useDecodingHistory() {
   }, [loadHistory]);
 
   const toggleHistoryPanel = useCallback(() => {
-    setIsHistoryPanelOpen(prev => !prev);
+    setIsHistoryPanelOpen((prev) => !prev);
   }, [setIsHistoryPanelOpen]);
 
   return {
@@ -55,6 +61,6 @@ export function useDecodingHistory() {
     removeFromHistory,
     clearHistory,
     toggleHistoryPanel,
-    refreshHistory: loadHistory
+    refreshHistory: loadHistory,
   };
 }

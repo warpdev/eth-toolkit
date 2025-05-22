@@ -147,11 +147,7 @@ export const DecoderForm = React.memo(function DecoderForm({ onDecodeSuccess }: 
           <TabsContent value="abi" className="space-y-4 pt-4">
             <div className="space-y-2">
               <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                <AbiSelector 
-                  abiStringAtom={abiStringAtom}
-                  showSamples={true}
-                  showUpload={false}
-                />
+                <AbiSelector abiStringAtom={abiStringAtom} showSamples={true} showUpload={false} />
                 <SavedAbiSelector />
               </div>
               <Textarea

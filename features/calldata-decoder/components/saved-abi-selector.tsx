@@ -1,11 +1,11 @@
-"use client";
+'use client';
 
-import { abiStringAtom } from "../atoms/calldata-atoms";
-import { SavedAbiSelector as SharedSavedAbiSelector } from "@/components/shared/saved-abi-selector";
+import { abiStringAtom } from '../atoms/calldata-atoms';
+import { SavedAbiSelector as SharedSavedAbiSelector } from '@/components/shared/saved-abi-selector';
 
 export function SavedAbiSelector() {
   return (
-    <SharedSavedAbiSelector 
+    <SharedSavedAbiSelector
       abiAtom={abiStringAtom}
       showDeleteOption={true}
       showFavoriteOption={true}

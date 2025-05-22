@@ -1,19 +1,26 @@
-"use client";
+'use client';
 
 import { useDecodingHistory } from '../hooks/use-decoding-history';
 import { Button } from '@/components/ui/button';
 import { X, Trash2, Clock, ChevronRight } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetFooter } from '@/components/ui/sheet';
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogHeader, 
-  DialogTitle, 
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+  SheetFooter,
+} from '@/components/ui/sheet';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
   DialogDescription,
   DialogFooter,
   DialogClose,
-  DialogTrigger
+  DialogTrigger,
 } from '@/components/ui/dialog';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
@@ -25,38 +32,34 @@ import { decodedResultAtom } from '../atoms/decoder-result-atom';
 dayjs.extend(relativeTime);
 
 export function DecodingHistory() {
-  const { 
-    history, 
-    isHistoryPanelOpen, 
-    toggleHistoryPanel, 
-    removeFromHistory, 
-    clearHistory 
-  } = useDecodingHistory();
-  
+  const { history, isHistoryPanelOpen, toggleHistoryPanel, removeFromHistory, clearHistory } =
+    useDecodingHistory();
+
   const [, setCalldata] = useAtom(calldataAtom);
   const [, setDecodedResult] = useAtom(decodedResultAtom);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
-  const handleHistoryItemClick = useCallback((item: typeof history[0]) => {
-    setCalldata(item.calldata);
-    setDecodedResult(item.result);
-    toggleHistoryPanel();
-  }, [setCalldata, setDecodedResult, toggleHistoryPanel]);
+  const handleHistoryItemClick = useCallback(
+    (item: (typeof history)[0]) => {
+      setCalldata(item.calldata);
+      setDecodedResult(item.result);
+      toggleHistoryPanel();
+    },
+    [setCalldata, setDecodedResult, toggleHistoryPanel]
+  );
 
   const historyItems = history.map((item) => (
-    <div 
-      key={item.id} 
-      className="p-4 border-b border-border hover:bg-muted/50 cursor-pointer group"
+    <div
+      key={item.id}
+      className="border-border hover:bg-muted/50 group cursor-pointer border-b p-4"
       onClick={() => handleHistoryItemClick(item)}
     >
-      <div className="flex justify-between items-start mb-1">
-        <div className="font-medium truncate flex-1">
-          {item.result.functionName}
-        </div>
+      <div className="mb-1 flex items-start justify-between">
+        <div className="flex-1 truncate font-medium">{item.result.functionName}</div>
         <Button
           variant="ghost"
           size="icon"
-          className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+          className="h-6 w-6 opacity-0 transition-opacity group-hover:opacity-100"
           onClick={(e) => {
             e.stopPropagation();
             removeFromHistory(item.id);
@@ -65,13 +68,13 @@ export function DecodingHistory() {
           <X className="h-4 w-4" />
         </Button>
       </div>
-      
-      <div className="text-sm text-muted-foreground truncate mb-2">
+
+      <div className="text-muted-foreground mb-2 truncate text-sm">
         {item.calldata.substring(0, 14)}...{item.calldata.substring(item.calldata.length - 4)}
       </div>
-      
-      <div className="flex items-center text-xs text-muted-foreground">
-        <Clock className="h-3 w-3 mr-1" />
+
+      <div className="text-muted-foreground flex items-center text-xs">
+        <Clock className="mr-1 h-3 w-3" />
         {dayjs(item.timestamp).fromNow()}
       </div>
     </div>
@@ -84,42 +87,37 @@ export function DecodingHistory() {
           <Button
             variant="outline"
             size="sm"
-            className="flex items-center gap-1 h-8 w-full sm:w-auto"
+            className="flex h-8 w-full items-center gap-1 sm:w-auto"
           >
             <Clock className="h-4 w-4" />
             History
           </Button>
         </SheetTrigger>
-        <SheetContent side="right" className="w-[350px] sm:w-[450px] p-0 flex flex-col">
-          <SheetHeader className="p-4 border-b">
+        <SheetContent side="right" className="flex w-[350px] flex-col p-0 sm:w-[450px]">
+          <SheetHeader className="border-b p-4">
             <SheetTitle>Decoding History</SheetTitle>
           </SheetHeader>
           <ScrollArea className="flex-1">
             {history.length === 0 ? (
-              <div className="p-8 text-center text-muted-foreground">
-                No decoding history yet.
-              </div>
+              <div className="text-muted-foreground p-8 text-center">No decoding history yet.</div>
             ) : (
               historyItems
             )}
           </ScrollArea>
           {history.length > 0 && (
-            <SheetFooter className="p-4 border-t mt-auto">
+            <SheetFooter className="mt-auto border-t p-4">
               <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                 <DialogTrigger asChild>
-                  <Button
-                    variant="destructive"
-                    size="sm"
-                    className="w-full"
-                  >
-                    <Trash2 className="h-4 w-4 mr-2" /> Clear All History
+                  <Button variant="destructive" size="sm" className="w-full">
+                    <Trash2 className="mr-2 h-4 w-4" /> Clear All History
                   </Button>
                 </DialogTrigger>
                 <DialogContent>
                   <DialogHeader>
                     <DialogTitle>Clear History</DialogTitle>
                     <DialogDescription>
-                      Are you sure you want to clear all decoding history? This action cannot be undone.
+                      Are you sure you want to clear all decoding history? This action cannot be
+                      undone.
                     </DialogDescription>
                   </DialogHeader>
                   <DialogFooter>

@@ -1,10 +1,10 @@
-"use client";
+'use client';
 
-import { atom } from "jotai";
-import { Abi } from "viem";
+import { atom } from 'jotai';
+import { Abi } from 'viem';
 
 // Input state
-export const abiStringAtom = atom<string>("");
+export const abiStringAtom = atom<string>('');
 export const abiAtom = atom<Abi | null>(null);
 export const selectedFunctionAtom = atom<string | null>(null);
 export const functionInputsAtom = atom<Record<string, string>>({});

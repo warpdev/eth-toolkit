@@ -1,11 +1,13 @@
 # Ethereum Developer Toolkit Web Service Development Document
 
 ## Project Overview
+
 A web-based platform providing various utility tools for Ethereum developers. At the MVP stage, the focus is on developing a Calldata Encoder/Decoder to help Ethereum developers perform smart contract development and debugging tasks more intuitively and efficiently.
 
 ## Target Users and Problem Definition
+
 - **Target Users**: Ethereum developers of all levels, from beginners to advanced
-- **Problem Addressed**: 
+- **Problem Addressed**:
   - Simplifying the complex process of decoding Ethereum transaction Calldata
   - Automating Calldata generation for smart contract function calls
   - Streamlining the developer debugging process
@@ -13,6 +15,7 @@ A web-based platform providing various utility tools for Ethereum developers. At
 ## Core Feature Specifications (MVP)
 
 ### 1. Calldata Decoder
+
 - **Feature Description**: Decode Ethereum transaction Calldata hex strings into human-readable format
 - **Detailed Functions**:
   - Input Calldata via copy/paste
@@ -25,6 +28,7 @@ A web-based platform providing various utility tools for Ethereum developers. At
   - More detailed parameter decoding when ABI is provided
 
 ### 2. Calldata Encoder
+
 - **Feature Description**: Generate valid Calldata when a smart contract function and parameters are inputted
 - **Detailed Functions**:
   - Interface for entering smart contract function names and types
@@ -33,6 +37,7 @@ A web-based platform providing various utility tools for Ethereum developers. At
   - Detailed explanation of encoding process (for educational purposes)
 
 ### 3. Data Storage Functionality
+
 - **Feature Description**: Save frequently used Calldata or ABIs for reuse
 - **Detailed Functions**:
   - Local storage using browser's IndexedDB
@@ -42,6 +47,7 @@ A web-based platform providing various utility tools for Ethereum developers. At
 ## User Journey Map
 
 ### Scenario 1: Calldata Decoding
+
 1. User visits the website
 2. Selects the Calldata decoder tab
 3. Inputs Calldata copied from an Ethereum transaction
@@ -51,6 +57,7 @@ A web-based platform providing various utility tools for Ethereum developers. At
 7. (Optional) Saves the result
 
 ### Scenario 2: Calldata Encoding
+
 1. User visits the website
 2. Selects the Calldata encoder tab
 3. Defines function name and parameter types (ABI format)
@@ -62,6 +69,7 @@ A web-based platform providing various utility tools for Ethereum developers. At
 ## Technology Stack
 
 ### Frontend
+
 - **Framework**: Next.js 15
 - **UI Library**: React 19
 - **Styling**: Tailwind CSS v4
@@ -71,10 +79,12 @@ A web-based platform providing various utility tools for Ethereum developers. At
 - **Local Storage**: IndexedDB (using idb library)
 
 ### Backend
+
 - No separate backend server required for initial MVP
 - All logic processed client-side
 
 ### Database
+
 - Browser's IndexedDB for local data storage
 - Storage structure:
   ```
@@ -94,10 +104,12 @@ A web-based platform providing various utility tools for Ethereum developers. At
   ```
 
 ### Infrastructure
+
 - **Hosting**: Vercel (optimized for Next.js)
 - **Deployment**: Vercel CI/CD pipeline
 
 ## Data Flow
+
 1. User input → React component state management
 2. Encoding/decoding → Web3 library (viem)
 3. Data storage → IndexedDB API
@@ -106,11 +118,13 @@ A web-based platform providing various utility tools for Ethereum developers. At
 ## Core Page Composition
 
 ### 1. Homepage
+
 - Service introduction and key feature description
 - Direct buttons to decoder/encoder
 - Recent usage history (if available)
 
 ### 2. Calldata Decoder Page
+
 - Calldata input field
 - ABI input field (optional)
 - Network selection dropdown (default, testnets, custom RPC)
@@ -120,6 +134,7 @@ A web-based platform providing various utility tools for Ethereum developers. At
 - Save result button
 
 ### 3. Calldata Encoder Page
+
 - Function name input field
 - Parameter type and value input fields (dynamically addable)
 - Network selection dropdown (default, testnets, custom RPC)
@@ -129,11 +144,13 @@ A web-based platform providing various utility tools for Ethereum developers. At
 - Save result button
 
 ### 4. Saved Items Page
+
 - List of saved Calldata and ABIs
 - Search and filtering functionality
 - Edit and delete functionality
 
 ## Security Considerations
+
 - All data processing performed client-side to minimize user data leakage risk
 - Follow security best practices when connecting user wallets
 - Thorough input validation on the frontend
@@ -141,23 +158,27 @@ A web-based platform providing various utility tools for Ethereum developers. At
 ## Implementation Roadmap
 
 ### Phase 1: MVP Development (1-2 weeks)
+
 - Basic project structure setup
 - Calldata decoder implementation
 - Calldata encoder implementation
 - Basic UI layout and design
 
 ### Phase 2: Improvements and Additional Features (2-3 weeks)
+
 - Local storage functionality implementation
 - Network selection and custom RPC functionality
 - UI/UX improvements
 - Testing and bug fixes
 
 ### Phase 3: Extended Features (Post-MVP)
+
 - Wallet connection and transaction testing functionality
 - ABI management functionality
 - Additional Ethereum developer tools
 
 ## Expansion Possibilities
+
 - Event decoder/encoder
 - Smart contract verification tools
 - Gas cost calculator
@@ -167,6 +188,7 @@ A web-based platform providing various utility tools for Ethereum developers. At
 ## Technical Implementation Directions
 
 ### 4bytes API Integration
+
 - **Purpose**: Decode function signatures from Calldata even without ABIs
 - **Implementation Approach**:
   - Extract the first 4 bytes (function signature) from Calldata and query the 4bytes API
@@ -175,7 +197,9 @@ A web-based platform providing various utility tools for Ethereum developers. At
   - Optimize performance through response caching
 
 ### Calldata Encoding/Decoding Using Viem
+
 - **Decoding Strategy**:
+
   - With ABI: Use viem's parseAbi and decodeAbiParameters
   - Without ABI: Use 4bytes API for function signature decoding
   - Display values according to parameter types (address, uint, bytes, etc.)
@@ -188,7 +212,9 @@ A web-based platform providing various utility tools for Ethereum developers. At
   - Visualize and explain the encoding process
 
 ### State Management (Jotai)
+
 - **Atom Design**:
+
   - Atomic state for saved ABIs and Calldata management
   - Network settings (mainnet, testnet, custom RPC) management
   - Recent usage history storage mechanism
@@ -198,7 +224,9 @@ A web-based platform providing various utility tools for Ethereum developers. At
   - Automatic saving logic on state changes
 
 ### IndexedDB Integration
+
 - **Data Schema**:
+
   - Saved items (ABI, Calldata) model definition
   - Indexing by type and creation date
 
@@ -210,17 +238,21 @@ A web-based platform providing various utility tools for Ethereum developers. At
 ## Code Quality and Maintainability Guidelines
 
 ### Modularization and Component Design Principles
+
 - **Single Responsibility Principle**:
+
   - Design each component with only one responsibility
   - Create clearly separated modules by functionality
   - Break complex logic into multiple smaller functions
 
 - **File Size Management**:
+
   - Split files to avoid exceeding 200-300 lines per file
   - Break overly large components into smaller sub-components
   - Group related functionality in the same directory but separate files
 
 - **Maximize Reusability**:
+
   - Abstract UI elements into reusable common components
   - Separate business logic into hooks and utility functions
   - Separate presentation and logic layers in components
@@ -231,12 +263,15 @@ A web-based platform providing various utility tools for Ethereum developers. At
   - Extensively use TypeScript interfaces and types
 
 ### Code Consistency Maintenance
+
 - **Coding Conventions**:
+
   - Apply consistent naming rules (camelCase, PascalCase, etc.)
   - Prefer functional components and hook patterns
   - Use clear comments and documentation
 
 - **State Management Consistency**:
+
   - Follow jotai's atomic state management principles
   - Clearly distinguish between local and global state
   - Apply consistent patterns for state updates
@@ -247,7 +282,9 @@ A web-based platform providing various utility tools for Ethereum developers. At
   - Explicit handling of exceptional situations
 
 ### Testing and Quality Assurance
+
 - **Testable Design**:
+
   - Design in pure functions and small component units
   - Utilize dependency injection patterns
   - Minimize and isolate side effects

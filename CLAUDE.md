@@ -85,11 +85,13 @@ Consistent error handling across features:
 ### Core Modules
 
 - **Calldata Decoder**:
+
   - Function signature decoding (4bytes API integration)
   - Parameter decoding with/without ABI using viem
   - History tracking and ABI management
 
 - **Calldata Encoder**:
+
   - Dynamic form generation based on ABI function types
   - Parameter encoding with type validation using viem
   - Real-time calldata generation

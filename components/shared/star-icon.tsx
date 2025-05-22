@@ -5,12 +5,12 @@ interface StarIconProps {
   className?: string;
 }
 
-export function StarIcon({ filled = false, className = "h-4 w-4" }: StarIconProps) {
+export function StarIcon({ filled = false, className = 'h-4 w-4' }: StarIconProps) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
       viewBox="0 0 24 24"
-      fill={filled ? "currentColor" : "none"}
+      fill={filled ? 'currentColor' : 'none'}
       stroke="currentColor"
       strokeWidth="2"
       strokeLinecap="round"

@@ -1,25 +1,22 @@
-"use client";
+'use client';
 
-import { useAtom, useAtomValue, useSetAtom } from "jotai";
-import { useCallback } from "react";
-import { 
-  abiAtom, 
-  abiStringAtom,
-  selectedFunctionAtom, 
-  functionInputsAtom,
-  isEncodingAtom, 
-  encodeErrorAtom,
-  encodedCalldataAtom 
-} from "../atoms/encoder-atoms";
-import { Abi } from "viem";
-import { 
-  encodeCalldataWithAbi,
-  createEncodedFunctionResult
-} from "@/lib/utils/calldata-processing";
+import { useAtom, useAtomValue, useSetAtom } from 'jotai';
+import { useCallback } from 'react';
 import {
-  FunctionParameter,
-  EncodedFunction
-} from "@/lib/types";
+  abiAtom,
+  abiStringAtom,
+  selectedFunctionAtom,
+  functionInputsAtom,
+  isEncodingAtom,
+  encodeErrorAtom,
+  encodedCalldataAtom,
+} from '../atoms/encoder-atoms';
+import { Abi } from 'viem';
+import {
+  encodeCalldataWithAbi,
+  createEncodedFunctionResult,
+} from '@/lib/utils/calldata-processing';
+import { FunctionParameter, EncodedFunction } from '@/lib/types';
 import {
   parseAbiFromString,
   validateAbiString,
@@ -29,9 +26,9 @@ import {
   getAbiValidationError,
   getEncodingError,
   getParameterError,
-  normalizeError
-} from "@/lib/utils";
-import { transformInputsForEncoding } from "@/lib/utils/calldata-processing";
+  normalizeError,
+} from '@/lib/utils';
+import { transformInputsForEncoding } from '@/lib/utils/calldata-processing';
 
 /**
  * Hook for encoding calldata functionality
@@ -63,11 +60,11 @@ export function useEncodeCalldata() {
     try {
       const parsedAbi = parseAbiFromString(abiString);
       if (!parsedAbi) {
-        const error = getAbiValidationError("Failed to parse ABI structure");
+        const error = getAbiValidationError('Failed to parse ABI structure');
         setEncodeError(error.message);
         return false;
       }
-      
+
       setAbi(parsedAbi);
       setEncodeError(null);
       return true;
@@ -81,33 +78,39 @@ export function useEncodeCalldata() {
   /**
    * Handle function selection
    */
-  const selectFunction = useCallback((functionName: string) => {
-    setSelectedFunction(functionName);
-    
-    // Reset inputs when changing function
-    setFunctionInputs({});
-    
-    // Clear previous results
-    setEncodedCalldata(null);
-    setEncodeError(null);
-  }, [setSelectedFunction, setFunctionInputs, setEncodedCalldata, setEncodeError]);
+  const selectFunction = useCallback(
+    (functionName: string) => {
+      setSelectedFunction(functionName);
+
+      // Reset inputs when changing function
+      setFunctionInputs({});
+
+      // Clear previous results
+      setEncodedCalldata(null);
+      setEncodeError(null);
+    },
+    [setSelectedFunction, setFunctionInputs, setEncodedCalldata, setEncodeError]
+  );
 
   /**
    * Update function input values
    */
-  const updateFunctionInput = useCallback((name: string, value: string) => {
-    setFunctionInputs(current => ({
-      ...current,
-      [name]: value
-    }));
-  }, [setFunctionInputs]);
+  const updateFunctionInput = useCallback(
+    (name: string, value: string) => {
+      setFunctionInputs((current) => ({
+        ...current,
+        [name]: value,
+      }));
+    },
+    [setFunctionInputs]
+  );
 
   /**
    * Validate the current encoding setup with improved error handling
    */
   const validateEncodingSetup = useCallback(() => {
     if (!abi || !selectedFunction) {
-      setEncodeError("ABI and function must be selected");
+      setEncodeError('ABI and function must be selected');
       return false;
     }
 
@@ -127,31 +130,34 @@ export function useEncodeCalldata() {
    */
   const prepareInputsForEncoding = useCallback(() => {
     if (!abi || !selectedFunction) return null;
-    
+
     // Get function parameters from ABI
     const functionParams = generateParametersFromAbi(abi, selectedFunction);
-    
+
     // Transform inputs to appropriate types
     const transformedInputs = transformInputsForEncoding(functionInputs, functionParams);
-    
+
     return {
       functionParams,
-      transformedInputs
+      transformedInputs,
     };
   }, [abi, selectedFunction, functionInputs]);
 
   /**
    * Create the final result object
    */
-  const createResultObject = useCallback((
-    functionName: string,
-    functionParams: FunctionParameter[],
-    transformedInputs: unknown[],
-    encodedData: string
-  ): EncodedFunction => {
-    const signature = `${functionName}(${functionParams.map(p => p.type).join(',')})`;
-    return createEncodedFunctionResult(functionName, signature, transformedInputs, encodedData);
-  }, []);
+  const createResultObject = useCallback(
+    (
+      functionName: string,
+      functionParams: FunctionParameter[],
+      transformedInputs: unknown[],
+      encodedData: string
+    ): EncodedFunction => {
+      const signature = `${functionName}(${functionParams.map((p) => p.type).join(',')})`;
+      return createEncodedFunctionResult(functionName, signature, transformedInputs, encodedData);
+    },
+    []
+  );
 
   /**
    * Encode calldata using the current ABI, selected function, and inputs
@@ -169,41 +175,41 @@ export function useEncodeCalldata() {
     try {
       // If validation passed, we know these variables are defined
       // We can safely use our hook variables
-      
+
       // Prepare inputs for encoding
       const prepared = prepareInputsForEncoding();
       if (!prepared) {
-        const error = getParameterError("Failed to prepare inputs");
+        const error = getParameterError('Failed to prepare inputs');
         setEncodeError(error.message);
         return null;
       }
-      
+
       const { functionParams, transformedInputs } = prepared;
-      
+
       // Encode calldata using our shared utility
       const encodingResult = await encodeCalldataWithAbi(
         abi as Abi,
-        selectedFunction || "",
+        selectedFunction || '',
         transformedInputs
       );
-      
-      if (typeof encodingResult === "object" && "error" in encodingResult) {
+
+      if (typeof encodingResult === 'object' && 'error' in encodingResult) {
         throw new Error(encodingResult.error);
       }
-      
+
       const encodedData = encodingResult;
-      
+
       // Create result object
       const result = createResultObject(
-        selectedFunction || "",
+        selectedFunction || '',
         functionParams,
         transformedInputs,
         encodedData
       );
-      
+
       // Update state with result
       setEncodedCalldata(encodedData);
-      
+
       return result;
     } catch (error) {
       const normalizedError = normalizeError(error, ErrorType.ENCODING_ERROR);
@@ -213,21 +219,21 @@ export function useEncodeCalldata() {
       setIsEncoding(false);
     }
   }, [
-    abi, 
-    selectedFunction, 
+    abi,
+    selectedFunction,
     validateEncodingSetup,
     prepareInputsForEncoding,
     createResultObject,
-    setIsEncoding, 
+    setIsEncoding,
     setEncodeError,
-    setEncodedCalldata
+    setEncodedCalldata,
   ]);
 
   /**
    * Reset the encoder state
    */
   const resetEncoder = useCallback(() => {
-    setAbiString("");
+    setAbiString('');
     setAbi(null);
     setSelectedFunction(null);
     setFunctionInputs({});
@@ -239,7 +245,7 @@ export function useEncodeCalldata() {
     setSelectedFunction,
     setFunctionInputs,
     setEncodeError,
-    setEncodedCalldata
+    setEncodedCalldata,
   ]);
 
   return {
@@ -251,13 +257,13 @@ export function useEncodeCalldata() {
     isEncoding,
     encodeError,
     encodedCalldata,
-    
+
     // Actions
     setAbiString,
     parseAbi,
     selectFunction,
     updateFunctionInput,
     encodeCalldata,
-    resetEncoder
+    resetEncoder,
   };
 }
