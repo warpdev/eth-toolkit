@@ -165,7 +165,7 @@ export function SavedAbiSelector({
   }, [handleSaveCurrentAbi]);
 
   return (
-    <div className="flex w-full flex-col items-center gap-2 sm:w-auto sm:flex-row">
+    <div className="flex items-center gap-2">
       <Dialog open={showSaveDialog} onOpenChange={setShowSaveDialog}>
         <DialogContent>
           <DialogHeader>
@@ -194,12 +194,7 @@ export function SavedAbiSelector({
         </DialogContent>
       </Dialog>
 
-      <Button
-        variant="outline"
-        size={buttonSize}
-        onClick={handleSaveClick}
-        className="w-full sm:w-auto"
-      >
+      <Button variant="outline" size={buttonSize} onClick={handleSaveClick} className="w-auto">
         <Save className="mr-2 h-4 w-4" />
         <span className="lg:hidden">Save</span>
         <span className="hidden lg:inline">{saveButtonText}</span>
@@ -211,7 +206,7 @@ export function SavedAbiSelector({
             variant="outline"
             size={buttonSize}
             disabled={savedAbis.length === 0}
-            className="w-full sm:w-auto"
+            className="w-auto"
           >
             <Database className="mr-2 h-4 w-4" />
             <span className="lg:hidden">Load</span>

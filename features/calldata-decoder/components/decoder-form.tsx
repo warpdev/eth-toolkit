@@ -24,9 +24,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { useDecodeCalldata } from '@/features/calldata-decoder/hooks/use-decode-calldata';
 import { AbiSelector } from '@/components/shared/abi-selector';
-import { SavedAbiSelector } from './saved-abi-selector';
 import { DecodingHistory } from './DecodingHistory';
-
+import { SavedAbiSelector } from '@/components/shared/saved-abi-selector';
 interface DecoderFormProps {
   onDecodeSuccess?: () => void;
 }
@@ -146,9 +145,13 @@ export const DecoderForm = React.memo(function DecoderForm({ onDecodeSuccess }: 
           </TabsContent>
           <TabsContent value="abi" className="space-y-4 pt-4">
             <div className="space-y-2">
-              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-center justify-between gap-2">
                 <AbiSelector abiStringAtom={abiStringAtom} showSamples={true} showUpload={false} />
-                <SavedAbiSelector />
+                <SavedAbiSelector
+                  abiAtom={abiStringAtom}
+                  showDeleteOption={true}
+                  showFavoriteOption={true}
+                />
               </div>
               <Textarea
                 placeholder="Paste contract ABI JSON here..."

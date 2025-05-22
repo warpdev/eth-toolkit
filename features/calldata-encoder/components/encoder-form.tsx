@@ -22,7 +22,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { useEncodeCalldata } from '../hooks/use-encode-calldata';
 import { AbiSelector } from '@/components/shared/abi-selector';
-import { SavedAbiSelector } from './saved-abi-selector';
+import { SavedAbiSelector } from '@/components/shared/saved-abi-selector';
 import { FunctionSelector } from './function-selector';
 import { ParameterInputs } from './parameter-inputs';
 
@@ -90,7 +90,11 @@ export const EncoderForm = React.memo(function EncoderForm({ onEncodeSuccess }: 
         <div className="space-y-2">
           <div className="flex items-center justify-between">
             <AbiSelector abiStringAtom={abiStringAtom} showSamples={true} showUpload={false} />
-            <SavedAbiSelector />
+            <SavedAbiSelector
+              abiAtom={abiStringAtom}
+              showDeleteOption={false}
+              showFavoriteOption={true}
+            />
           </div>
           <Textarea
             placeholder="Paste contract ABI JSON here..."
