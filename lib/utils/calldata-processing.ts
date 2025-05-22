@@ -226,7 +226,7 @@ export async function decodeCalldataWithSignatureLookup(
     const tempAbi = createTemporaryAbiFromSignature(bestSignature);
 
     let args: unknown[] = [];
-    let parsedParameters = [];
+    const parsedParameters = [];
 
     try {
       // Try to decode the calldata using the temporary ABI

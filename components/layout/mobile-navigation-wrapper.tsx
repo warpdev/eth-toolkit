@@ -4,7 +4,7 @@ import * as React from 'react';
 import { BottomNavigation, useBottomNavigation } from './bottom-navigation';
 import { cn } from '@/lib/utils';
 
-type MobileNavigationWrapperProps = {
+type NavigationWrapperProps = {
   children: React.ReactNode;
   className?: string;
 };
@@ -13,7 +13,7 @@ type MobileNavigationWrapperProps = {
  * Wrapper component that provides proper spacing and layout for mobile navigation
  * Automatically adjusts content padding based on bottom navigation visibility
  */
-export function MobileNavigationWrapper({ children, className }: MobileNavigationWrapperProps) {
+export const MobileNavigationWrapper = React.memo(({ children, className }: NavigationWrapperProps) => {
   const { spacingClass } = useBottomNavigation();
 
   return (
@@ -31,12 +31,14 @@ export function MobileNavigationWrapper({ children, className }: MobileNavigatio
       <BottomNavigation />
     </>
   );
-}
+});
+
+MobileNavigationWrapper.displayName = 'MobileNavigationWrapper';
 
 /**
  * Main content wrapper that handles safe areas and mobile spacing
  */
-export function MainContentWrapper({ children, className }: MobileNavigationWrapperProps) {
+export const MainContentWrapper = React.memo(({ children, className }: NavigationWrapperProps) => {
   const { spacingClass } = useBottomNavigation();
 
   return (
@@ -53,4 +55,6 @@ export function MainContentWrapper({ children, className }: MobileNavigationWrap
       {children}
     </main>
   );
-}
+});
+
+MainContentWrapper.displayName = 'MainContentWrapper';

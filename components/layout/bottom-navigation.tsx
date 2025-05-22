@@ -1,29 +1,18 @@
 'use client';
 
 import * as React from 'react';
-import { Code, Menu, Settings } from 'lucide-react';
+import { Menu } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { siEthereum } from 'simple-icons';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useSidebar } from '@/components/ui/sidebar';
 import { useIsMobile } from '@/hooks/use-mobile';
-
-// Ethereum Icon component
-const EthereumIcon = ({ className }: { className?: string }) => (
-  <svg
-    className={className}
-    role="img"
-    viewBox="0 0 24 24"
-    fill="currentColor"
-    xmlns="http://www.w3.org/2000/svg"
-  >
-    <path d={siEthereum.path} />
-  </svg>
-);
+import { BOTTOM_NAVIGATION_ITEMS, isActiveNavItem } from '@/lib/config/navigation';
+import type { NavigationItem } from '@/lib/config/navigation';
 
 type BottomNavItemProps = {
-  icon: React.ReactNode;
+  item?: NavigationItem;
+  icon?: React.ReactNode;
   label: string;
   isActive?: boolean;
   href?: string;
@@ -31,7 +20,16 @@ type BottomNavItemProps = {
   className?: string;
 };
 
-const BottomNavItem = ({ icon, label, isActive, href, onClick, className }: BottomNavItemProps) => {
+const BottomNavItem = React.memo(({ item, icon, label, isActive, href, onClick, className }: BottomNavItemProps) => {
+  const displayIcon = React.useMemo(() => {
+    if (icon) return icon;
+    if (item?.icon) {
+      const IconComponent = item.icon;
+      return <IconComponent size={20} />;
+    }
+    return null;
+  }, [icon, item?.icon]);
+
   const content = (
     <div
       className={cn(
@@ -49,7 +47,7 @@ const BottomNavItem = ({ icon, label, isActive, href, onClick, className }: Bott
           isActive && 'scale-110'
         )}
       >
-        {icon}
+        {displayIcon}
       </div>
       <span
         className={cn(
@@ -63,9 +61,11 @@ const BottomNavItem = ({ icon, label, isActive, href, onClick, className }: Bott
     </div>
   );
 
-  if (href) {
+  const finalHref = href || item?.href;
+
+  if (finalHref) {
     return (
-      <Link href={href} className="min-w-0 flex-1 touch-manipulation" aria-label={label}>
+      <Link href={finalHref} className="min-w-0 flex-1 touch-manipulation" aria-label={label}>
         {content}
       </Link>
     );
@@ -81,9 +81,11 @@ const BottomNavItem = ({ icon, label, isActive, href, onClick, className }: Bott
       {content}
     </button>
   );
-};
+});
 
-export function BottomNavigation() {
+BottomNavItem.displayName = 'BottomNavItem';
+
+export const BottomNavigation = React.memo(() => {
   const pathname = usePathname();
   const { toggleSidebar } = useSidebar();
   const isMobile = useIsMobile();
@@ -106,26 +108,14 @@ export function BottomNavigation() {
       aria-label="Mobile bottom navigation"
     >
       <div className="mx-auto flex h-16 max-w-screen-xl items-stretch">
-        <BottomNavItem
-          icon={<Code size={20} />}
-          label="Decoder"
-          isActive={pathname === '/calldata/decoder'}
-          href="/calldata/decoder"
-        />
-
-        <BottomNavItem
-          icon={<EthereumIcon className="h-5 w-5" />}
-          label="Encoder"
-          isActive={pathname === '/calldata/encoder'}
-          href="/calldata/encoder"
-        />
-
-        <BottomNavItem
-          icon={<Settings size={20} />}
-          label="Settings"
-          isActive={pathname === '/settings'}
-          href="/settings"
-        />
+        {BOTTOM_NAVIGATION_ITEMS.map((item) => (
+          <BottomNavItem
+            key={item.id}
+            item={item}
+            label={item.label}
+            isActive={isActiveNavItem(pathname, item)}
+          />
+        ))}
 
         <BottomNavItem
           icon={<Menu size={20} />}
@@ -136,18 +126,20 @@ export function BottomNavigation() {
       </div>
     </nav>
   );
-}
+});
+
+BottomNavigation.displayName = 'BottomNavigation';
 
 /**
  * Hook to provide bottom navigation spacing
  * Use this to add padding-bottom to main content when bottom nav is visible
  */
-export function useBottomNavigation() {
+export const useBottomNavigation = () => {
   const isMobile = useIsMobile();
 
-  return {
+  return React.useMemo(() => ({
     isVisible: isMobile,
-    spacingClass: isMobile ? 'pb-16 safe-area-pb' : '',
+    spacingClass: isMobile ? 'pb-16 pb-safe-area-inset-bottom-only' : '',
     spacing: isMobile ? 64 : 0, // 4rem = 64px
-  };
-}
+  }), [isMobile]);
+};

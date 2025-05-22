@@ -139,7 +139,7 @@
     padding-right: env(safe-area-inset-right);
   }
 
-  .safe-area-pb {
+  .pb-safe-area-inset-bottom-only {
     padding-bottom: env(safe-area-inset-bottom);
   }
 

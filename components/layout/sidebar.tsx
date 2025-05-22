@@ -1,7 +1,6 @@
 'use client';
 
 import * as React from 'react';
-import { Code, Settings } from 'lucide-react';
 import {
   Sidebar,
   SidebarContent,
@@ -16,19 +15,20 @@ import {
 } from '@/components/ui/sidebar';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { cn } from '@/lib/utils';
-import { siEthereum } from 'simple-icons';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { EthereumIcon } from '@/components/shared/icons';
+import { NAVIGATION_SECTIONS, isActiveNavItem } from '@/lib/config/navigation';
+import type { NavigationItem } from '@/lib/config/navigation';
 
 type MenuItemProps = {
-  icon: React.ReactNode;
-  label: string;
+  item: NavigationItem;
   isActive?: boolean;
-  href?: string;
-  onClick?: () => void;
 };
 
-const MenuItem = ({ icon, label, isActive, href, onClick }: MenuItemProps) => {
+const MenuItem = React.memo(({ item, isActive }: MenuItemProps) => {
+  const IconComponent = item.icon;
+
   const content = (
     <>
       <span
@@ -38,60 +38,34 @@ const MenuItem = ({ icon, label, isActive, href, onClick }: MenuItemProps) => {
           'group-hover/menuitem:text-foreground'
         )}
       >
-        {icon}
+        <IconComponent size={18} />
       </span>
-      <span className="text-base font-medium md:text-sm">{label}</span>
+      <span className="text-base font-medium md:text-sm">{item.label}</span>
     </>
   );
 
   return (
     <SidebarMenuItem className="group/menuitem">
-      {href ? (
-        <Link href={href} className="w-full">
-          <SidebarMenuButton
-            isActive={isActive}
-            className={cn(
-              'hover:bg-accent/50 w-full rounded-md transition-all',
-              'min-h-[44px] py-3 md:min-h-auto md:py-2', // Better touch targets on mobile
-              'touch-manipulation active:scale-95', // Touch feedback
-              isActive ? 'bg-accent/40 font-medium' : 'bg-transparent'
-            )}
-          >
-            {content}
-          </SidebarMenuButton>
-        </Link>
-      ) : (
+      <Link href={item.href} className="w-full">
         <SidebarMenuButton
           isActive={isActive}
           className={cn(
-            'hover:bg-accent/50 rounded-md transition-all',
+            'hover:bg-accent/50 w-full rounded-md transition-all',
             'min-h-[44px] py-3 md:min-h-auto md:py-2', // Better touch targets on mobile
             'touch-manipulation active:scale-95', // Touch feedback
             isActive ? 'bg-accent/40 font-medium' : 'bg-transparent'
           )}
-          onClick={onClick}
         >
           {content}
         </SidebarMenuButton>
-      )}
+      </Link>
     </SidebarMenuItem>
   );
-};
+});
 
-// Ethereum Icon component
-const EthereumIcon = ({ className }: { className?: string }) => (
-  <svg
-    className={className}
-    role="img"
-    viewBox="0 0 24 24"
-    fill="currentColor"
-    xmlns="http://www.w3.org/2000/svg"
-  >
-    <path d={siEthereum.path} />
-  </svg>
-);
+MenuItem.displayName = 'MenuItem';
 
-export function EnhancedSidebar() {
+export const EnhancedSidebar = React.memo(() => {
   const pathname = usePathname();
 
   return (
@@ -110,40 +84,20 @@ export function EnhancedSidebar() {
           <div className="bg-border/40 h-px w-full"></div>
         </div>
 
-        {/* Calldata Section */}
-        <SidebarGroup>
-          <SidebarGroupLabel className="text-muted-foreground/70 px-3 text-xs font-medium tracking-wider uppercase">
-            Calldata
-          </SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu className="mt-1 space-y-0.5 px-2">
-              <MenuItem
-                icon={<Code size={18} />}
-                label="Calldata Decoder"
-                isActive={pathname === '/calldata/decoder'}
-                href="/calldata/decoder"
-              />
-              <MenuItem
-                icon={<EthereumIcon className="h-[18px] w-[18px]" />}
-                label="Calldata Encoder"
-                isActive={pathname === '/calldata/encoder'}
-                href="/calldata/encoder"
-              />
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-
-        {/* System Section */}
-        <SidebarGroup className="mt-2">
-          <SidebarGroupLabel className="text-muted-foreground/70 px-3 text-xs font-medium tracking-wider uppercase">
-            System
-          </SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu className="mt-1 space-y-0.5 px-2">
-              <MenuItem icon={<Settings size={18} />} label="Settings" />
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+        {NAVIGATION_SECTIONS.map((section) => (
+          <SidebarGroup key={section.id} className={section.id !== 'calldata' ? 'mt-2' : undefined}>
+            <SidebarGroupLabel className="text-muted-foreground/70 px-3 text-xs font-medium tracking-wider uppercase">
+              {section.label}
+            </SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu className="mt-1 space-y-0.5 px-2">
+                {section.items.map((item) => (
+                  <MenuItem key={item.id} item={item} isActive={isActiveNavItem(pathname, item)} />
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        ))}
       </SidebarContent>
 
       <SidebarFooter>
@@ -156,4 +110,6 @@ export function EnhancedSidebar() {
       </SidebarFooter>
     </Sidebar>
   );
-}
+});
+
+EnhancedSidebar.displayName = 'EnhancedSidebar';

@@ -100,10 +100,10 @@ async function getDB(): Promise<IDBPDatabase<ABIDatabase>> {
             }
 
             // Use a simple approach with a variable to track the cursor
-            let cursorRequest = abiStore.openCursor();
-            let processCursor = async () => {
+            const cursorRequest = abiStore.openCursor();
+            const processCursor = async () => {
               try {
-                let cursor = await cursorRequest;
+                const cursor = await cursorRequest;
                 if (cursor) {
                   // Type assertion with more specific approach
                   const value = cursor.value as Record<string, any>;
