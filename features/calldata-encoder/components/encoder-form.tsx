@@ -89,7 +89,7 @@ export const EncoderForm = React.memo(function EncoderForm({ onEncodeSuccess }: 
       <CardContent className="space-y-4">
         <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <AbiSelector abiStringAtom={abiStringAtom} showSamples={true} showUpload={true} />
+            <AbiSelector abiStringAtom={abiStringAtom} showSamples={true} showUpload={false} />
             <SavedAbiSelector />
           </div>
           <Textarea
@@ -98,6 +98,9 @@ export const EncoderForm = React.memo(function EncoderForm({ onEncodeSuccess }: 
             onChange={handleAbiStringChange}
             className="h-48 font-mono"
           />
+          <div className="flex items-center justify-start">
+            <AbiSelector abiStringAtom={abiStringAtom} showSamples={false} showUpload={true} />
+          </div>
         </div>
 
         {/* Function selector (only shown when ABI is loaded) */}
