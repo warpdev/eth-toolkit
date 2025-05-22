@@ -195,9 +195,8 @@ export function SavedAbiSelector({
       </Dialog>
 
       <Button variant="outline" size={buttonSize} onClick={handleSaveClick} className="w-auto">
-        <Save className="mr-2 h-4 w-4" />
-        <span className="lg:hidden">Save</span>
-        <span className="hidden lg:inline">{saveButtonText}</span>
+        <Save className="h-4 w-4 sm:mr-2" />
+        <span className="hidden sm:inline">{saveButtonText}</span>
       </Button>
 
       <DropdownMenu>
@@ -208,9 +207,8 @@ export function SavedAbiSelector({
             disabled={savedAbis.length === 0}
             className="w-auto"
           >
-            <Database className="mr-2 h-4 w-4" />
-            <span className="lg:hidden">Load</span>
-            <span className="hidden lg:inline">{loadButtonText}</span>
+            <Database className="h-4 w-4 sm:mr-2" />
+            <span className="hidden sm:inline">{loadButtonText}</span>
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-56">
