@@ -46,7 +46,7 @@ export const MainContentWrapper = React.memo(({ children, className }: Navigatio
   return (
     <main
       className={cn(
-        'flex-1 overflow-auto',
+        'flex-1',
         // Ensure content doesn't get hidden behind bottom navigation
         spacingClass,
         className

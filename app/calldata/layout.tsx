@@ -10,11 +10,9 @@ export default function CalldataLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <MobileNavigationWrapper>
-      <div className="flex h-screen w-full">
-        <EnhancedSidebar />
-        <MainContentWrapper className="p-6 pl-8 md:p-8 md:pl-16">{children}</MainContentWrapper>
-      </div>
+    <MobileNavigationWrapper className="flex w-full">
+      <EnhancedSidebar />
+      <MainContentWrapper className="p-6 pl-8 md:p-8 md:pl-16">{children}</MainContentWrapper>
     </MobileNavigationWrapper>
   );
 }
