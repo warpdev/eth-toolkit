@@ -1,4 +1,4 @@
-import { Code, Settings } from 'lucide-react';
+import { Code } from 'lucide-react';
 import { EthereumIcon } from '@/components/shared/icons';
 
 /**
@@ -42,18 +42,6 @@ export const NAVIGATION_SECTIONS: readonly NavigationSection[] = [
       },
     ],
   },
-  {
-    id: 'system',
-    label: 'System',
-    items: [
-      {
-        id: 'settings',
-        label: 'Settings',
-        href: '/settings',
-        icon: Settings,
-      },
-    ],
-  },
 ] as const;
 
 /**
@@ -72,12 +60,6 @@ export const BOTTOM_NAVIGATION_ITEMS: readonly NavigationItem[] = [
     label: 'Encoder',
     href: '/calldata/encoder',
     icon: EthereumIcon,
-  },
-  {
-    id: 'settings',
-    label: 'Settings',
-    href: '/settings',
-    icon: Settings,
   },
 ] as const;
 
