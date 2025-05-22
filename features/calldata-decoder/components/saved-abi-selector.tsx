@@ -9,7 +9,6 @@ export function SavedAbiSelector() {
       abiAtom={abiStringAtom}
       showDeleteOption={true}
       showFavoriteOption={true}
-      saveButtonText="Save Current ABI"
     />
   );
 }

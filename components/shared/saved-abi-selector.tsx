@@ -201,7 +201,8 @@ export function SavedAbiSelector({
         className="w-full sm:w-auto"
       >
         <Save className="mr-2 h-4 w-4" />
-        {saveButtonText}
+        <span className="lg:hidden">Save</span>
+        <span className="hidden lg:inline">{saveButtonText}</span>
       </Button>
 
       <DropdownMenu>
@@ -213,7 +214,8 @@ export function SavedAbiSelector({
             className="w-full sm:w-auto"
           >
             <Database className="mr-2 h-4 w-4" />
-            {loadButtonText}
+            <span className="lg:hidden">Load</span>
+            <span className="hidden lg:inline">{loadButtonText}</span>
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-56">

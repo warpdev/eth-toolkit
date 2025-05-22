@@ -9,8 +9,6 @@ export function SavedAbiSelector() {
       abiAtom={abiStringAtom}
       showDeleteOption={false}
       showFavoriteOption={true}
-      saveButtonText="Save ABI"
-      loadButtonText="Load Saved ABIs"
     />
   );
 }
