@@ -2,7 +2,7 @@
 
 import { useDecodingHistory } from '../hooks/use-decoding-history';
 import { Button } from '@/components/ui/button';
-import { X, Trash2, Clock, ChevronRight } from 'lucide-react';
+import { X, Trash2, Clock } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import {
   Sheet,
