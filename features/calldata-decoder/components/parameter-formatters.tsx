@@ -65,71 +65,102 @@ interface FormatArgProps {
 
 // Component to format a single argument
 export const FormatArg: React.FC<FormatArgProps> = React.memo(function FormatArg({ arg, type }) {
+  // All hooks must be called at the top level before any early returns or conditions
+  const isArray = Array.isArray(arg);
+  const isEthArray = isArray && type && (type.includes('uint256[]') || type.includes('uint128[]'));
+  const isWeiValue = isLikelyWeiValue(arg, type);
+  const isObject = typeof arg === 'object' && arg !== null && !isArray;
+
+  // Memoize array items for ETH value arrays
+  const ethArrayItems = useMemo(() => {
+    if (!isEthArray || !isArray) return null;
+
+    return (arg as unknown[]).map((item, i) => (
+      <div key={i} className="flex flex-col">
+        {typeof item === 'bigint' && isLikelyWeiValue(item, 'uint256') ? (
+          <>
+            <span>{item.toString()}</span>
+            <span className="text-muted-foreground text-xs">({formatEther(item)} ETH)</span>
+          </>
+        ) : (
+          <span>{typeof item === 'bigint' ? item.toString() : String(item)}</span>
+        )}
+      </div>
+    ));
+  }, [arg, isEthArray, isArray]);
+
+  // Memoize generic array formatting
+  const genericArrayFormatted = useMemo(() => {
+    if (!isArray || isEthArray) return null;
+
+    try {
+      return (
+        <pre className="break-all whitespace-pre-wrap">
+          {JSON.stringify(arg, bigIntReplacer, 2)}
+        </pre>
+      );
+    } catch {
+      return <span>{String(arg)}</span>;
+    }
+  }, [arg, isArray, isEthArray]);
+
+  // Memoize Wei/ETH formatting
+  const weiFormatted = useMemo(() => {
+    if (!isWeiValue) return null;
+
+    try {
+      const wei = typeof arg === 'string' ? BigInt(arg) : (arg as bigint);
+      const eth = formatEther(wei);
+
+      return (
+        <div className="flex flex-col">
+          <span>{wei.toString()}</span>
+          <span className="text-muted-foreground text-xs">({eth} ETH)</span>
+        </div>
+      );
+    } catch {
+      // Fallback to regular formatting if conversion fails
+      if (typeof arg === 'bigint') {
+        return <span>{arg.toString()}</span>;
+      }
+      return <span>{String(arg)}</span>;
+    }
+  }, [arg, isWeiValue]);
+
+  // Memoize object formatting
+  const objectFormatted = useMemo(() => {
+    if (!isObject) return null;
+
+    try {
+      return (
+        <pre className="break-all whitespace-pre-wrap">
+          {JSON.stringify(arg, bigIntReplacer, 2)}
+        </pre>
+      );
+    } catch {
+      return <span>{String(arg)}</span>;
+    }
+  }, [arg, isObject]);
+
   // Handle null/undefined values
   if (arg === null || arg === undefined) {
     return <span className="text-muted-foreground">null</span>;
   }
 
   // Array handling - must come before object check since arrays are objects
-  if (Array.isArray(arg)) {
+  if (isArray) {
     // For arrays that might contain ETH values
-    if (type && (type.includes('uint256[]') || type.includes('uint128[]'))) {
-      // Memoize the array items to prevent unnecessary re-renders
-      const arrayItems = useMemo(
-        () =>
-          arg.map((item, i) => (
-            <div key={i} className="flex flex-col">
-              {typeof item === 'bigint' && isLikelyWeiValue(item, 'uint256') ? (
-                <>
-                  <span>{item.toString()}</span>
-                  <span className="text-muted-foreground text-xs">({formatEther(item)} ETH)</span>
-                </>
-              ) : (
-                <span>{typeof item === 'bigint' ? item.toString() : String(item)}</span>
-              )}
-            </div>
-          )),
-        [arg]
-      );
-
-      return <div className="space-y-2">{arrayItems}</div>;
+    if (isEthArray) {
+      return <div className="space-y-2">{ethArrayItems}</div>;
     }
 
-    // Generic array handling with memoization
-    return useMemo(() => {
-      try {
-        return (
-          <pre className="break-all whitespace-pre-wrap">
-            {JSON.stringify(arg, bigIntReplacer, 2)}
-          </pre>
-        );
-      } catch {
-        return <span>{String(arg)}</span>;
-      }
-    }, [arg]);
+    // Generic array handling
+    return genericArrayFormatted;
   }
 
   // Check if this is likely an ETH value in Wei
-  if (isLikelyWeiValue(arg, type)) {
-    return useMemo(() => {
-      try {
-        const wei = typeof arg === 'string' ? BigInt(arg) : (arg as bigint);
-        const eth = formatEther(wei);
-
-        return (
-          <div className="flex flex-col">
-            <span>{wei.toString()}</span>
-            <span className="text-muted-foreground text-xs">({eth} ETH)</span>
-          </div>
-        );
-      } catch (e) {
-        // Fallback to regular formatting if conversion fails
-        if (typeof arg === 'bigint') {
-          return <span>{arg.toString()}</span>;
-        }
-        return <span>{String(arg)}</span>;
-      }
-    }, [arg, type]);
+  if (isWeiValue) {
+    return weiFormatted;
   }
 
   // Handle specific primitive types
@@ -141,19 +172,9 @@ export const FormatArg: React.FC<FormatArgProps> = React.memo(function FormatArg
     return <span>{arg ? 'true' : 'false'}</span>;
   }
 
-  // Regular object handling with memoization
-  if (typeof arg === 'object') {
-    return useMemo(() => {
-      try {
-        return (
-          <pre className="break-all whitespace-pre-wrap">
-            {JSON.stringify(arg, bigIntReplacer, 2)}
-          </pre>
-        );
-      } catch {
-        return <span>{String(arg)}</span>;
-      }
-    }, [arg]);
+  // Regular object handling
+  if (isObject) {
+    return objectFormatted;
   }
 
   // For raw calldata in signature mode

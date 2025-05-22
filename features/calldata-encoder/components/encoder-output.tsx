@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { useAtomValue } from 'jotai';
-import { encodedCalldataAtom, selectedFunctionAtom, abiAtom } from '../atoms/encoder-atoms';
+import { encodedCalldataAtom, selectedFunctionAtom } from '../atoms/encoder-atoms';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { CopyButton } from '@/components/shared/copy-button';
 import { cn } from '@/lib/utils';
@@ -11,7 +11,6 @@ import { useFunctionSelector } from '../hooks/use-function-selector';
 export function EncoderOutput() {
   const encodedCalldata = useAtomValue(encodedCalldataAtom);
   const selectedFunction = useAtomValue(selectedFunctionAtom);
-  const abi = useAtomValue(abiAtom);
 
   const { getFunctionInfo } = useFunctionSelector();
 

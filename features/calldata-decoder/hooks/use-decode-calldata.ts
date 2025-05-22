@@ -24,7 +24,6 @@ import {
   ErrorType,
   getAbiValidationError,
   getCalldataValidationError,
-  getDecodingError,
   normalizeError,
 } from '@/lib/utils';
 import {
@@ -169,6 +168,7 @@ export function useDecodeCalldata() {
     setDecodeError,
     setDecodedResult,
     setSelectedIndex,
+    addToHistory,
   ]);
 
   return {

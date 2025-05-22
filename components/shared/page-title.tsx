@@ -13,7 +13,7 @@ export function PageTitle({ children, className, subtitle }: PageTitleProps) {
   return (
     <div className="mb-6">
       <h1 className={cn('text-3xl font-bold', className)}>{children}</h1>
-      {subtitle && <p className="mt-2 text-muted-foreground">{subtitle}</p>}
+      {subtitle && <p className="text-muted-foreground mt-2">{subtitle}</p>}
     </div>
   );
 }

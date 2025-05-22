@@ -33,7 +33,7 @@ interface EncoderFormProps {
 export const EncoderForm = React.memo(function EncoderForm({ onEncodeSuccess }: EncoderFormProps) {
   const [abiString, setAbiString] = useAtom(abiStringAtom);
   const abi = useAtomValue(abiAtom);
-  const [selectedFunction, setSelectedFunction] = useAtom(selectedFunctionAtom);
+  const selectedFunction = useAtomValue(selectedFunctionAtom);
   const isEncoding = useAtomValue(isEncodingAtom);
   const encodeError = useAtomValue(encodeErrorAtom);
 

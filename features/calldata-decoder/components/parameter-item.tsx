@@ -10,10 +10,7 @@ interface ParameterItemProps {
   index: number;
 }
 
-export const ParameterItem = React.memo(function ParameterItem({
-  parameter,
-  index,
-}: ParameterItemProps) {
+export const ParameterItem = React.memo(function ParameterItem({ parameter }: ParameterItemProps) {
   return (
     <div className="grid grid-cols-1 gap-4 p-3 md:grid-cols-[1fr_1fr]">
       <div className="space-y-1">

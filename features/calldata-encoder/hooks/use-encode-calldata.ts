@@ -1,6 +1,6 @@
 'use client';
 
-import { useAtom, useAtomValue, useSetAtom } from 'jotai';
+import { useAtom } from 'jotai';
 import { useCallback } from 'react';
 import {
   abiAtom,
@@ -24,7 +24,6 @@ import {
   generateParametersFromAbi,
   ErrorType,
   getAbiValidationError,
-  getEncodingError,
   getParameterError,
   normalizeError,
 } from '@/lib/utils';

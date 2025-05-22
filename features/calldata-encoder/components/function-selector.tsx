@@ -33,15 +33,7 @@ export const FunctionSelector = React.memo(function FunctionSelector() {
     [setSelectedFunction, setFunctionInputs]
   );
 
-  // If no ABI is loaded
-  if (!abi || availableFunctions.length === 0) {
-    return (
-      <div className="text-muted-foreground p-4 text-center">
-        Please upload or select a valid ABI to see available functions.
-      </div>
-    );
-  }
-
+  // All hooks must be called at the top level before any early returns
   // Memoize select options to prevent unnecessary re-renders
   const selectOptions = useMemo(
     () =>
@@ -78,6 +70,15 @@ export const FunctionSelector = React.memo(function FunctionSelector() {
       </div>
     );
   }, [selectedFunction, functionsByName]);
+
+  // If no ABI is loaded
+  if (!abi || availableFunctions.length === 0) {
+    return (
+      <div className="text-muted-foreground p-4 text-center">
+        Please upload or select a valid ABI to see available functions.
+      </div>
+    );
+  }
 
   return (
     <Card>
