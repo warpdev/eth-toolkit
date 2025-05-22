@@ -7,16 +7,13 @@ import {
   EncodedFunction,
   DecodedFunction,
   DecodedFunctionWithSignatures,
-  FunctionInfo,
   FunctionParameter,
-  ParsedParameter,
 } from '@/lib/types';
 import {
   normalizeCalldata,
   extractFunctionSelector,
   extractCalldataParameters,
 } from './calldata-utils';
-import { parseAbiFromString } from './abi-utils';
 import {
   fetchFunctionSignatures,
   findBestSignatureMatch,
@@ -63,12 +60,12 @@ export async function decodeCalldataWithAbi(calldata: string, abi: Abi): Promise
   try {
     // Extract function selector and normalize calldata
     const functionSelector = extractFunctionSelector(calldata);
-    const fullCalldata = normalizeCalldata(calldata);
+    const normalizedCalldata = normalizeCalldata(calldata);
 
     // Attempt to decode using viem
     const decoded = decodeFunctionData({
       abi,
-      data: fullCalldata as `0x${string}`,
+      data: normalizedCalldata as `0x${string}`,
     });
 
     // Create the result object
@@ -198,7 +195,6 @@ export async function decodeCalldataWithSignatureLookup(
   try {
     // Extract function selector and normalize calldata
     const functionSelector = extractFunctionSelector(calldata);
-    const fullCalldata = normalizeCalldata(calldata);
 
     // Lookup the function signatures
     const signatures = await fetchFunctionSignatures(functionSelector);
@@ -226,7 +222,6 @@ export async function decodeCalldataWithSignatureLookup(
     const tempAbi = createTemporaryAbiFromSignature(bestSignature);
 
     let args: unknown[] = [];
-    const parsedParameters = [];
 
     try {
       // Try to decode the calldata using the temporary ABI

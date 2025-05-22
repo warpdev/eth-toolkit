@@ -20,68 +20,70 @@ type BottomNavItemProps = {
   className?: string;
 };
 
-const BottomNavItem = React.memo(({ item, icon, label, isActive, href, onClick, className }: BottomNavItemProps) => {
-  const displayIcon = React.useMemo(() => {
-    if (icon) return icon;
-    if (item?.icon) {
-      const IconComponent = item.icon;
-      return <IconComponent size={20} />;
-    }
-    return null;
-  }, [icon, item?.icon]);
+const BottomNavItem = React.memo(
+  ({ item, icon, label, isActive, href, onClick, className }: BottomNavItemProps) => {
+    const displayIcon = React.useMemo(() => {
+      if (icon) return icon;
+      if (item?.icon) {
+        const IconComponent = item.icon;
+        return <IconComponent size={20} />;
+      }
+      return null;
+    }, [icon, item?.icon]);
 
-  const content = (
-    <div
-      className={cn(
-        'flex min-w-0 flex-1 flex-col items-center justify-center gap-1 px-1 py-2',
-        'transition-all duration-200 ease-in-out',
-        'touch-manipulation active:scale-95',
-        isActive && 'text-primary',
-        !isActive && 'text-muted-foreground hover:text-foreground',
-        className
-      )}
-    >
+    const content = (
       <div
         className={cn(
-          'flex h-6 w-6 items-center justify-center transition-transform duration-200',
-          isActive && 'scale-110'
+          'flex min-w-0 flex-1 flex-col items-center justify-center gap-1 px-1 py-2',
+          'transition-all duration-200 ease-in-out',
+          'touch-manipulation active:scale-95',
+          isActive && 'text-primary',
+          !isActive && 'text-muted-foreground hover:text-foreground',
+          className
         )}
       >
-        {displayIcon}
+        <div
+          className={cn(
+            'flex h-6 w-6 items-center justify-center transition-transform duration-200',
+            isActive && 'scale-110'
+          )}
+        >
+          {displayIcon}
+        </div>
+        <span
+          className={cn(
+            'w-full truncate text-center text-[10px] leading-none font-medium',
+            'transition-opacity duration-200',
+            isActive ? 'opacity-100' : 'opacity-75'
+          )}
+        >
+          {label}
+        </span>
       </div>
-      <span
-        className={cn(
-          'w-full truncate text-center text-[10px] leading-none font-medium',
-          'transition-opacity duration-200',
-          isActive ? 'opacity-100' : 'opacity-75'
-        )}
-      >
-        {label}
-      </span>
-    </div>
-  );
+    );
 
-  const finalHref = href || item?.href;
+    const finalHref = href || item?.href;
 
-  if (finalHref) {
+    if (finalHref) {
+      return (
+        <Link href={finalHref} className="min-w-0 flex-1 touch-manipulation" aria-label={label}>
+          {content}
+        </Link>
+      );
+    }
+
     return (
-      <Link href={finalHref} className="min-w-0 flex-1 touch-manipulation" aria-label={label}>
+      <button
+        onClick={onClick}
+        className="min-w-0 flex-1 touch-manipulation"
+        aria-label={label}
+        type="button"
+      >
         {content}
-      </Link>
+      </button>
     );
   }
-
-  return (
-    <button
-      onClick={onClick}
-      className="min-w-0 flex-1 touch-manipulation"
-      aria-label={label}
-      type="button"
-    >
-      {content}
-    </button>
-  );
-});
+);
 
 BottomNavItem.displayName = 'BottomNavItem';
 
@@ -137,9 +139,12 @@ BottomNavigation.displayName = 'BottomNavigation';
 export const useBottomNavigation = () => {
   const isMobile = useIsMobile();
 
-  return React.useMemo(() => ({
-    isVisible: isMobile,
-    spacingClass: isMobile ? 'pb-16 pb-safe-area-inset-bottom-only' : '',
-    spacing: isMobile ? 64 : 0, // 4rem = 64px
-  }), [isMobile]);
+  return React.useMemo(
+    () => ({
+      isVisible: isMobile,
+      spacingClass: isMobile ? 'pb-16 pb-safe-area-inset-bottom-only' : '',
+      spacing: isMobile ? 64 : 0, // 4rem = 64px
+    }),
+    [isMobile]
+  );
 };

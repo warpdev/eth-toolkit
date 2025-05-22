@@ -13,25 +13,27 @@ type NavigationWrapperProps = {
  * Wrapper component that provides proper spacing and layout for mobile navigation
  * Automatically adjusts content padding based on bottom navigation visibility
  */
-export const MobileNavigationWrapper = React.memo(({ children, className }: NavigationWrapperProps) => {
-  const { spacingClass } = useBottomNavigation();
+export const MobileNavigationWrapper = React.memo(
+  ({ children, className }: NavigationWrapperProps) => {
+    const { spacingClass } = useBottomNavigation();
 
-  return (
-    <>
-      <div
-        className={cn(
-          'min-h-screen w-full',
-          // Add bottom padding when mobile navigation is visible
-          spacingClass,
-          className
-        )}
-      >
-        {children}
-      </div>
-      <BottomNavigation />
-    </>
-  );
-});
+    return (
+      <>
+        <div
+          className={cn(
+            'min-h-screen w-full',
+            // Add bottom padding when mobile navigation is visible
+            spacingClass,
+            className
+          )}
+        >
+          {children}
+        </div>
+        <BottomNavigation />
+      </>
+    );
+  }
+);
 
 MobileNavigationWrapper.displayName = 'MobileNavigationWrapper';
 

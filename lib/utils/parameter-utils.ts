@@ -2,7 +2,7 @@
  * Shared utilities for handling Ethereum parameter types and values
  */
 
-import { Abi } from 'viem';
+import { Abi, AbiParameter } from 'viem';
 import { FunctionParameter, ParsedParameter } from '../types';
 
 /**
@@ -53,10 +53,10 @@ export function generateParametersFromAbi(abi: Abi, functionName: string): Funct
   if (!functionAbi || !functionAbi.inputs) return [];
 
   // Map the inputs to our parameter interface
-  return functionAbi.inputs.map((input: any) => ({
+  return functionAbi.inputs.map((input: AbiParameter) => ({
     name: input.name || `param${input.type}`,
     type: input.type,
-    components: input.components as FunctionParameter[] | undefined,
+    components: (input as AbiParameter & { components?: FunctionParameter[] }).components,
   }));
 }
 
@@ -192,7 +192,7 @@ export function createParsedParameters(
  */
 export function extractParametersFromSignature(
   signature: string,
-  decodedData: any
+  decodedData: { functionName: string; args?: readonly unknown[] }
 ): ParsedParameter[] {
   try {
     // Get the parameter section from the signature

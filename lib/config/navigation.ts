@@ -57,7 +57,7 @@ export const NAVIGATION_SECTIONS: readonly NavigationSection[] = [
 ] as const;
 
 /**
- * Bottom navigation items (mobile)  
+ * Bottom navigation items (mobile)
  * Flat structure for mobile bottom navigation
  */
 export const BOTTOM_NAVIGATION_ITEMS: readonly NavigationItem[] = [
@@ -84,15 +84,15 @@ export const BOTTOM_NAVIGATION_ITEMS: readonly NavigationItem[] = [
 /**
  * Get navigation section by ID
  */
-export const getNavigationSection = (id: string) => 
-  NAVIGATION_SECTIONS.find(section => section.id === id);
+export const getNavigationSection = (id: string) =>
+  NAVIGATION_SECTIONS.find((section) => section.id === id);
 
 /**
  * Get navigation item by ID
  */
 export const getNavigationItem = (id: string): NavigationItem | undefined => {
   for (const section of NAVIGATION_SECTIONS) {
-    const item = section.items.find(item => item.id === id);
+    const item = section.items.find((item) => item.id === id);
     if (item) return item;
   }
   return undefined;
@@ -101,5 +101,5 @@ export const getNavigationItem = (id: string): NavigationItem | undefined => {
 /**
  * Check if a path matches a navigation item
  */
-export const isActiveNavItem = (pathname: string, item: NavigationItem): boolean => 
+export const isActiveNavItem = (pathname: string, item: NavigationItem): boolean =>
   pathname === item.href;

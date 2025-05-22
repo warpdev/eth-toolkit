@@ -88,7 +88,7 @@ export function AbiSelector({
             description: 'ABI loaded from file successfully',
             duration: 2000,
           });
-        } catch (error) {
+        } catch {
           toast.error('Invalid ABI format', {
             description: 'The file does not contain valid JSON data',
             duration: 3000,

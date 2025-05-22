@@ -1,6 +1,6 @@
 'use client';
 
-import { openDB, DBSchema, IDBPDatabase, IDBPCursorWithValue } from 'idb';
+import { openDB, DBSchema, IDBPDatabase } from 'idb';
 import { DecodedFunctionWithSignatures } from '@/lib/types';
 
 // Define our value types first
@@ -26,11 +26,9 @@ interface DecodingHistoryValue {
   timestamp: number;
 }
 
-// This is a workaround to make TypeScript happy about DBSchema extension
-// As documented in an issue: https://github.com/jakearchibald/idb/issues/275
-type StoreValue = any;
-type StoreKey = any;
-type IndexKey = any;
+// Define proper types for the database schema
+type StoreKey = string;
+type IndexKey = number | string;
 
 // Define the database schema based on idb's expectations
 interface ABIDatabase extends DBSchema {
@@ -92,7 +90,10 @@ async function getDB(): Promise<IDBPDatabase<ABIDatabase>> {
             try {
               // Using function reference to avoid TypeScript error
               if (typeof abiStore.createIndex === 'function') {
-                (abiStore.createIndex as Function)('by-favorite', 'isFavorite');
+                (abiStore.createIndex as (name: string, keyPath: string) => void)(
+                  'by-favorite',
+                  'isFavorite'
+                );
               }
             } catch (e) {
               // Index might already exist or other issue
@@ -106,10 +107,10 @@ async function getDB(): Promise<IDBPDatabase<ABIDatabase>> {
                 const cursor = await cursorRequest;
                 if (cursor) {
                   // Type assertion with more specific approach
-                  const value = cursor.value as Record<string, any>;
+                  const value = cursor.value as unknown as Record<string, unknown>;
                   if (value && typeof value === 'object' && !('isFavorite' in value)) {
                     value.isFavorite = false;
-                    cursor.update(value as any);
+                    cursor.update(value as unknown as ABIStoreValue);
                   }
                   // Continue to next record
                   await cursor.continue().then(processCursor);
