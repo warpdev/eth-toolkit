@@ -45,26 +45,59 @@ pnpm format:check # Check formatting without making changes
 
 ### Data Flow
 
-1. User input → React component state management
-2. Encoding/decoding → Web3 library (viem)
-3. Data storage → IndexedDB API
-4. UI rendering → React component updates
+The application follows a layered architecture with atomic state management:
+
+1. **User Input** → Jotai atoms (atomic state)
+2. **Business Logic** → Custom hooks (orchestration layer)
+3. **Processing** → Utility functions + viem (core logic)
+4. **Storage** → IndexedDB API (persistence)
+5. **UI Updates** → React components (presentation)
+
+### Feature Architecture Pattern
+
+Each feature follows a consistent structure:
+
+- **`atoms/`**: Jotai atomic state (input, processing, result, UI state)
+- **`hooks/`**: Business logic orchestration (useDecodeCalldata, useEncodeCalldata)
+- **`components/`**: UI layer (forms, outputs, specialized displays)
+- **`lib/`**: Feature-specific utilities
+
+### State Management Strategy
+
+Uses **atomic state design** with Jotai:
+
+- **Input atoms**: `calldataAtom`, `abiStringAtom`, `selectedFunctionAtom`
+- **Processing atoms**: `isDecodingAtom`, `decodeModeAtom`
+- **Result atoms**: `decodedResultAtom`, `encodedCalldataAtom`
+- **Data atoms**: `decodingHistoryAtom`, `savedAbisAtom`
+
+Custom hooks coordinate multiple atoms and handle side effects, keeping components simple and focused on presentation.
+
+### Error Handling Strategy
+
+Consistent error handling across features:
+
+- **Error normalization**: All errors converted to standard format
+- **User-friendly messages**: Technical errors translated to helpful text
+- **Graceful degradation**: Features work with partial data
+- **Error boundaries**: Component-level error isolation
 
 ### Core Modules
 
 - **Calldata Decoder**:
-
-  - Function signature decoding (4bytes API)
-  - Parameter decoding with or without ABI
+  - Function signature decoding (4bytes API integration)
+  - Parameter decoding with/without ABI using viem
+  - History tracking and ABI management
 
 - **Calldata Encoder**:
-
-  - Function signature and parameter encoding
-  - Dynamic form generation based on types
+  - Dynamic form generation based on ABI function types
+  - Parameter encoding with type validation using viem
+  - Real-time calldata generation
 
 - **Storage Management**:
-  - IndexedDB integration
-  - CRUD operations for saved items
+  - IndexedDB integration with proper indexing
+  - CRUD operations for ABIs, signatures, and history
+  - Automatic timestamp and favorites management
 
 ### Directory Structure
 
@@ -124,11 +157,17 @@ When working with libraries from our Technology Stack:
 
 The application uses IndexedDB (via the `idb` library) for persistent local storage with the following stores:
 
-- **abis**: Stores ABI JSON for saved contracts
-- **signature-history**: Tracks user-selected function signatures
-- **decoding-history**: Saves recent calldata decoding operations
+- **`abis`**: Stores ABI JSON for saved contracts with metadata
+- **`signature-history`**: Tracks user-selected function signatures for autocomplete
+- **`decoding-history`**: Saves recent calldata decoding operations with results
 
-Data models include proper indexing to support sorting by date, favorites, and other criteria.
+### Storage Patterns
+
+- **Automatic timestamping**: All records include created/updated timestamps
+- **Indexing strategy**: Optimized for sorting by date and favorites
+- **Type safety**: Full TypeScript integration with storage operations
+- **Error resilience**: Graceful fallbacks when storage is unavailable
+- **CRUD operations**: Standardized create, read, update, delete patterns
 
 ## Package Management
 
