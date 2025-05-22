@@ -12,7 +12,7 @@ export const CalldataEncoder = React.memo(function CalldataEncoder() {
   }, []);
 
   return (
-    <div className="container mx-auto space-y-6 p-4">
+    <div className="mx-auto space-y-6">
       <EncoderForm onEncodeSuccess={scrollToResult} />
       <div ref={resultRef}>
         <EncoderOutput />

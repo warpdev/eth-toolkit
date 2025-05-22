@@ -103,8 +103,8 @@ export const BottomNavigation = React.memo(() => {
         'fixed right-0 bottom-0 left-0 z-50',
         'bg-background/80 border-border/50 border-t backdrop-blur-md',
         'supports-[backdrop-filter]:bg-background/60',
-        // Safe area padding for devices with home indicator
-        'pb-safe-area-inset-bottom'
+        // Bottom padding for spacing
+        'pb-4'
       )}
       role="navigation"
       aria-label="Mobile bottom navigation"
@@ -142,8 +142,8 @@ export const useBottomNavigation = () => {
   return React.useMemo(
     () => ({
       isVisible: isMobile,
-      spacingClass: isMobile ? 'pb-16 pb-safe-area-inset-bottom-only' : '',
-      spacing: isMobile ? 64 : 0, // 4rem = 64px
+      spacingClass: isMobile ? 'pb-20' : '', // 5rem = 80px (16px nav height + 16px padding)
+      spacing: isMobile ? 80 : 0, // 5rem = 80px
     }),
     [isMobile]
   );

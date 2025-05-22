@@ -1,9 +1,12 @@
 import { CalldataDecoder } from '@/features/calldata-decoder';
+import { PageTitle } from '@/components/shared/page-title';
 
 export default function CalldataDecoderPage() {
   return (
     <div className="mx-auto w-full max-w-5xl">
-      <h1 className="mb-6 text-3xl font-bold">Calldata Decoder</h1>
+      <PageTitle subtitle="Decode Ethereum transaction calldata into human-readable format">
+        Calldata Decoder
+      </PageTitle>
       <CalldataDecoder />
     </div>
   );

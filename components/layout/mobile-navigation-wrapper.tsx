@@ -49,8 +49,6 @@ export const MainContentWrapper = React.memo(({ children, className }: Navigatio
         'flex-1 overflow-auto',
         // Ensure content doesn't get hidden behind bottom navigation
         spacingClass,
-        // Handle safe areas for modern devices
-        'px-safe-area-inset-left pr-safe-area-inset-right',
         className
       )}
     >

@@ -13,7 +13,7 @@ export default function CalldataLayout({
     <MobileNavigationWrapper>
       <div className="flex h-screen w-full">
         <EnhancedSidebar />
-        <MainContentWrapper className="p-4 md:p-8">{children}</MainContentWrapper>
+        <MainContentWrapper className="p-6 pl-8 md:p-8 md:pl-16">{children}</MainContentWrapper>
       </div>
     </MobileNavigationWrapper>
   );

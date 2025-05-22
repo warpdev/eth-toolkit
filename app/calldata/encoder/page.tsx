@@ -1,9 +1,12 @@
 import { CalldataEncoder } from '@/features/calldata-encoder';
+import { PageTitle } from '@/components/shared/page-title';
 
 export default function CalldataEncoderPage() {
   return (
     <div className="mx-auto w-full max-w-5xl">
-      <h1 className="mb-6 text-3xl font-bold">Calldata Encoder</h1>
+      <PageTitle subtitle="Generate Ethereum transaction calldata from ABI and parameters">
+        Calldata Encoder
+      </PageTitle>
       <CalldataEncoder />
     </div>
   );

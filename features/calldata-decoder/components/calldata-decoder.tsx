@@ -12,7 +12,7 @@ export const CalldataDecoder = React.memo(function CalldataDecoder() {
   }, []);
 
   return (
-    <div className="container mx-auto space-y-6 p-4">
+    <div className="mx-auto space-y-6">
       <DecoderForm onDecodeSuccess={scrollToResult} />
       <div ref={resultRef}>
         <DecoderOutput />

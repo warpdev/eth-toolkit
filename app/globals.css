@@ -121,28 +121,7 @@
   }
 }
 
-/* Safe area support for mobile devices */
 @layer utilities {
-  .pb-safe-area-inset-bottom {
-    padding-bottom: max(1rem, env(safe-area-inset-bottom));
-  }
-
-  .pt-safe-area-inset-top {
-    padding-top: max(1rem, env(safe-area-inset-top));
-  }
-
-  .px-safe-area-inset-left {
-    padding-left: env(safe-area-inset-left);
-  }
-
-  .pr-safe-area-inset-right {
-    padding-right: env(safe-area-inset-right);
-  }
-
-  .pb-safe-area-inset-bottom-only {
-    padding-bottom: env(safe-area-inset-bottom);
-  }
-
   /* Touch interaction improvements */
   .touch-manipulation {
     touch-action: manipulation;

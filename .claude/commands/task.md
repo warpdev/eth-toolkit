@@ -11,7 +11,6 @@
     <rule importance="critical">Read the codebase to understand the context.</rule>
     <rule importance="critical">Use a todo list.</rule>
     <rule importance="critical">Only commit when explicitly asked to.</rule>
-    <rule importance="critical">Do not add Co-Authored-By or "Generated with" in commit messages.</rule>
     <rule importance="critical">Be brutally honest.</rule>
     <rule importance="critical">Do not make assumptions.</rule>
     <rule importance="critical">Be thorough.</rule>
