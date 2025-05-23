@@ -135,10 +135,8 @@ BottomNavigation.displayName = 'BottomNavigation';
 export const useBottomNavigation = () => {
   return React.useMemo(
     () => ({
-      // For CSS-only approach, we always apply mobile spacing and let media queries handle it
+      // CSS-only approach: apply mobile spacing and let media queries handle desktop
       spacingClass: 'pb-20 md:pb-0', // 5rem = 80px on mobile, 0 on desktop
-      spacing: 80, // Deprecated - use spacingClass instead
-      isVisible: true, // Deprecated - use CSS media queries instead
     }),
     []
   );
