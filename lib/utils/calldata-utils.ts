@@ -78,13 +78,3 @@ export function isDynamicType(type: string): boolean {
   return false;
 }
 
-/**
- * Gets the size of an Ethereum type in bytes when encoded in calldata
- *
- * @param type Ethereum type string
- * @returns Size in bytes (32 for most types due to padding)
- */
-export function getTypeSize(): number {
-  // Most Ethereum types are padded to 32 bytes
-  return 32;
-}

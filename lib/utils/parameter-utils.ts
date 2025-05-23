@@ -4,6 +4,7 @@
 
 import { Abi, AbiParameter } from 'viem';
 import { FunctionParameter, ParsedParameter } from '../types';
+import { isDynamicType } from './calldata-utils';
 
 /**
  * Extract parameter section from function signature
@@ -60,24 +61,6 @@ export function generateParametersFromAbi(abi: Abi, functionName: string): Funct
   }));
 }
 
-/**
- * Determines if a type is a dynamic Ethereum type
- *
- * @param type Ethereum type string (e.g., 'string', 'bytes', 'uint256[]')
- * @returns True if the type is dynamic
- */
-export function isDynamicType(type: string): boolean {
-  // Basic dynamic types
-  if (type === 'string' || type === 'bytes') return true;
-
-  // Arrays with dynamic length
-  if (type.endsWith('[]')) return true;
-
-  // Fixed length arrays are not dynamic themselves
-  if (type.match(/\[\d+\]$/)) return false;
-
-  return false;
-}
 
 /**
  * Analyzes parameter type and estimates its encoded length in bytes
