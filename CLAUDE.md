@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is an Ethereum Developer Toolkit - a web-based platform providing utility tools for Ethereum developers. The MVP focuses on developing a Calldata Encoder/Decoder to help Ethereum developers perform smart contract development and debugging tasks efficiently.
+This is an Ethereum Developer Toolkit - a web-based platform providing utility tools for Ethereum developers. The platform specializes in Calldata Encoder/Decoder tools to help Ethereum developers perform smart contract development and debugging tasks efficiently.
 
 ## Core Features
 
