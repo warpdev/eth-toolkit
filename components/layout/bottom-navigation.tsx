@@ -6,7 +6,6 @@ import { cn } from '@/lib/utils';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useSidebar } from '@/components/ui/sidebar';
-import { useIsMobile } from '@/hooks/use-mobile';
 import { BOTTOM_NAVIGATION_ITEMS, isActiveNavItem } from '@/lib/config/navigation';
 import type { NavigationItem } from '@/lib/config/navigation';
 
@@ -90,12 +89,6 @@ BottomNavItem.displayName = 'BottomNavItem';
 export const BottomNavigation = React.memo(() => {
   const pathname = usePathname();
   const { toggleSidebar } = useSidebar();
-  const isMobile = useIsMobile();
-
-  // Only show on mobile devices
-  if (!isMobile) {
-    return null;
-  }
 
   return (
     <nav
@@ -104,7 +97,9 @@ export const BottomNavigation = React.memo(() => {
         'bg-background/80 border-border/50 border-t backdrop-blur-md',
         'supports-[backdrop-filter]:bg-background/60',
         // Bottom padding for spacing
-        'pb-4'
+        'pb-4',
+        // Hide on desktop, show on mobile using CSS
+        'md:hidden'
       )}
       role="navigation"
       aria-label="Mobile bottom navigation"
@@ -135,16 +130,16 @@ BottomNavigation.displayName = 'BottomNavigation';
 /**
  * Hook to provide bottom navigation spacing
  * Use this to add padding-bottom to main content when bottom nav is visible
+ * Uses CSS-only approach for consistent SSR behavior
  */
 export const useBottomNavigation = () => {
-  const isMobile = useIsMobile();
-
   return React.useMemo(
     () => ({
-      isVisible: isMobile,
-      spacingClass: isMobile ? 'pb-20' : '', // 5rem = 80px (16px nav height + 16px padding)
-      spacing: isMobile ? 80 : 0, // 5rem = 80px
+      // For CSS-only approach, we always apply mobile spacing and let media queries handle it
+      spacingClass: 'pb-20 md:pb-0', // 5rem = 80px on mobile, 0 on desktop
+      spacing: 80, // Deprecated - use spacingClass instead
+      isVisible: true, // Deprecated - use CSS media queries instead
     }),
-    [isMobile]
+    []
   );
 };

@@ -5,6 +5,7 @@ A modern web-based platform providing essential utility tools for Ethereum devel
 ## 🚀 Features
 
 ### Calldata Decoder
+
 - Decode Ethereum transaction calldata hex strings into human-readable format
 - Support for decoding with or without ABI
 - Function signature resolution via 4bytes.directory API
@@ -13,6 +14,7 @@ A modern web-based platform providing essential utility tools for Ethereum devel
 - Color-coded calldata visualization
 
 ### Calldata Encoder
+
 - Generate valid calldata from smart contract functions and parameters
 - Dynamic form generation based on ABI function types
 - Real-time parameter validation
@@ -20,6 +22,7 @@ A modern web-based platform providing essential utility tools for Ethereum devel
 - Automatic type conversion and formatting
 
 ### Data Storage
+
 - Save frequently used ABIs for quick access
 - Store decoding history for reference
 - Manage saved function signatures
@@ -38,17 +41,20 @@ A modern web-based platform providing essential utility tools for Ethereum devel
 ## 📦 Installation
 
 1. Clone the repository:
+
 ```bash
 git clone https://github.com/your-username/eth-toolkit-v2.git
 cd eth-toolkit-v2
 ```
 
 2. Install dependencies:
+
 ```bash
 pnpm install
 ```
 
 3. Run the development server:
+
 ```bash
 pnpm dev
 ```
@@ -114,6 +120,7 @@ The application follows a feature-based architecture with atomic state managemen
 ## 🎯 Key Features in Detail
 
 ### Calldata Decoding Process
+
 1. Input calldata hex string
 2. Optionally provide ABI for precise decoding
 3. If no ABI provided, fetch function signature from 4bytes.directory
@@ -122,6 +129,7 @@ The application follows a feature-based architecture with atomic state managemen
 6. Save to history for future reference
 
 ### Calldata Encoding Process
+
 1. Input or select saved ABI
 2. Choose function from the ABI
 3. Fill in parameters using dynamic form
