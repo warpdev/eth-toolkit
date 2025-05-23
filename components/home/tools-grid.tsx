@@ -9,7 +9,7 @@ interface ToolCardProps {
   tool: Tool;
 }
 
-function ToolCard({ tool }: ToolCardProps) {
+const ToolCard = React.memo(function ToolCard({ tool }: ToolCardProps) {
   const Icon = tool.icon;
   const isComingSoon = tool.status === 'coming-soon';
 
@@ -59,7 +59,7 @@ function ToolCard({ tool }: ToolCardProps) {
   }
 
   return cardContent;
-}
+});
 
 export function ToolsGrid() {
   return (
