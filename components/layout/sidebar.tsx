@@ -17,7 +17,7 @@ import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { EthereumIcon } from '@/components/shared/icons';
+import { EthereumIcon, GitHubIcon } from '@/components/shared/icons';
 import { NAVIGATION_SECTIONS, isActiveNavItem } from '@/lib/config/navigation';
 import type { NavigationItem } from '@/lib/config/navigation';
 
@@ -102,7 +102,16 @@ export const EnhancedSidebar = React.memo(() => {
 
       <SidebarFooter>
         <div className="border-border/30 border-t p-2.5">
-          <div className="flex items-center justify-between">
+          <a
+            href="https://github.com/your-repo/eth-toolkit"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-muted-foreground hover:text-foreground hover:bg-accent/50 mb-2 flex items-center gap-2 rounded-md px-2 py-1.5 transition-colors"
+          >
+            <GitHubIcon className="h-4 w-4" />
+            <span className="text-sm">GitHub</span>
+          </a>
+          <div className="flex items-center justify-between px-2">
             <span className="text-muted-foreground/70 text-[10px]">v0.1.0</span>
             <ThemeToggle />
           </div>

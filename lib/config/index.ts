@@ -11,3 +11,6 @@ export const config = {
     prefix: 'eth-toolkit-',
   },
 };
+
+// Re-export tools configuration
+export * from './tools';
