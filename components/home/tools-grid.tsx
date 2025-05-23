@@ -1,8 +1,5 @@
-'use client';
-
 import * as React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { ArrowRight, Clock } from 'lucide-react';
 import Link from 'next/link';
 import { TOOLS, type Tool } from '@/lib/config/tools';
@@ -19,11 +16,11 @@ function ToolCard({ tool }: ToolCardProps) {
   const cardContent = (
     <Card
       className={cn(
-        'group relative flex h-full flex-col overflow-hidden transition-all hover:scale-[1.02] hover:shadow-xl cursor-pointer',
-        isComingSoon && 'opacity-75 cursor-not-allowed'
+        'group relative flex h-full cursor-pointer flex-col overflow-hidden transition-all hover:scale-[1.02] hover:shadow-xl',
+        isComingSoon && 'cursor-not-allowed opacity-75'
       )}
     >
-      <CardHeader className="flex-none pb-3 pt-6">
+      <CardHeader className="flex-none pt-6 pb-3">
         <div className="bg-primary/10 text-primary mb-4 inline-flex h-14 w-14 items-center justify-center rounded-xl">
           <Icon className="h-7 w-7" />
         </div>
@@ -39,7 +36,7 @@ function ToolCard({ tool }: ToolCardProps) {
         <CardDescription>{tool.description}</CardDescription>
       </CardHeader>
       <CardContent className="flex flex-1 flex-col justify-end pb-6">
-        <div className="group-hover:bg-primary group-hover:text-primary-foreground flex h-11 w-full items-center justify-center rounded-md text-base font-medium transition-colors bg-secondary text-secondary-foreground">
+        <div className="group-hover:bg-primary group-hover:text-primary-foreground bg-secondary text-secondary-foreground flex h-11 w-full items-center justify-center rounded-md text-base font-medium transition-colors">
           {!isComingSoon ? (
             <>
               Open Tool

@@ -15,8 +15,25 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'Ethereum Developer Toolkit',
+  title: {
+    template: '%s | Ethereum Developer Toolkit',
+    default: 'Ethereum Developer Toolkit',
+  },
   description: 'Web-based utilities for Ethereum developers',
+  keywords: ['ethereum', 'web3', 'blockchain', 'developer', 'tools', 'utilities'],
+  openGraph: {
+    title: 'Ethereum Developer Toolkit',
+    description: 'Web-based utilities for Ethereum developers',
+    url: 'https://eth-toolkit.vercel.app',
+    siteName: 'Ethereum Developer Toolkit',
+    locale: 'en_US',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Ethereum Developer Toolkit',
+    description: 'Web-based utilities for Ethereum developers',
+  },
 };
 
 export default function RootLayout({

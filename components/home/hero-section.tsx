@@ -1,5 +1,3 @@
-'use client';
-
 import * as React from 'react';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, Star } from 'lucide-react';
@@ -32,7 +30,7 @@ export function HeroSection() {
             </Button>
           </Link>
           <a
-            href="https://github.com/your-repo/eth-toolkit"
+            href="https://github.com/warpdev/eth-toolkit"
             target="_blank"
             rel="noopener noreferrer"
           >
