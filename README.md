@@ -43,8 +43,8 @@ A modern web-based platform providing essential utility tools for Ethereum devel
 1. Clone the repository:
 
 ```bash
-git clone https://github.com/your-username/eth-toolkit-v2.git
-cd eth-toolkit-v2
+git clone https://github.com/warpdev/eth-toolkit.git
+cd eth-toolkit
 ```
 
 2. Install dependencies:
@@ -81,7 +81,7 @@ pnpm format:check # Check code formatting
 ## 📁 Project Structure
 
 ```
-eth-toolkit-v2/
+eth-toolkit/
 ├── app/              # Next.js app router pages
 │   ├── calldata/    # Calldata tools pages
 │   │   ├── decoder/ # Decoder feature page
@@ -172,8 +172,8 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 ## 🔗 Links
 
 - [Documentation](./docs/)
-- [Live Demo](https://your-demo-url.vercel.app) (if deployed)
-- [Report Issues](https://github.com/your-username/eth-toolkit-v2/issues)
+- [Live Demo](https://eth-toolkit.warpdev.dev)
+- [Report Issues](https://github.com/warpdev/eth-toolkit/issues)
 
 ---
 

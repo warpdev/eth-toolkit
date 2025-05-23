@@ -107,7 +107,7 @@ export const EnhancedSidebar = React.memo(() => {
       <SidebarFooter>
         <div className="border-border/30 border-t p-2.5">
           <a
-            href="https://github.com/your-repo/eth-toolkit"
+            href="https://github.com/warpdev/eth-toolkit"
             target="_blank"
             rel="noopener noreferrer"
             className="text-muted-foreground hover:text-foreground hover:bg-accent/50 mb-2 flex items-center gap-2 rounded-md px-2 py-1.5 transition-colors"
