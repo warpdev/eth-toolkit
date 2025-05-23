@@ -41,7 +41,6 @@ export function useDecodeCalldata() {
 
   const { addToHistory } = useDecodingHistory();
 
-
   /**
    * Validate the calldata input
    */

@@ -74,7 +74,7 @@ interface FeatureCardProps {
 
 const FeatureCard = React.memo(function FeatureCard({ feature }: FeatureCardProps) {
   const Icon = feature.icon;
-  
+
   return (
     <div className="group bg-card relative rounded-lg border p-6 transition-all hover:shadow-md">
       <div className="bg-primary/10 text-primary mb-4 inline-flex h-12 w-12 items-center justify-center rounded-lg">

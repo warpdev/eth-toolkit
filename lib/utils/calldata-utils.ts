@@ -77,4 +77,3 @@ export function isDynamicType(type: string): boolean {
 
   return false;
 }
-

@@ -38,7 +38,7 @@ export function useAbiParsing({
     }
 
     const result = safeParseAbi(abiString);
-    
+
     if (result.success && result.abi) {
       setParsedAbi(result.abi);
       setError(null);

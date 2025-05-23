@@ -37,7 +37,6 @@ export function useEncodeCalldata() {
   const [encodeError, setEncodeError] = useAtom(encodeErrorAtom);
   const [encodedCalldata, setEncodedCalldata] = useAtom(encodedCalldataAtom);
 
-
   /**
    * Handle function selection
    */
@@ -200,12 +199,7 @@ export function useEncodeCalldata() {
     setFunctionInputs({});
     setEncodeError(null);
     setEncodedCalldata(null);
-  }, [
-    setSelectedFunction,
-    setFunctionInputs,
-    setEncodeError,
-    setEncodedCalldata,
-  ]);
+  }, [setSelectedFunction, setFunctionInputs, setEncodeError, setEncodedCalldata]);
 
   return {
     // State

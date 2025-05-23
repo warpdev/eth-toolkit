@@ -61,7 +61,6 @@ export function generateParametersFromAbi(abi: Abi, functionName: string): Funct
   }));
 }
 
-
 /**
  * Analyzes parameter type and estimates its encoded length in bytes
  *
