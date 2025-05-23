@@ -1,10 +1,9 @@
 'use client';
 
-import { useAtom } from 'jotai';
+import { useAtom, useAtomValue } from 'jotai';
 import { useCallback } from 'react';
 import {
   abiAtom,
-  abiStringAtom,
   selectedFunctionAtom,
   functionInputsAtom,
   isEncodingAtom,
@@ -18,12 +17,9 @@ import {
 } from '@/lib/utils/calldata-processing';
 import { FunctionParameter, EncodedFunction } from '@/lib/types';
 import {
-  parseAbiFromString,
-  validateAbiString,
   validateFunctionInputs as validateInputs,
   generateParametersFromAbi,
   ErrorType,
-  getAbiValidationError,
   getParameterError,
   normalizeError,
 } from '@/lib/utils';
@@ -34,45 +30,13 @@ import { transformInputsForEncoding } from '@/lib/utils/calldata-processing';
  */
 export function useEncodeCalldata() {
   // State atoms
-  const [abiString, setAbiString] = useAtom(abiStringAtom);
-  const [abi, setAbi] = useAtom(abiAtom);
+  const abi = useAtomValue(abiAtom);
   const [selectedFunction, setSelectedFunction] = useAtom(selectedFunctionAtom);
   const [functionInputs, setFunctionInputs] = useAtom(functionInputsAtom);
   const [isEncoding, setIsEncoding] = useAtom(isEncodingAtom);
   const [encodeError, setEncodeError] = useAtom(encodeErrorAtom);
   const [encodedCalldata, setEncodedCalldata] = useAtom(encodedCalldataAtom);
 
-  /**
-   * Parse ABI from string input with improved error handling
-   */
-  const parseAbi = useCallback(() => {
-    // Validate ABI
-    const validation = validateAbiString(abiString);
-    if (!validation.isValid) {
-      const error = getAbiValidationError(validation.error);
-      setAbi(null);
-      setEncodeError(error.message);
-      return false;
-    }
-
-    // Parse ABI
-    try {
-      const parsedAbi = parseAbiFromString(abiString);
-      if (!parsedAbi) {
-        const error = getAbiValidationError('Failed to parse ABI structure');
-        setEncodeError(error.message);
-        return false;
-      }
-
-      setAbi(parsedAbi);
-      setEncodeError(null);
-      return true;
-    } catch (error) {
-      const normalizedError = normalizeError(error, ErrorType.INVALID_ABI);
-      setEncodeError(normalizedError.message);
-      return false;
-    }
-  }, [abiString, setAbi, setEncodeError]);
 
   /**
    * Handle function selection
@@ -96,7 +60,7 @@ export function useEncodeCalldata() {
    */
   const updateFunctionInput = useCallback(
     (name: string, value: string) => {
-      setFunctionInputs((current) => ({
+      setFunctionInputs((current: Record<string, string>) => ({
         ...current,
         [name]: value,
       }));
@@ -232,15 +196,11 @@ export function useEncodeCalldata() {
    * Reset the encoder state
    */
   const resetEncoder = useCallback(() => {
-    setAbiString('');
-    setAbi(null);
     setSelectedFunction(null);
     setFunctionInputs({});
     setEncodeError(null);
     setEncodedCalldata(null);
   }, [
-    setAbiString,
-    setAbi,
     setSelectedFunction,
     setFunctionInputs,
     setEncodeError,
@@ -249,7 +209,6 @@ export function useEncodeCalldata() {
 
   return {
     // State
-    abiString,
     abi,
     selectedFunction,
     functionInputs,
@@ -258,8 +217,6 @@ export function useEncodeCalldata() {
     encodedCalldata,
 
     // Actions
-    setAbiString,
-    parseAbi,
     selectFunction,
     updateFunctionInput,
     encodeCalldata,

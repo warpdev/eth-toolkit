@@ -1,11 +1,15 @@
 'use client';
 
-import React, { useEffect, useCallback } from 'react';
+import React, { useCallback } from 'react';
 import { useAtom, useAtomValue, useSetAtom } from 'jotai';
 import { toast } from 'sonner';
+import { useErrorToast } from '@/hooks/use-error-toast';
+import { useAbiParsing } from '@/hooks/use-abi-parsing';
+import { LoadingButton } from '@/components/shared/loading-button';
 import {
   calldataAtom,
   abiStringAtom,
+  abiAtom,
   decodeModeAtom,
   isDecodingAtom,
   decodeErrorAtom,
@@ -19,7 +23,6 @@ import {
   CardContent,
   CardFooter,
 } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { useDecodeCalldata } from '@/features/calldata-decoder/hooks/use-decode-calldata';
@@ -32,30 +35,22 @@ interface DecoderFormProps {
 
 export const DecoderForm = React.memo(function DecoderForm({ onDecodeSuccess }: DecoderFormProps) {
   const [calldata, setCalldata] = useAtom(calldataAtom);
-  const [abiString, setAbiString] = useAtom(abiStringAtom);
   const [decodeMode, setDecodeMode] = useAtom(decodeModeAtom);
   const isDecoding = useAtomValue(isDecodingAtom);
-  const decodeError = useAtomValue(decodeErrorAtom);
   const setDecodedResult = useSetAtom(decodedResultAtom);
 
-  const { decodeCalldata, parseAbi } = useDecodeCalldata();
+  // Use the shared ABI parsing hook
+  const { abiString, setAbiString } = useAbiParsing({
+    abiStringAtom,
+    parsedAbiAtom: abiAtom,
+    errorAtom: decodeErrorAtom,
+    autoParse: decodeMode === 'abi',
+  });
 
-  // When ABI string changes, try to parse it
-  useEffect(() => {
-    if (decodeMode === 'abi' && abiString) {
-      parseAbi();
-    }
-  }, [abiString, decodeMode, parseAbi]);
+  const { decodeCalldata } = useDecodeCalldata();
 
   // Watch for decode errors and show toast
-  useEffect(() => {
-    if (decodeError) {
-      toast.error('Decode Error', {
-        description: decodeError,
-        duration: 5000,
-      });
-    }
-  }, [decodeError]);
+  useErrorToast({ errorAtom: decodeErrorAtom, title: 'Decode Error' });
 
   const handleDecode = useCallback(async () => {
     const result = await decodeCalldata();
@@ -164,24 +159,16 @@ export const DecoderForm = React.memo(function DecoderForm({ onDecodeSuccess }: 
         </Tabs>
       </CardContent>
       <CardFooter className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <Button
+        <LoadingButton
           onClick={handleDecode}
-          disabled={isDecoding || !calldata}
+          disabled={!calldata}
+          isLoading={isDecoding}
+          loadingText="Decoding..."
           size="lg"
           className="relative w-full sm:w-auto"
         >
-          {isDecoding ? (
-            <>
-              <span className="opacity-0">Decode Calldata</span>
-              <span className="absolute inset-0 flex items-center justify-center">
-                <span className="border-background mr-2 h-4 w-4 animate-spin rounded-full border-2 border-t-transparent"></span>
-                Decoding...
-              </span>
-            </>
-          ) : (
-            'Decode Calldata'
-          )}
-        </Button>
+          Decode Calldata
+        </LoadingButton>
         <DecodingHistory />
       </CardFooter>
     </Card>

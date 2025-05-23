@@ -1,12 +1,11 @@
 'use client';
 
-import { useAtom, useAtomValue, useSetAtom } from 'jotai';
+import { useAtomValue, useSetAtom } from 'jotai';
 import { useCallback } from 'react';
 import { useDecodingHistory } from './use-decoding-history';
 import {
   calldataAtom,
   abiAtom,
-  abiStringAtom,
   isDecodingAtom,
   decodeErrorAtom,
   decodeModeAtom,
@@ -17,8 +16,6 @@ import {
 } from '@/features/calldata-decoder/atoms/decoder-result-atom';
 import { DecodedFunctionWithSignatures } from '@/lib/types';
 import {
-  parseAbiFromString,
-  validateAbiString,
   isValidCalldata,
   normalizeCalldata,
   ErrorType,
@@ -36,8 +33,7 @@ import {
  */
 export function useDecodeCalldata() {
   const calldata = useAtomValue(calldataAtom);
-  const [abi, setAbi] = useAtom(abiAtom);
-  const abiString = useAtomValue(abiStringAtom);
+  const abi = useAtomValue(abiAtom);
   const decodeMode = useAtomValue(decodeModeAtom);
 
   const setIsDecoding = useSetAtom(isDecodingAtom);
@@ -45,34 +41,6 @@ export function useDecodeCalldata() {
 
   const { addToHistory } = useDecodingHistory();
 
-  /**
-   * Parse the ABI from the input string
-   */
-  const parseAbi = useCallback(() => {
-    if (!abiString) {
-      setAbi(null);
-      return false;
-    }
-
-    // Validate ABI before parsing
-    const validation = validateAbiString(abiString);
-    if (!validation.isValid) {
-      const error = getAbiValidationError(validation.error);
-      setDecodeError(error.message);
-      return false;
-    }
-
-    const parsedAbi = parseAbiFromString(abiString);
-
-    if (!parsedAbi) {
-      const error = getAbiValidationError('Failed to parse ABI structure');
-      setDecodeError(error.message);
-      return false;
-    }
-
-    setAbi(parsedAbi);
-    return true;
-  }, [abiString, setAbi, setDecodeError]);
 
   /**
    * Validate the calldata input
@@ -116,9 +84,7 @@ export function useDecodeCalldata() {
 
       if (decodeMode === 'abi') {
         // Make sure we have a valid ABI
-        const isValidAbi = parseAbi();
-
-        if (!isValidAbi || !abi) {
+        if (!abi) {
           const error = getAbiValidationError('Invalid or missing ABI');
           setDecodeError(error.message);
           return null;
@@ -162,7 +128,6 @@ export function useDecodeCalldata() {
     calldata,
     decodeMode,
     abi,
-    parseAbi,
     validateCalldataInput,
     setIsDecoding,
     setDecodeError,
@@ -173,6 +138,5 @@ export function useDecodeCalldata() {
 
   return {
     decodeCalldata,
-    parseAbi,
   };
 }

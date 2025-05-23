@@ -1,8 +1,11 @@
 'use client';
 
-import React, { useEffect, useCallback } from 'react';
-import { useAtom, useAtomValue } from 'jotai';
+import React, { useCallback } from 'react';
+import { useAtomValue } from 'jotai';
 import { toast } from 'sonner';
+import { useErrorToast } from '@/hooks/use-error-toast';
+import { useAbiParsing } from '@/hooks/use-abi-parsing';
+import { LoadingButton } from '@/components/shared/loading-button';
 import {
   abiStringAtom,
   abiAtom,
@@ -18,7 +21,6 @@ import {
   CardContent,
   CardFooter,
 } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { useEncodeCalldata } from '../hooks/use-encode-calldata';
 import { AbiSelector } from '@/components/shared/abi-selector';
@@ -31,30 +33,22 @@ interface EncoderFormProps {
 }
 
 export const EncoderForm = React.memo(function EncoderForm({ onEncodeSuccess }: EncoderFormProps) {
-  const [abiString, setAbiString] = useAtom(abiStringAtom);
   const abi = useAtomValue(abiAtom);
   const selectedFunction = useAtomValue(selectedFunctionAtom);
   const isEncoding = useAtomValue(isEncodingAtom);
-  const encodeError = useAtomValue(encodeErrorAtom);
 
-  const { encodeCalldata, parseAbi } = useEncodeCalldata();
+  // Use the shared ABI parsing hook
+  const { abiString, setAbiString } = useAbiParsing({
+    abiStringAtom,
+    parsedAbiAtom: abiAtom,
+    errorAtom: encodeErrorAtom,
+    autoParse: true,
+  });
 
-  // When ABI string changes, try to parse it
-  useEffect(() => {
-    if (abiString) {
-      parseAbi();
-    }
-  }, [abiString, parseAbi]);
+  const { encodeCalldata } = useEncodeCalldata();
 
   // Watch for encode errors and show toast
-  useEffect(() => {
-    if (encodeError) {
-      toast.error('Encode Error', {
-        description: encodeError,
-        duration: 5000,
-      });
-    }
-  }, [encodeError]);
+  useErrorToast({ errorAtom: encodeErrorAtom, title: 'Encode Error' });
 
   // Handle encode action
   const handleEncode = useCallback(async () => {
@@ -122,24 +116,16 @@ export const EncoderForm = React.memo(function EncoderForm({ onEncodeSuccess }: 
         )}
       </CardContent>
       <CardFooter>
-        <Button
+        <LoadingButton
           onClick={handleEncode}
-          disabled={isEncoding || !selectedFunction}
+          disabled={!selectedFunction}
+          isLoading={isEncoding}
+          loadingText="Encoding..."
           size="lg"
           className="relative"
         >
-          {isEncoding ? (
-            <>
-              <span className="opacity-0">Encode Calldata</span>
-              <span className="absolute inset-0 flex items-center justify-center">
-                <span className="border-background mr-2 h-4 w-4 animate-spin rounded-full border-2 border-t-transparent"></span>
-                Encoding...
-              </span>
-            </>
-          ) : (
-            'Encode Calldata'
-          )}
-        </Button>
+          Encode Calldata
+        </LoadingButton>
       </CardFooter>
     </Card>
   );

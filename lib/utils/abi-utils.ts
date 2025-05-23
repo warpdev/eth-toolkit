@@ -1,5 +1,124 @@
 import { Abi } from 'viem';
 import { FunctionInfo, AbiValidationResult } from '../types/calldata-types';
+import { saveABI, loadABI } from '../storage/abi-storage';
+import { toast } from 'sonner';
+
+/**
+ * Safely parse ABI from string with error handling
+ *
+ * @param abiString - ABI JSON string
+ * @returns Object with parsed ABI, success status, and optional error message
+ */
+export function safeParseAbi(abiString: string): {
+  abi: Abi | null;
+  success: boolean;
+  error?: string;
+} {
+  try {
+    const validation = validateAbiString(abiString);
+    if (!validation.isValid) {
+      return { abi: null, success: false, error: validation.error };
+    }
+
+    const parsedAbi = JSON.parse(abiString) as Abi;
+    return { abi: parsedAbi, success: true };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Invalid JSON format';
+    return { abi: null, success: false, error: message };
+  }
+}
+
+/**
+ * Save ABI with validation and error handling
+ *
+ * @param name - Name for the ABI
+ * @param abiString - ABI JSON string
+ * @returns Promise resolving to success status and optional ID or error
+ */
+export async function saveAbiWithValidation(
+  name: string,
+  abiString: string
+): Promise<{ success: boolean; id?: string; error?: string }> {
+  try {
+    // Validate ABI format first
+    const parseResult = safeParseAbi(abiString);
+    if (!parseResult.success) {
+      return { success: false, error: parseResult.error };
+    }
+
+    // Save to storage
+    const id = await saveABI(name, abiString);
+    return { success: true, id };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Failed to save ABI';
+    return { success: false, error: message };
+  }
+}
+
+/**
+ * Load ABI with error handling
+ *
+ * @param id - ABI ID
+ * @returns Promise resolving to loaded ABI data or error
+ */
+export async function loadAbiWithValidation(
+  id: string
+): Promise<{ success: boolean; abi?: string; name?: string; error?: string }> {
+  try {
+    const abiRecord = await loadABI(id);
+    if (!abiRecord) {
+      return { success: false, error: 'ABI not found' };
+    }
+
+    // Validate loaded ABI
+    const parseResult = safeParseAbi(abiRecord.abi);
+    if (!parseResult.success) {
+      return { success: false, error: 'Loaded ABI is invalid' };
+    }
+
+    return { success: true, abi: abiRecord.abi, name: abiRecord.name };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Failed to load ABI';
+    return { success: false, error: message };
+  }
+}
+
+/**
+ * Show appropriate toast message for ABI operations
+ *
+ * @param operation - Operation type (parse, save, load)
+ * @param success - Whether operation was successful
+ * @param details - Additional details for the toast message
+ */
+export function showAbiOperationToast(
+  operation: 'parse' | 'save' | 'load',
+  success: boolean,
+  details?: { name?: string; error?: string }
+): void {
+  const messages = {
+    parse: {
+      success: 'ABI parsed successfully',
+      error: 'Failed to parse ABI',
+    },
+    save: {
+      success: details?.name ? `ABI saved as "${details.name}"` : 'ABI saved successfully',
+      error: 'Failed to save ABI',
+    },
+    load: {
+      success: details?.name ? `Loaded ABI: ${details.name}` : 'ABI loaded successfully',
+      error: 'Failed to load ABI',
+    },
+  };
+
+  const message = messages[operation][success ? 'success' : 'error'];
+  const description = !success && details?.error ? details.error : undefined;
+
+  if (success) {
+    toast.success(message, { duration: 3000 });
+  } else {
+    toast.error(message, { description, duration: 5000 });
+  }
+}
 
 /**
  * Type guard for ABI function items
