@@ -24,7 +24,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { useDecodeCalldata } from '@/features/calldata-decoder/hooks/use-decode-calldata';
 import { AbiSelector } from '@/components/shared/abi-selector';
-import { DecodingHistory } from './DecodingHistory';
+import { DecodingHistory } from './decoding-history';
 import { SavedAbiSelector } from '@/components/shared/saved-abi-selector';
 interface DecoderFormProps {
   onDecodeSuccess?: () => void;
