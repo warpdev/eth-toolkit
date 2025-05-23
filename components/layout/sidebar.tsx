@@ -74,10 +74,14 @@ export const EnhancedSidebar = React.memo(() => {
       collapsible="offcanvas"
     >
       <SidebarHeader className="py-4 md:py-3">
-        <div className="flex items-center gap-2 px-4 md:px-3">
+        <Link 
+          href="/" 
+          className="flex items-center gap-2 px-4 md:px-3 hover:opacity-80 transition-opacity cursor-pointer"
+          aria-label="Go to homepage"
+        >
           <EthereumIcon className="text-primary h-5 w-5 md:h-4 md:w-4" />
           <h2 className="text-lg font-medium tracking-tight md:text-base">ETH Toolkit</h2>
-        </div>
+        </Link>
       </SidebarHeader>
       <SidebarContent>
         <div className="mb-3 px-3">
