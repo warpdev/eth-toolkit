@@ -16,16 +16,16 @@ function ToolCard({ tool }: ToolCardProps) {
   const Icon = tool.icon;
   const isComingSoon = tool.status === 'coming-soon';
 
-  return (
+  const cardContent = (
     <Card
       className={cn(
-        'group relative overflow-hidden transition-all hover:scale-[1.02] hover:shadow-xl',
-        isComingSoon && 'opacity-75'
+        'group relative flex h-full flex-col overflow-hidden transition-all hover:scale-[1.02] hover:shadow-xl cursor-pointer',
+        isComingSoon && 'opacity-75 cursor-not-allowed'
       )}
     >
-      <CardHeader className="pt-8 pb-4">
-        <div className="bg-primary/10 text-primary mb-6 inline-flex h-16 w-16 items-center justify-center rounded-xl">
-          <Icon className="h-8 w-8" />
+      <CardHeader className="flex-none pb-3 pt-6">
+        <div className="bg-primary/10 text-primary mb-4 inline-flex h-14 w-14 items-center justify-center rounded-xl">
+          <Icon className="h-7 w-7" />
         </div>
         <CardTitle className="flex items-center justify-between">
           {tool.title}
@@ -38,27 +38,30 @@ function ToolCard({ tool }: ToolCardProps) {
         </CardTitle>
         <CardDescription>{tool.description}</CardDescription>
       </CardHeader>
-      <CardContent className="pb-8">
-        {!isComingSoon ? (
-          <Link href={tool.href} className="block">
-            <Button className="group-hover:bg-primary group-hover:text-primary-foreground h-12 w-full text-base">
+      <CardContent className="flex flex-1 flex-col justify-end pb-6">
+        <div className="group-hover:bg-primary group-hover:text-primary-foreground flex h-11 w-full items-center justify-center rounded-md text-base font-medium transition-colors bg-secondary text-secondary-foreground">
+          {!isComingSoon ? (
+            <>
               Open Tool
               <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
-            </Button>
-          </Link>
-        ) : (
-          <Button className="h-12 w-full text-base" disabled>
-            Coming Soon
-          </Button>
-        )}
-      </CardContent>
-      {tool.shortcut && !isComingSoon && (
-        <div className="bg-muted text-muted-foreground absolute top-2 right-2 rounded px-1.5 py-0.5 font-mono text-xs opacity-0 transition-opacity group-hover:opacity-100">
-          {tool.shortcut}
+            </>
+          ) : (
+            'Coming Soon'
+          )}
         </div>
-      )}
+      </CardContent>
     </Card>
   );
+
+  if (!isComingSoon) {
+    return (
+      <Link href={tool.href} className="block h-full">
+        {cardContent}
+      </Link>
+    );
+  }
+
+  return cardContent;
 }
 
 export function ToolsGrid() {

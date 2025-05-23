@@ -18,7 +18,10 @@ export function HeroSection() {
           </span>
         </h1>
         <p className="text-muted-foreground mx-auto mb-10 max-w-2xl text-lg md:text-xl">
-          Essential tools for smart contract development. Decode calldata, encode function calls,
+          Essential tools for smart contract development.
+          <br />
+          Decode calldata, encode function calls,
+          <br />
           and streamline your Ethereum development workflow.
         </p>
         <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
@@ -32,11 +35,12 @@ export function HeroSection() {
             href="https://github.com/your-repo/eth-toolkit"
             target="_blank"
             rel="noopener noreferrer"
-            className="border-input bg-background hover:bg-accent hover:text-accent-foreground inline-flex items-center gap-2 rounded-md border px-4 py-2 text-sm font-medium transition-colors"
           >
-            <GitHubIcon className="h-4 w-4" />
-            Star on GitHub
-            <Star className="h-3 w-3" />
+            <Button size="lg" variant="outline" className="gap-2">
+              <GitHubIcon className="h-4 w-4" />
+              Star on GitHub
+              <Star className="h-3 w-3" />
+            </Button>
           </a>
         </div>
       </div>
