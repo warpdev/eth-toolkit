@@ -1,4 +1,5 @@
 import type { Hash, TransactionReceipt, Transaction } from 'viem';
+import type { DecodedFunctionWithSignatures } from '@/lib/types';
 
 /**
  * Transaction analysis options
@@ -61,11 +62,7 @@ export interface TransactionAnalysisResult {
   gasAnalysis: GasAnalysis;
   eventLogs: DecodedEventLog[];
   failureAnalysis: TransactionFailureAnalysis;
-  calldataAnalysis?: {
-    functionName?: string;
-    args?: unknown[];
-    signature?: string;
-  };
+  calldataAnalysis?: DecodedFunctionWithSignatures;
   blockContext: {
     blockNumber: bigint;
     blockHash: Hash;

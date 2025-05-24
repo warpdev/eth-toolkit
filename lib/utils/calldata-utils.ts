@@ -77,3 +77,78 @@ export function isDynamicType(type: string): boolean {
 
   return false;
 }
+
+/**
+ * Parse raw parameter values from calldata based on expected parameter types
+ *
+ * @param calldata Full calldata string
+ * @param paramTypes Array of parameter types
+ * @returns Array of parsed parameter values
+ */
+export function parseRawParametersFromCalldata(calldata: string, paramTypes: string[]): unknown[] {
+  try {
+    const parametersHex = extractCalldataParameters(calldata);
+    if (!parametersHex || paramTypes.length === 0) {
+      return [];
+    }
+
+    const results: unknown[] = [];
+    let offset = 0;
+
+    for (const paramType of paramTypes) {
+      if (offset + 64 > parametersHex.length) {
+        // Not enough data for this parameter, return hex value
+        results.push(`0x${parametersHex.slice(offset)}`);
+        break;
+      }
+
+      const paramHex = parametersHex.slice(offset, offset + 64);
+      const paramValue = parseParameterFromHex(paramHex, paramType);
+      results.push(paramValue);
+      
+      offset += 64; // Each parameter is 32 bytes (64 hex chars)
+    }
+
+    return results;
+  } catch (error) {
+    console.error('Error parsing raw parameters:', error);
+    return [];
+  }
+}
+
+/**
+ * Parse a single parameter from hex string based on its type
+ *
+ * @param hex 64-character hex string (32 bytes)
+ * @param type Parameter type (e.g., 'address', 'uint256')
+ * @returns Parsed value
+ */
+function parseParameterFromHex(hex: string, type: string): unknown {
+  try {
+    if (type === 'address') {
+      // Address is stored in the last 20 bytes (40 hex chars)
+      return `0x${hex.slice(-40)}`;
+    }
+
+    if (type.startsWith('uint') || type.startsWith('int')) {
+      // Convert hex to BigInt for integer types
+      return BigInt(`0x${hex}`);
+    }
+
+    if (type === 'bool') {
+      // Boolean is true if last byte is non-zero
+      return BigInt(`0x${hex}`) !== 0n;
+    }
+
+    if (type.startsWith('bytes')) {
+      // For bytes types, return the hex value
+      return `0x${hex}`;
+    }
+
+    // For unknown types, return the raw hex
+    return `0x${hex}`;
+  } catch {
+    // If parsing fails, return the raw hex
+    return `0x${hex}`;
+  }
+}

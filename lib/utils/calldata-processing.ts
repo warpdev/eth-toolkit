@@ -8,17 +8,20 @@ import {
   DecodedFunction,
   DecodedFunctionWithSignatures,
   FunctionParameter,
+  ParsedParameter,
 } from '@/lib/types';
 import {
   normalizeCalldata,
   extractFunctionSelector,
   extractCalldataParameters,
+  parseRawParametersFromCalldata,
 } from './calldata-utils';
 import {
   fetchFunctionSignatures,
   findBestSignatureMatch,
   createTemporaryAbiFromSignature,
 } from './signature-utils';
+import { extractParametersFromSignature } from './parameter-utils';
 
 /**
  * Encode calldata using a provided ABI and inputs
@@ -222,6 +225,7 @@ export async function decodeCalldataWithSignatureLookup(
     const tempAbi = createTemporaryAbiFromSignature(bestSignature);
 
     let args: unknown[] = [];
+    let parsedParameters: ParsedParameter[] = [];
 
     try {
       // Try to decode the calldata using the temporary ABI
@@ -230,21 +234,57 @@ export async function decodeCalldataWithSignatureLookup(
       // Use the decoded args
       args = decodedData.args || [];
 
-      // Further parameter processing can be done here if needed
+      // Extract parsed parameters from signature and decoded data
+      parsedParameters = extractParametersFromSignature(bestSignature, {
+        functionName,
+        args,
+      });
     } catch (decodeError) {
       console.warn('Error decoding parameters:', decodeError);
-      // Fallback to showing raw parameters if decoding fails
-      const rawParams = extractCalldataParameters(calldata);
-      args = [rawParams];
+      
+      // Fallback: try to extract raw parameter values from calldata
+      try {
+        const rawParams = extractCalldataParameters(calldata);
+        args = [rawParams];
+        
+        // Extract parameter information from signature for manual parsing
+        const parameterSection = bestSignature.substring(
+          bestSignature.indexOf('(') + 1, 
+          bestSignature.lastIndexOf(')')
+        );
+        
+        if (parameterSection.trim().length > 0) {
+          const paramTypes = parameterSection.split(',').map(p => p.trim().split(' ')[0]);
+          
+          // Try to parse individual parameter values from raw calldata
+          const parameterValues = parseRawParametersFromCalldata(calldata, paramTypes);
+          
+          parsedParameters = extractParametersFromSignature(bestSignature, {
+            functionName,
+            args: parameterValues,
+          });
+        } else {
+          // No parameters expected
+          parsedParameters = [];
+        }
+      } catch (fallbackError) {
+        console.warn('Fallback parameter extraction also failed:', fallbackError);
+        // Last resort: just show parameter types without values
+        parsedParameters = extractParametersFromSignature(bestSignature, {
+          functionName,
+          args: [],
+        });
+      }
     }
 
-    // Return the result with possible signatures
+    // Return the result with possible signatures and parsed parameters
     return {
       functionName,
       functionSig: bestSignature,
       args,
       possibleSignatures: signatures.map((sig) => sig.textSignature),
       selectedSignatureIndex: index,
+      parsedParameters,
     };
   } catch (error) {
     console.error('Error decoding with signature lookup:', error);

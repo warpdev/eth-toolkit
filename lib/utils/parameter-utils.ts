@@ -184,13 +184,16 @@ export function extractParametersFromSignature(
       return []; // No parameters
     }
 
-    // Handle empty args
-    if (!decodedData.args || decodedData.args.length === 0) {
-      return [];
-    }
-
     // Split parameter section into individual parameters
     const paramParts = paramSection.split(',');
+
+    // Handle empty args - still show parameter types even without values
+    if (!decodedData.args || decodedData.args.length === 0) {
+      return paramParts.map((param, index) => {
+        const { name, type } = parseParameter(param, index);
+        return { name, type, value: undefined };
+      });
+    }
 
     return paramParts.map((param, index) => {
       // Parse parameter to get name and type

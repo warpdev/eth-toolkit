@@ -127,12 +127,7 @@ export function useTransactionAnalysis() {
       let calldataAnalysis;
       if (analysisOptions.includeCalldata && transaction.input && transaction.input !== '0x') {
         try {
-          const decodedCalldata = await decodeCalldataWithSignatureLookup(transaction.input);
-          calldataAnalysis = {
-            functionName: decodedCalldata.functionName,
-            args: decodedCalldata.args,
-            signature: decodedCalldata.functionSig,
-          };
+          calldataAnalysis = await decodeCalldataWithSignatureLookup(transaction.input);
         } catch (error) {
           console.error('Error analyzing calldata:', error);
           // Don't fail the entire analysis if calldata analysis fails
