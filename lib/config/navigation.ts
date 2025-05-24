@@ -1,5 +1,4 @@
-import { Code } from 'lucide-react';
-import { EthereumIcon } from '@/components/shared/icons';
+import { TOOLS, getToolById, Tool } from './tools';
 
 /**
  * Navigation configuration for the application
@@ -21,26 +20,33 @@ export type NavigationSection = {
 };
 
 /**
+ * Convert Tool to NavigationItem
+ */
+const toolToNavItem = (tool: Tool): NavigationItem => ({
+  id: tool.id,
+  label: tool.title,
+  href: tool.href,
+  icon: tool.icon as React.ComponentType<{ size?: number; className?: string }>,
+});
+
+/**
  * Main navigation sections
+ * Generated from tools configuration
  */
 export const NAVIGATION_SECTIONS: readonly NavigationSection[] = [
   {
     id: 'calldata',
     label: 'Calldata',
-    items: [
-      {
-        id: 'decoder',
-        label: 'Calldata Decoder',
-        href: '/calldata/decoder',
-        icon: Code,
-      },
-      {
-        id: 'encoder',
-        label: 'Calldata Encoder',
-        href: '/calldata/encoder',
-        icon: EthereumIcon,
-      },
-    ],
+    items: TOOLS.filter((tool) => tool.category === 'calldata' && tool.status === 'active').map(
+      toolToNavItem
+    ),
+  },
+  {
+    id: 'transaction',
+    label: 'Transaction',
+    items: TOOLS.filter((tool) => tool.category === 'transaction' && tool.status === 'active').map(
+      toolToNavItem
+    ),
   },
 ] as const;
 
@@ -48,20 +54,15 @@ export const NAVIGATION_SECTIONS: readonly NavigationSection[] = [
  * Bottom navigation items (mobile)
  * Flat structure for mobile bottom navigation
  */
-export const BOTTOM_NAVIGATION_ITEMS: readonly NavigationItem[] = [
-  {
-    id: 'decoder',
-    label: 'Decoder',
-    href: '/calldata/decoder',
-    icon: Code,
-  },
-  {
-    id: 'encoder',
-    label: 'Encoder',
-    href: '/calldata/encoder',
-    icon: EthereumIcon,
-  },
-] as const;
+export const BOTTOM_NAVIGATION_ITEMS: readonly NavigationItem[] = ['decoder', 'encoder', 'analyzer']
+  .map((id) => getToolById(id))
+  .filter((tool): tool is Tool => tool !== undefined && tool.status === 'active')
+  .map((tool) => ({
+    id: tool.id,
+    label: tool.title.split(' ')[1] || tool.title, // Use single word for mobile
+    href: tool.href,
+    icon: tool.icon as React.ComponentType<{ size?: number; className?: string }>,
+  }));
 
 /**
  * Get navigation section by ID
@@ -73,11 +74,8 @@ export const getNavigationSection = (id: string) =>
  * Get navigation item by ID
  */
 export const getNavigationItem = (id: string): NavigationItem | undefined => {
-  for (const section of NAVIGATION_SECTIONS) {
-    const item = section.items.find((item) => item.id === id);
-    if (item) return item;
-  }
-  return undefined;
+  const tool = getToolById(id);
+  return tool ? toolToNavItem(tool) : undefined;
 };
 
 /**

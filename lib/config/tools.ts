@@ -1,4 +1,4 @@
-import { FileCode, Wrench, LucideIcon } from 'lucide-react';
+import { Code, Search, LucideIcon, Wrench } from 'lucide-react';
 
 export type ToolStatus = 'active' | 'coming-soon' | 'experimental';
 
@@ -8,7 +8,7 @@ export interface Tool {
   id: string;
   title: string;
   description: string;
-  icon: LucideIcon;
+  icon: LucideIcon | React.ComponentType<{ size?: number; className?: string }>;
   href: string;
   status: ToolStatus;
   category: ToolCategory;
@@ -21,7 +21,7 @@ export const TOOLS: Tool[] = [
     id: 'decoder',
     title: 'Calldata Decoder',
     description: 'Decode Ethereum transaction calldata into human-readable format',
-    icon: FileCode,
+    icon: Code,
     href: '/calldata/decoder',
     status: 'active',
     category: 'calldata',
@@ -38,6 +38,17 @@ export const TOOLS: Tool[] = [
     category: 'calldata',
     keywords: ['encode', 'calldata', 'function', 'abi', 'parameters'],
     shortcut: 'cmd+e',
+  },
+  {
+    id: 'analyzer',
+    title: 'Transaction Analyzer',
+    description: 'Analyze Ethereum transactions for gas usage, events, failures, and more',
+    icon: Search,
+    href: '/transaction/analyzer',
+    status: 'active',
+    category: 'transaction',
+    keywords: ['analyze', 'transaction', 'gas', 'events', 'failure', 'debug'],
+    shortcut: 'cmd+a',
   },
 ];
 
