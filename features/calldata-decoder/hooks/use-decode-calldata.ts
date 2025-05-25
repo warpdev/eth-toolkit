@@ -41,99 +41,93 @@ export function useDecodeCalldata() {
 
   const { addToHistory } = useDecodingHistory();
 
-  /**
-   * Validate the calldata input
-   */
-  const validateCalldataInput = useCallback((): boolean => {
-    if (!calldata) {
-      setDecodeError('Calldata is required');
-      return false;
-    }
-
-    if (!isValidCalldata(calldata)) {
-      const error = getCalldataValidationError();
-      setDecodeError(error.message);
-      return false;
-    }
-
-    return true;
-  }, [calldata, setDecodeError]);
-
   const setDecodedResult = useSetAtom(decodedResultAtom);
   const setSelectedIndex = useSetAtom(selectedSignatureIndexAtom);
 
   /**
    * Decode the calldata with improved error handling
    */
-  const decodeCalldata = useCallback(async (): Promise<DecodedFunctionWithSignatures | null> => {
-    setIsDecoding(true);
-    setDecodeError(null);
-    // Reset selected index when starting a new decode
-    setSelectedIndex(0);
+  const decodeCalldata = useCallback(
+    async (calldataOverride?: string): Promise<DecodedFunctionWithSignatures | null> => {
+      setIsDecoding(true);
+      setDecodeError(null);
+      // Reset selected index when starting a new decode
+      setSelectedIndex(0);
 
-    try {
-      // Validate calldata first
-      if (!validateCalldataInput()) {
-        return null;
-      }
+      try {
+        // Use override if provided, otherwise use the atom value
+        const calldataToUse = calldataOverride || calldata;
 
-      // Normalize the calldata
-      const normalizedCalldata = normalizeCalldata(calldata);
-      let result: DecodedFunctionWithSignatures | null = null;
+        // Validate calldata first
+        if (!calldataToUse) {
+          setDecodeError('Calldata is required');
+          return null;
+        }
 
-      if (decodeMode === 'abi') {
-        // Make sure we have a valid ABI
-        if (!abi) {
-          const error = getAbiValidationError('Invalid or missing ABI');
+        if (!isValidCalldata(calldataToUse)) {
+          const error = getCalldataValidationError();
           setDecodeError(error.message);
           return null;
         }
 
-        // Decode using the ABI
-        result = await decodeCalldataWithAbi(normalizedCalldata, abi);
-      } else {
-        // Decode using signature lookup
-        result = await decodeCalldataWithSignatureLookup(normalizedCalldata);
+        // Normalize the calldata
+        const normalizedCalldata = normalizeCalldata(calldataToUse);
+        let result: DecodedFunctionWithSignatures | null = null;
 
-        // If we have a selected signature index from the result, use it
-        if (
-          'selectedSignatureIndex' in result &&
-          typeof result.selectedSignatureIndex === 'number'
-        ) {
-          setSelectedIndex(result.selectedSignatureIndex);
+        if (decodeMode === 'abi') {
+          // Make sure we have a valid ABI
+          if (!abi) {
+            const error = getAbiValidationError('Invalid or missing ABI');
+            setDecodeError(error.message);
+            return null;
+          }
+
+          // Decode using the ABI
+          result = await decodeCalldataWithAbi(normalizedCalldata, abi);
+        } else {
+          // Decode using signature lookup
+          result = await decodeCalldataWithSignatureLookup(normalizedCalldata);
+
+          // If we have a selected signature index from the result, use it
+          if (
+            'selectedSignatureIndex' in result &&
+            typeof result.selectedSignatureIndex === 'number'
+          ) {
+            setSelectedIndex(result.selectedSignatureIndex);
+          }
         }
+
+        if (result && result.error) {
+          setDecodeError(result.error);
+        }
+
+        // Store the result in the atom
+        setDecodedResult(result);
+
+        if (result && !result.error) {
+          addToHistory(normalizedCalldata, result);
+        }
+
+        return result;
+      } catch (error) {
+        const normalizedError = normalizeError(error, ErrorType.DECODING_ERROR);
+        setDecodeError(normalizedError.message);
+        return null;
+      } finally {
+        setIsDecoding(false);
       }
-
-      if (result && result.error) {
-        setDecodeError(result.error);
-      }
-
-      // Store the result in the atom
-      setDecodedResult(result);
-
-      if (result && !result.error) {
-        addToHistory(normalizedCalldata, result);
-      }
-
-      return result;
-    } catch (error) {
-      const normalizedError = normalizeError(error, ErrorType.DECODING_ERROR);
-      setDecodeError(normalizedError.message);
-      return null;
-    } finally {
-      setIsDecoding(false);
-    }
-  }, [
-    calldata,
-    decodeMode,
-    abi,
-    validateCalldataInput,
-    setIsDecoding,
-    setDecodeError,
-    setDecodedResult,
-    setSelectedIndex,
-    addToHistory,
-  ]);
+    },
+    [
+      calldata,
+      decodeMode,
+      abi,
+      setIsDecoding,
+      setDecodeError,
+      setDecodedResult,
+      setSelectedIndex,
+      addToHistory,
+    ]
+  );
 
   return {
     decodeCalldata,
