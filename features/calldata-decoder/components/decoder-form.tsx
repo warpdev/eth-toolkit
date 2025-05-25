@@ -1,9 +1,9 @@
 'use client';
 
-import React, { useCallback } from 'react';
+import React, { useCallback, useState } from 'react';
 import { useAtom, useAtomValue, useSetAtom } from 'jotai';
 import { toast } from 'sonner';
-import { Hash } from 'lucide-react';
+import { Hash, ChevronsUpDown, Check } from 'lucide-react';
 import { useErrorToast } from '@/hooks/use-error-toast';
 import { useAbiParsing } from '@/hooks/use-abi-parsing';
 import { LoadingButton } from '@/components/shared/loading-button';
@@ -18,6 +18,7 @@ import {
   isFetchingTxAtom,
   txFetchErrorAtom,
   selectedNetworkAtom,
+  selectedNetworkTypeAtom,
 } from '@/features/calldata-decoder/atoms/calldata-atoms';
 import { decodedResultAtom } from '@/features/calldata-decoder/atoms/decoder-result-atom';
 import {
@@ -30,6 +31,11 @@ import {
 } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
 import { useDecodeCalldata } from '@/features/calldata-decoder/hooks/use-decode-calldata';
 import { AbiSelector } from '@/components/shared/abi-selector';
 import { DecodingHistory } from './decoding-history';
@@ -37,9 +43,16 @@ import { SavedAbiSelector } from '@/components/shared/saved-abi-selector';
 import { useFetchTransaction } from '@/features/calldata-decoder/hooks/use-fetch-transaction';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger } from '@/components/ui/select';
-import { SUPPORTED_CHAINS, type SupportedChainName } from '@/lib/config/viem-client';
+import { 
+  SUPPORTED_CHAINS, 
+  type SupportedChainName, 
+  type NetworkType,
+  getNetworksByType,
+  getNetworkType,
+  DEFAULT_NETWORKS 
+} from '@/lib/config/viem-client';
 import { setSelectedNetwork as saveNetworkToCookie } from '@/lib/utils/cookie-utils';
+import { cn } from '@/lib/utils';
 
 interface DecoderFormProps {
   onDecodeSuccess?: () => void;
@@ -50,7 +63,28 @@ export const DecoderForm = React.memo(function DecoderForm({ onDecodeSuccess }: 
   const [decodeMode, setDecodeMode] = useAtom(decodeModeAtom);
   const [transactionHash, setTransactionHash] = useAtom(transactionHashAtom);
   const [selectedNetwork, setSelectedNetwork] = useAtom(selectedNetworkAtom);
+  const [selectedNetworkType, setSelectedNetworkType] = useAtom(selectedNetworkTypeAtom);
+  const [isNetworkSelectorOpen, setIsNetworkSelectorOpen] = useState(false);
   const isDecoding = useAtomValue(isDecodingAtom);
+
+  // Initialize network type based on current selected network
+  React.useEffect(() => {
+    const currentNetworkType = getNetworkType(selectedNetwork);
+    if (currentNetworkType !== selectedNetworkType) {
+      setSelectedNetworkType(currentNetworkType);
+    }
+  }, [selectedNetwork, selectedNetworkType, setSelectedNetworkType]);
+
+  // Handle network type tab change
+  const handleNetworkTypeChange = useCallback((newType: NetworkType) => {
+    setSelectedNetworkType(newType);
+    
+    // Switch to default network for the new type if current network doesn't match
+    const currentNetworkType = getNetworkType(selectedNetwork);
+    if (currentNetworkType !== newType) {
+      setSelectedNetwork(DEFAULT_NETWORKS[newType]);
+    }
+  }, [selectedNetwork, setSelectedNetwork, setSelectedNetworkType]);
 
   // Save network selection to cookie when it changes
   React.useEffect(() => {
@@ -179,23 +213,109 @@ export const DecoderForm = React.memo(function DecoderForm({ onDecodeSuccess }: 
         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
           <div className="md:col-span-1">
             <label className="mb-2 block text-sm font-medium">Network</label>
-            <Select
-              value={selectedNetwork}
-              onValueChange={(value) => setSelectedNetwork(value as SupportedChainName)}
-            >
-              <SelectTrigger>
-                <span className={selectedNetwork ? '' : 'text-muted-foreground'}>
-                  {SUPPORTED_CHAINS[selectedNetwork]?.name || 'Select network'}
-                </span>
-              </SelectTrigger>
-              <SelectContent>
-                {Object.entries(SUPPORTED_CHAINS).map(([key, chain]) => (
-                  <SelectItem key={key} value={key}>
-                    {chain.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Popover open={isNetworkSelectorOpen} onOpenChange={setIsNetworkSelectorOpen} modal>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  role="combobox"
+                  aria-expanded={isNetworkSelectorOpen}
+                  className="w-full justify-between"
+                >
+                  {selectedNetwork
+                    ? SUPPORTED_CHAINS[selectedNetwork]?.name
+                    : "Select network"}
+                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-[250px] p-0" align="start">
+                <Tabs 
+                  value={selectedNetworkType} 
+                  onValueChange={(value) => handleNetworkTypeChange(value as NetworkType)}
+                  className="w-full"
+                >
+                  <div className="flex border-b">
+                    <button
+                      onClick={() => handleNetworkTypeChange('mainnet')}
+                      className={cn(
+                        "flex-1 px-3 py-2 text-sm font-medium transition-colors",
+                        "hover:text-foreground",
+                        selectedNetworkType === 'mainnet'
+                          ? "text-foreground border-b-2 border-primary"
+                          : "text-muted-foreground"
+                      )}
+                    >
+                      Mainnet
+                    </button>
+                    <button
+                      onClick={() => handleNetworkTypeChange('testnet')}
+                      className={cn(
+                        "flex-1 px-3 py-2 text-sm font-medium transition-colors",
+                        "hover:text-foreground",
+                        selectedNetworkType === 'testnet'
+                          ? "text-foreground border-b-2 border-primary"
+                          : "text-muted-foreground"
+                      )}
+                    >
+                      Testnet
+                    </button>
+                  </div>
+                  <TabsContent value="mainnet" className="p-0 mt-0">
+                    <div>
+                      {getNetworksByType('mainnet').map((networkKey) => (
+                        <button
+                          key={networkKey}
+                          className={cn(
+                            "w-full flex items-center px-3 py-2 text-sm transition-colors hover:bg-accent",
+                            selectedNetwork === networkKey 
+                              ? "bg-accent text-accent-foreground" 
+                              : "text-foreground"
+                          )}
+                          onClick={() => {
+                            setSelectedNetwork(networkKey as SupportedChainName);
+                            setIsNetworkSelectorOpen(false);
+                          }}
+                        >
+                          <Check
+                            className={cn(
+                              "mr-2 h-4 w-4",
+                              selectedNetwork === networkKey ? "opacity-100" : "opacity-0"
+                            )}
+                          />
+                          {SUPPORTED_CHAINS[networkKey].name}
+                        </button>
+                      ))}
+                    </div>
+                  </TabsContent>
+                  <TabsContent value="testnet" className="p-0 mt-0">
+                    <div>
+                      {getNetworksByType('testnet').map((networkKey) => (
+                        <button
+                          key={networkKey}
+                          className={cn(
+                            "w-full flex items-center px-3 py-2 text-sm transition-colors hover:bg-accent",
+                            selectedNetwork === networkKey 
+                              ? "bg-accent text-accent-foreground" 
+                              : "text-foreground"
+                          )}
+                          onClick={() => {
+                            setSelectedNetwork(networkKey as SupportedChainName);
+                            setIsNetworkSelectorOpen(false);
+                          }}
+                        >
+                          <Check
+                            className={cn(
+                              "mr-2 h-4 w-4",
+                              selectedNetwork === networkKey ? "opacity-100" : "opacity-0"
+                            )}
+                          />
+                          {SUPPORTED_CHAINS[networkKey].name}
+                        </button>
+                      ))}
+                    </div>
+                  </TabsContent>
+                </Tabs>
+              </PopoverContent>
+            </Popover>
           </div>
 
           <div className="md:col-span-2">

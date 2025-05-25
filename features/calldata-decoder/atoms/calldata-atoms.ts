@@ -1,6 +1,6 @@
 import { atom } from 'jotai';
 import { Abi } from 'viem';
-import type { SupportedChainName } from '@/lib/config/viem-client';
+import type { SupportedChainName, NetworkType } from '@/lib/config/viem-client';
 
 /**
  * Atom for storing the calldata string input
@@ -54,3 +54,9 @@ export const txFetchErrorAtom = atom<string | null>(null);
  * Will be hydrated from server-side cookie value via useHydrateAtoms
  */
 export const selectedNetworkAtom = atom<SupportedChainName>('mainnet');
+
+/**
+ * Atom for tracking the selected network type tab (mainnet/testnet)
+ * Defaults to 'mainnet'
+ */
+export const selectedNetworkTypeAtom = atom<NetworkType>('mainnet');

@@ -13,6 +13,32 @@ export const SUPPORTED_CHAINS = {
 
 export type SupportedChainName = keyof typeof SUPPORTED_CHAINS;
 
+// Network categorization
+export type NetworkType = 'mainnet' | 'testnet';
+
+export const NETWORK_CATEGORIES: Record<NetworkType, SupportedChainName[]> = {
+  mainnet: ['mainnet', 'polygon', 'arbitrum', 'optimism', 'base'],
+  testnet: ['sepolia'],
+} as const;
+
+// Helper function to get network type
+export function getNetworkType(chainName: SupportedChainName): NetworkType {
+  if (NETWORK_CATEGORIES.mainnet.includes(chainName)) return 'mainnet';
+  if (NETWORK_CATEGORIES.testnet.includes(chainName)) return 'testnet';
+  return 'mainnet'; // fallback
+}
+
+// Helper function to get networks by type
+export function getNetworksByType(type: NetworkType): SupportedChainName[] {
+  return NETWORK_CATEGORIES[type];
+}
+
+// Default networks for each type
+export const DEFAULT_NETWORKS: Record<NetworkType, SupportedChainName> = {
+  mainnet: 'mainnet',
+  testnet: 'sepolia',
+} as const;
+
 // Create public clients for each chain
 export const publicClients = {
   mainnet: createPublicClient({
