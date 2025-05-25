@@ -233,14 +233,14 @@ export const DecoderForm = React.memo(function DecoderForm({ onDecodeSuccess }: 
                   onValueChange={(value) => handleNetworkTypeChange(value as NetworkType)}
                   className="w-full"
                 >
-                  <div className="flex border-b">
+                  <div className="relative flex border-b">
                     <button
                       onClick={() => handleNetworkTypeChange('mainnet')}
                       className={cn(
-                        "flex-1 px-3 py-2 text-sm font-medium transition-colors",
-                        "hover:text-foreground",
+                        "flex-1 px-3 py-2 text-sm font-medium transition-colors relative",
+                        "hover:text-foreground active:transform-none",
                         selectedNetworkType === 'mainnet'
-                          ? "text-foreground border-b-2 border-primary"
+                          ? "text-foreground"
                           : "text-muted-foreground"
                       )}
                     >
@@ -249,15 +249,25 @@ export const DecoderForm = React.memo(function DecoderForm({ onDecodeSuccess }: 
                     <button
                       onClick={() => handleNetworkTypeChange('testnet')}
                       className={cn(
-                        "flex-1 px-3 py-2 text-sm font-medium transition-colors",
-                        "hover:text-foreground",
+                        "flex-1 px-3 py-2 text-sm font-medium transition-colors relative",
+                        "hover:text-foreground active:transform-none",
                         selectedNetworkType === 'testnet'
-                          ? "text-foreground border-b-2 border-primary"
+                          ? "text-foreground"
                           : "text-muted-foreground"
                       )}
                     >
                       Testnet
                     </button>
+                    {/* Sliding indicator */}
+                    <div 
+                      className={cn(
+                        "absolute bottom-0 h-0.5 bg-primary transition-transform duration-200 ease-out",
+                        "w-1/2",
+                        selectedNetworkType === 'mainnet' 
+                          ? "translate-x-0" 
+                          : "translate-x-full"
+                      )}
+                    />
                   </div>
                   <TabsContent value="mainnet" className="p-0 mt-0">
                     <div>
