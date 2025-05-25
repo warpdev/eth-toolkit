@@ -9,6 +9,9 @@ This is an Ethereum Developer Toolkit - a web-based platform providing utility t
 ## Core Features
 
 - **Calldata Decoder**: Decodes Ethereum transaction Calldata hex strings into human-readable format
+  - **Transaction Fetching**: Fetch calldata directly from blockchain transactions using transaction hashes
+  - **Multi-Chain Support**: Supports Ethereum Mainnet, Sepolia, Polygon, Arbitrum, Optimism, and Base
+  - **Function Signature Detection**: Automatic function signature lookup via 4bytes.directory API
 - **Calldata Encoder**: Generates valid Calldata from smart contract function and parameters
 - **Data Storage**: Saves frequently used Calldata or ABIs for reuse
 
@@ -21,6 +24,8 @@ This is an Ethereum Developer Toolkit - a web-based platform providing utility t
 - **State Management**: jotai
 - **Web3 Library**: viem
   - For viem usage and examples, see @docs/viem-guide.md
+- **UI Components**: Radix UI primitives, Lucide React icons, next-themes
+- **Utilities**: class-variance-authority, clsx, tailwind-merge, dayjs, js-cookie
 - **Local Storage**: IndexedDB (using idb library)
 - **Deployment**: Vercel
 
@@ -36,6 +41,7 @@ pnpm start       # Start production server
 
 # Code quality
 pnpm lint        # Run ESLint
+pnpm lint:fix    # Run ESLint and auto-fix issues
 pnpm type-check  # Run TypeScript type checking
 pnpm format      # Format all files with Prettier
 pnpm format:check # Check formatting without making changes
@@ -88,7 +94,9 @@ Consistent error handling across features:
 
   - Function signature decoding (4bytes API integration)
   - Parameter decoding with/without ABI using viem
+  - Transaction fetching from multiple blockchain networks
   - History tracking and ABI management
+  - Network selection persistence via cookies
 
 - **Calldata Encoder**:
 
