@@ -37,14 +37,9 @@ import { SavedAbiSelector } from '@/components/shared/saved-abi-selector';
 import { useFetchTransaction } from '@/features/calldata-decoder/hooks/use-fetch-transaction';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { Select, SelectContent, SelectItem, SelectTrigger } from '@/components/ui/select';
 import { SUPPORTED_CHAINS, type SupportedChainName } from '@/lib/config/viem-client';
+import { setSelectedNetwork as saveNetworkToCookie } from '@/lib/utils/cookie-utils';
 
 interface DecoderFormProps {
   onDecodeSuccess?: () => void;
@@ -56,6 +51,12 @@ export const DecoderForm = React.memo(function DecoderForm({ onDecodeSuccess }: 
   const [transactionHash, setTransactionHash] = useAtom(transactionHashAtom);
   const [selectedNetwork, setSelectedNetwork] = useAtom(selectedNetworkAtom);
   const isDecoding = useAtomValue(isDecodingAtom);
+
+  // Save network selection to cookie when it changes
+  React.useEffect(() => {
+    saveNetworkToCookie(selectedNetwork);
+  }, [selectedNetwork]);
+
   const isFetchingTx = useAtomValue(isFetchingTxAtom);
   const setDecodedResult = useSetAtom(decodedResultAtom);
 
@@ -183,7 +184,9 @@ export const DecoderForm = React.memo(function DecoderForm({ onDecodeSuccess }: 
               onValueChange={(value) => setSelectedNetwork(value as SupportedChainName)}
             >
               <SelectTrigger>
-                <SelectValue placeholder="Select network" />
+                <span className={selectedNetwork ? '' : 'text-muted-foreground'}>
+                  {SUPPORTED_CHAINS[selectedNetwork]?.name || 'Select network'}
+                </span>
               </SelectTrigger>
               <SelectContent>
                 {Object.entries(SUPPORTED_CHAINS).map(([key, chain]) => (

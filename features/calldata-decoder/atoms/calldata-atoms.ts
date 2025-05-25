@@ -51,5 +51,6 @@ export const txFetchErrorAtom = atom<string | null>(null);
 
 /**
  * Atom for selected network
+ * Will be hydrated from server-side cookie value via useHydrateAtoms
  */
 export const selectedNetworkAtom = atom<SupportedChainName>('mainnet');
