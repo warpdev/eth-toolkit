@@ -1,6 +1,7 @@
 import { atom } from 'jotai';
 import { Abi } from 'viem';
 import type { SupportedChainName, NetworkType } from '@/lib/config/viem-client';
+import { getNetworkType } from '@/lib/config/viem-client';
 
 /**
  * Atom for storing the calldata string input
@@ -56,7 +57,7 @@ export const txFetchErrorAtom = atom<string | null>(null);
 export const selectedNetworkAtom = atom<SupportedChainName>('mainnet');
 
 /**
- * Atom for tracking the selected network type tab (mainnet/testnet)
- * Defaults to 'mainnet'
+ * Derived atom that automatically computes network type based on selected network
+ * This prevents unnecessary re-renders and state updates
  */
-export const selectedNetworkTypeAtom = atom<NetworkType>('mainnet');
+export const networkTypeAtom = atom<NetworkType>((get) => getNetworkType(get(selectedNetworkAtom)));
