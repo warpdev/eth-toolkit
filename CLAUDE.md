@@ -9,6 +9,9 @@ This is an Ethereum Developer Toolkit - a web-based platform providing utility t
 ## Core Features
 
 - **Calldata Decoder**: Decodes Ethereum transaction Calldata hex strings into human-readable format
+  - **Transaction Fetching**: Fetch calldata directly from blockchain transactions using transaction hashes
+  - **Multi-Chain Support**: Supports Ethereum Mainnet, Sepolia, Polygon, Arbitrum, Optimism, and Base
+  - **Function Signature Detection**: Automatic function signature lookup via 4bytes.directory API
 - **Calldata Encoder**: Generates valid Calldata from smart contract function and parameters
 - **Data Storage**: Saves frequently used Calldata or ABIs for reuse
 
@@ -21,6 +24,8 @@ This is an Ethereum Developer Toolkit - a web-based platform providing utility t
 - **State Management**: jotai
 - **Web3 Library**: viem
   - For viem usage and examples, see @docs/viem-guide.md
+- **UI Components**: Radix UI primitives, Lucide React icons, next-themes
+- **Utilities**: class-variance-authority, clsx, tailwind-merge, dayjs, js-cookie
 - **Local Storage**: IndexedDB (using idb library)
 - **Deployment**: Vercel
 
@@ -36,6 +41,7 @@ pnpm start       # Start production server
 
 # Code quality
 pnpm lint        # Run ESLint
+pnpm lint:fix    # Run ESLint and auto-fix issues
 pnpm type-check  # Run TypeScript type checking
 pnpm format      # Format all files with Prettier
 pnpm format:check # Check formatting without making changes
@@ -88,7 +94,9 @@ Consistent error handling across features:
 
   - Function signature decoding (4bytes API integration)
   - Parameter decoding with/without ABI using viem
+  - Transaction fetching from multiple blockchain networks
   - History tracking and ABI management
+  - Network selection persistence via cookies
 
 - **Calldata Encoder**:
 
@@ -182,11 +190,37 @@ The application uses IndexedDB (via the `idb` library) for persistent local stor
 
 Next.js/React/TypeScript/TailwindCSS frontend code quality standards:
 
+### TypeScript and Code Organization
+
 - Maximize TypeScript type safety (avoid 'any')
 - Limit file/component size (files <300 lines, components <150 lines)
 - Follow Single Responsibility Principle and modularization
-- Optimize performance with memoization (useMemo, useCallback)
+- Separate Server Components (async data fetching) from Client Components (interactivity)
+- Organize code with proper separation of concerns and modularization
+
+### React Best Practices
+
+- Use function declarations instead of arrow functions for components
+- Use React.memo, useMemo, useCallback appropriately to prevent unnecessary re-renders
+- Hooks must not be called conditionally (maintain consistent order on every render)
 - State management: local(useState), global(Context/jotai), server(React Query/SWR)
+
+### Development Standards
+
+- Never add backwards compatibility, fix it properly
+- Figure out the root cause of issues and fix them thoroughly
+- Break large tasks into smaller subtasks
+- DO NOT create duplication files like 'component-new.tsx', 'component-old.tsx'
+- When modifying, deleting, or refactoring code, clean up any unnecessary code that becomes redundant
+- When modifying existing code, do not leave deprecated code - update all use cases
+
+### Quality Assurance
+
+- Be brutally honest about code quality and technical decisions
+- Do not make assumptions - ask for clarification when something is unclear or complex
+- Be thorough in implementation and testing
+- For unknown information, use web search and context7 tools rather than guessing
+- When encountering unknown information, do not respond with false information
 - Maintain consistent naming and folder structure
 - Minimize code duplication and handle errors properly
 
@@ -220,4 +254,13 @@ pnpm format:check # Check formatting
 
 - Preserve JSDoc comments for documenting functions, components, parameters, return types, and usage examples
 - For regular comments (non-JSDoc), use them primarily to explain 'why' code is needed, not 'what' it does
+- Do not leave redundant comments or comments more fitting for a changelog
+- Do not leave unnecessary comments - use comments only when they add meaningful context
 - Keep comments concise, up-to-date, and meaningful
+
+## Task Management and Problem Solving
+
+- Use sub-agents to break down complex tasks and improve problem-solving efficiency
+- When facing complex problems, decompose them into smaller, manageable subtasks
+- Always verify the latest information for libraries and frameworks using web search and context7 tools
+- If there is even the slightest need to verify current information, prioritize using available research tools
