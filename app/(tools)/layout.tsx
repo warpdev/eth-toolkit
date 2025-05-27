@@ -4,7 +4,7 @@ import {
   MainContentWrapper,
 } from '@/components/layout/mobile-navigation-wrapper';
 
-export default function CalldataLayout({
+export default function ToolsLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
