@@ -13,6 +13,10 @@ This is an Ethereum Developer Toolkit - a web-based platform providing utility t
   - **Multi-Chain Support**: Supports Ethereum Mainnet, Sepolia, Polygon, Arbitrum, Optimism, and Base
   - **Function Signature Detection**: Automatic function signature lookup via 4bytes.directory API
 - **Calldata Encoder**: Generates valid Calldata from smart contract function and parameters
+- **Event Log Decoder**: Decodes Ethereum event logs from transaction receipts
+  - **Automatic Event Signature Detection**: Fetches event signatures from 4bytes.directory
+  - **Transaction Receipt Fetching**: Direct fetching from blockchain using transaction hash
+  - **Multi-event Support**: Decode all events from a transaction receipt
 - **Data Storage**: Saves frequently used Calldata or ABIs for reuse
 
 ## Technology Stack
@@ -104,6 +108,14 @@ Consistent error handling across features:
   - Parameter encoding with type validation using viem
   - Real-time calldata generation
 
+- **Event Log Decoder**:
+
+  - Event signature lookup via 4bytes.directory API
+  - Transaction receipt fetching with viem
+  - Multiple event decoding from single transaction
+  - Support for indexed and non-indexed parameters
+  - Automatic network detection from transaction hash
+
 - **Storage Management**:
   - IndexedDB integration with proper indexing
   - CRUD operations for ABIs, signatures, and history
@@ -121,6 +133,7 @@ The project follows a feature-based organization:
 - `/features`: Feature-specific code
   - `/calldata-decoder`: Calldata decoding functionality
   - `/calldata-encoder`: Calldata encoding functionality
+  - `/event-log-decoder`: Event log decoding functionality
 - `/hooks`: Custom React hooks
 - `/lib`: Utilities and shared logic
   - `/config`: Application configuration
@@ -178,6 +191,7 @@ The application uses IndexedDB (via the `idb` library) for persistent local stor
 - **Type safety**: Full TypeScript integration with storage operations
 - **Error resilience**: Graceful fallbacks when storage is unavailable
 - **CRUD operations**: Standardized create, read, update, delete patterns
+
 
 ## Package Management
 
