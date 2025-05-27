@@ -1,13 +1,22 @@
+import { cookies } from 'next/headers';
 import { EventLogDecoder } from '@/features/event-log-decoder';
+import { PageTitle } from '@/components/shared/page-title';
+import { JotaiProvider } from '@/providers/jotai-provider';
+import type { SupportedChainName } from '@/lib/config/viem-client';
 
-export default function EventLogDecoderPage() {
+export default async function EventLogDecoderPage() {
+  const cookieStore = await cookies();
+  const savedNetwork = cookieStore.get('selected-network')?.value as SupportedChainName | undefined;
+  const initialNetwork = savedNetwork || 'mainnet';
+
   return (
-    <div className="mx-auto max-w-3xl px-4 py-8">
-      <h1 className="mb-6 text-center text-3xl font-bold">Event Log Decoder</h1>
-      <p className="text-muted-foreground mb-8 text-center">
-        Decode Ethereum event logs with automatic signature detection
-      </p>
-      <EventLogDecoder />
-    </div>
+    <JotaiProvider initialNetwork={initialNetwork}>
+      <div className="mx-auto w-full max-w-5xl">
+        <PageTitle subtitle="Decode Ethereum event logs with automatic signature detection">
+          Event Log Decoder
+        </PageTitle>
+        <EventLogDecoder />
+      </div>
+    </JotaiProvider>
   );
 }

@@ -18,7 +18,6 @@ import {
   decodeEventLogWithAbi,
   decodeEventLogs,
   getEventSignature,
-  parseEventAbi,
   generateEventAbiFromSignature,
 } from '@/lib/utils/event-log-utils';
 import type { DecodedEventLog, EventLogDecodingResult } from '@/lib/types';
@@ -99,15 +98,12 @@ export function useEventLogDecoder() {
             .filter((event): event is DecodedEventLog => event !== null);
         } else if (eventAbi) {
           // Manual mode with provided ABI
-          const parsedAbi = parseEventAbi(eventAbi);
-          if (parsedAbi.length > 0) {
-            decodedEvents = decodeEventLogs(logs, parsedAbi);
-            if (decodedEvents.length === 0) {
-              setError(
-                'Unable to decode event logs with the provided ABI. Please check if the ABI matches the contract.'
-              );
-              return;
-            }
+          decodedEvents = decodeEventLogs(logs, eventAbi);
+          if (decodedEvents.length === 0) {
+            setError(
+              'Unable to decode event logs with the provided ABI. Please check if the ABI matches the contract.'
+            );
+            return;
           }
         }
 
@@ -212,10 +208,7 @@ export function useEventLogDecoder() {
         }
       } else if (eventAbi) {
         // Manual mode with provided ABI
-        const parsedAbi = parseEventAbi(eventAbi);
-        if (parsedAbi.length > 0) {
-          decodedEvent = decodeEventLogWithAbi(log, parsedAbi);
-        }
+        decodedEvent = decodeEventLogWithAbi(log, eventAbi);
       }
 
       if (!decodedEvent) {
@@ -233,6 +226,20 @@ export function useEventLogDecoder() {
       };
 
       setResult(result);
+
+      // Add to history
+      const historyItem = {
+        id: Date.now().toString(),
+        timestamp: Date.now(),
+        logData: eventLogData,
+        topics: topicsArray,
+        eventName: decodedEvent.eventName,
+        eventSignature: decodedEvent.eventSignature,
+        network: selectedNetwork,
+        result,
+      };
+
+      setHistory([historyItem, ...history.slice(0, 19)]); // Keep last 20 items
     } catch (error) {
       console.error('Error decoding raw event data:', error);
       setError(
@@ -249,9 +256,12 @@ export function useEventLogDecoder() {
     eventAbi,
     decodeMode,
     detectEventSignature,
+    history,
+    setHistory,
     setIsDecoding,
     setError,
     setResult,
+    selectedNetwork,
   ]);
 
   const clearResults = useCallback(() => {

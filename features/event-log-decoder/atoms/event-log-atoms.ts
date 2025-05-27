@@ -1,5 +1,6 @@
 import { atom } from 'jotai';
 import { atomWithStorage } from 'jotai/utils';
+import { Abi } from 'viem';
 import type {
   EventLogDecodingResult,
   EventSignatureData,
@@ -10,7 +11,8 @@ import type {
 export const transactionHashAtom = atom<string>('');
 export const eventLogDataAtom = atom<string>('');
 export const eventTopicsAtom = atom<string>('');
-export const eventAbiAtom = atom<string>('');
+export const eventAbiStringAtom = atom<string>(''); // Raw ABI string
+export const eventAbiAtom = atom<Abi | null>(null); // Parsed ABI
 export const selectedNetworkAtom = atomWithStorage<string>('event-log-decoder:network', 'mainnet');
 
 // Decode mode atoms

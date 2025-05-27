@@ -13,14 +13,7 @@ import {
   isEncodingAtom,
   encodeErrorAtom,
 } from '../atoms/encoder-atoms';
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardContent,
-  CardFooter,
-} from '@/components/ui/card';
+import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { useEncodeCalldata } from '../hooks/use-encode-calldata';
 import { AbiSelector } from '@/components/shared/abi-selector';
@@ -74,12 +67,6 @@ export const EncoderForm = React.memo(function EncoderForm({ onEncodeSuccess }: 
 
   return (
     <Card className="w-full">
-      <CardHeader>
-        <CardTitle>Calldata Encoder</CardTitle>
-        <CardDescription>
-          Generate Ethereum transaction calldata from ABI and parameters
-        </CardDescription>
-      </CardHeader>
       <CardContent className="space-y-4">
         <div className="space-y-2">
           <div className="flex items-center justify-between">

@@ -10,14 +10,7 @@ import {
   decodeErrorAtom,
   txFetchErrorAtom,
 } from '@/features/calldata-decoder/atoms/calldata-atoms';
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardContent,
-  CardFooter,
-} from '@/components/ui/card';
+import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { useDecoderForm } from '@/features/calldata-decoder/hooks/use-decoder-form';
 import { DecodingHistory } from './decoding-history';
 import { NetworkSelector } from './network-selector';
@@ -40,12 +33,6 @@ export const DecoderForm = React.memo(function DecoderForm({ onDecodeSuccess }: 
 
   return (
     <Card className="w-full">
-      <CardHeader>
-        <CardTitle>Calldata Decoder</CardTitle>
-        <CardDescription>
-          Decode Ethereum transaction calldata into human-readable format
-        </CardDescription>
-      </CardHeader>
       <CardContent className="space-y-4">
         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
           <NetworkSelector className="md:col-span-1" />

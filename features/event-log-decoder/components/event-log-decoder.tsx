@@ -1,45 +1,27 @@
 'use client';
 
-import { useAtom } from 'jotai';
-import { Card } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { decodeModeAtom } from '../atoms/event-log-atoms';
-import { EventLogDecoderForm } from './event-log-decoder-form';
+import React, { useRef, useCallback } from 'react';
+import { useAtomValue } from 'jotai';
+import { EventLogForm } from './event-log-form';
 import { EventLogOutput } from './event-log-output';
+import { eventLogResultAtom } from '../atoms/event-log-atoms';
 
-export function EventLogDecoder() {
-  const [decodeMode, setDecodeMode] = useAtom(decodeModeAtom);
+export const EventLogDecoder = React.memo(function EventLogDecoder() {
+  const resultRef = useRef<HTMLDivElement>(null);
+  const decodedResult = useAtomValue(eventLogResultAtom);
+
+  const scrollToResult = useCallback(() => {
+    resultRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, []);
 
   return (
-    <div className="space-y-6">
-      <Tabs value={decodeMode} onValueChange={(value) => setDecodeMode(value as 'auto' | 'manual')}>
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="auto">Auto-Detect Signature</TabsTrigger>
-          <TabsTrigger value="manual">Manual with ABI</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="auto" className="space-y-4">
-          <Card className="p-6">
-            <h3 className="mb-4 text-lg font-semibold">Automatic Event Detection</h3>
-            <p className="text-muted-foreground mb-4 text-sm">
-              Automatically detect event signatures using 4bytes directory. Works without ABI!
-            </p>
-            <EventLogDecoderForm />
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="manual" className="space-y-4">
-          <Card className="p-6">
-            <h3 className="mb-4 text-lg font-semibold">Manual Decoding with ABI</h3>
-            <p className="text-muted-foreground mb-4 text-sm">
-              Decode event logs using provided event ABI for precise results.
-            </p>
-            <EventLogDecoderForm showAbiInput />
-          </Card>
-        </TabsContent>
-      </Tabs>
-
-      <EventLogOutput />
+    <div className="mx-auto space-y-6">
+      <EventLogForm onDecodeSuccess={scrollToResult} />
+      {decodedResult && (
+        <div ref={resultRef}>
+          <EventLogOutput />
+        </div>
+      )}
     </div>
   );
-}
+});

@@ -55,8 +55,10 @@ export interface EventLogHistoryItem {
   id: string;
   timestamp: number;
   transactionHash?: string;
+  logData?: string;
+  topics?: string[];
   eventName?: string;
   eventSignature?: string;
-  network: string;
+  network?: string;
   result: EventLogDecodingResult;
 }

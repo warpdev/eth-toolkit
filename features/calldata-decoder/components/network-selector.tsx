@@ -4,6 +4,7 @@ import React, { useState, useCallback } from 'react';
 import { useAtom, useAtomValue } from 'jotai';
 import { ChevronsUpDown, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Tabs, TabsContent } from '@/components/ui/tabs';
 import {
@@ -69,14 +70,15 @@ export const NetworkSelector = React.memo(function NetworkSelector({
 
   return (
     <div className={className}>
-      <label className="mb-2 block text-sm font-medium">Network</label>
+      <Label htmlFor="network-selector">Network</Label>
       <Popover open={isNetworkSelectorOpen} onOpenChange={setIsNetworkSelectorOpen} modal>
         <PopoverTrigger asChild>
           <Button
+            id="network-selector"
             variant="outline"
             role="combobox"
             aria-expanded={isNetworkSelectorOpen}
-            className="w-full justify-between"
+            className="mt-2 w-full justify-between"
           >
             {selectedNetwork ? SUPPORTED_CHAINS[selectedNetwork]?.name : 'Select network'}
             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
