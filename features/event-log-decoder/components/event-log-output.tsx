@@ -118,10 +118,14 @@ export function EventLogOutput() {
           <TabsContent value="raw" className="space-y-4">
             <div className="relative">
               <pre className="bg-muted overflow-x-auto rounded-lg p-4 text-xs">
-                {JSON.stringify(result, null, 2)}
+                {JSON.stringify(result, (key, value) => 
+                  typeof value === 'bigint' ? value.toString() : value, 2
+                )}
               </pre>
               <CopyButton
-                text={JSON.stringify(result, null, 2)}
+                text={JSON.stringify(result, (key, value) => 
+                  typeof value === 'bigint' ? value.toString() : value, 2
+                )}
                 className="absolute top-2 right-2"
               />
             </div>

@@ -117,7 +117,16 @@ export function useEventLogDecoder() {
 
         setResult(result);
 
-        // Add to history
+        // Add to history - convert BigInt values to strings for JSON serialization
+        const serializableResult = {
+          ...result,
+          blockNumber: result.blockNumber ? result.blockNumber.toString() : undefined,
+          logs: result.logs.map(log => ({
+            ...log,
+            blockNumber: typeof log.blockNumber === 'bigint' ? log.blockNumber.toString() : log.blockNumber,
+          }))
+        };
+
         const historyItem = {
           id: Date.now().toString(),
           timestamp: Date.now(),
@@ -125,7 +134,7 @@ export function useEventLogDecoder() {
           eventName: decodedEvents[0]?.eventName,
           eventSignature: decodedEvents[0]?.eventSignature,
           network: selectedNetwork,
-          result,
+          result: serializableResult,
         };
 
         setHistory([historyItem, ...history.slice(0, 19)]); // Keep last 20 items
