@@ -69,3 +69,11 @@ export const publicClients = {
 
 // Default to mainnet
 export const publicClient = publicClients.mainnet;
+
+// Helper function to get a public client by network name
+export function getPublicClient(network: string) {
+  if (network in publicClients) {
+    return publicClients[network as SupportedChainName];
+  }
+  return publicClients.mainnet; // fallback to mainnet
+}

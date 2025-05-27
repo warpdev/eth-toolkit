@@ -1,8 +1,8 @@
-import { FileCode, Wrench, LucideIcon } from 'lucide-react';
+import { FileCode, Wrench, FileText, LucideIcon } from 'lucide-react';
 
 export type ToolStatus = 'active' | 'coming-soon' | 'experimental';
 
-export type ToolCategory = 'calldata' | 'contract' | 'transaction' | 'utility';
+export type ToolCategory = 'calldata' | 'contract' | 'transaction' | 'utility' | 'event-logs';
 
 export interface Tool {
   id: string;
@@ -38,6 +38,17 @@ export const TOOLS: Tool[] = [
     category: 'calldata',
     keywords: ['encode', 'calldata', 'function', 'abi', 'parameters'],
     shortcut: 'cmd+e',
+  },
+  {
+    id: 'event-decoder',
+    title: 'Event Log Decoder',
+    description: 'Decode Ethereum event logs with automatic signature detection',
+    icon: FileText,
+    href: '/event-logs/decoder',
+    status: 'active',
+    category: 'event-logs',
+    keywords: ['decode', 'events', 'logs', 'transaction', 'signature', 'auto-detect'],
+    shortcut: 'cmd+l',
   },
 ];
 

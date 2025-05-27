@@ -5,6 +5,7 @@ export * from './abi-utils';
 export * from './calldata-utils';
 export * from './error-utils';
 export * from './signature-utils';
+export * from './event-log-utils';
 
 export {
   getPlaceholderForType,
