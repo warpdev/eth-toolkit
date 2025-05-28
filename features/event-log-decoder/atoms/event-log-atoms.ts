@@ -6,6 +6,7 @@ import type {
   EventSignatureData,
   EventLogHistoryItem as EventLogHistoryItemType,
 } from '@/lib/types/event-log-types';
+import { eventLogHistoryStorage } from '../lib/storage-adapter';
 
 // Input atoms
 export const transactionHashAtom = atom<string>('');
@@ -31,8 +32,9 @@ export const eventLogResultAtom = atom<EventLogDecodingResult | null>(null);
 export const detectedSignaturesAtom = atom<EventSignatureData[]>([]);
 export const selectedSignatureAtom = atom<EventSignatureData | null>(null);
 
-// History atom
+// History atom with custom storage adapter for BigInt support
 export const eventLogHistoryAtom = atomWithStorage<EventLogHistoryItemType[]>(
   'event-log-decoder:history',
-  []
+  [],
+  eventLogHistoryStorage
 );

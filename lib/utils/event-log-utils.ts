@@ -1,5 +1,6 @@
 import { decodeEventLog, parseEventLogs, type Abi, type Hex, type Log } from 'viem';
 import type { DecodedEventLog, EventABI } from '@/lib/types';
+import { formatValue } from './format-utils';
 
 /**
  * Decode event log data with ABI
@@ -103,29 +104,10 @@ export function getEventSignature(topics: Hex[]): Hex | null {
  */
 export function formatEventLog(event: DecodedEventLog): string {
   const args = Object.entries(event.args)
-    .map(([key, value]) => `${key}: ${formatArgValue(value)}`)
+    .map(([key, value]) => `${key}: ${formatValue(value)}`)
     .join(', ');
 
   return `${event.eventName}(${args})`;
-}
-
-/**
- * Format argument value for display
- */
-function formatArgValue(value: unknown): string {
-  if (typeof value === 'bigint') {
-    return value.toString();
-  }
-  if (typeof value === 'string' && value.startsWith('0x')) {
-    return value.length > 10 ? `${value.slice(0, 6)}...${value.slice(-4)}` : value;
-  }
-  if (Array.isArray(value)) {
-    return `[${value.map(formatArgValue).join(', ')}]`;
-  }
-  if (typeof value === 'object' && value !== null) {
-    return JSON.stringify(value);
-  }
-  return String(value);
 }
 
 /**

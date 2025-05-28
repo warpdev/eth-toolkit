@@ -14,13 +14,20 @@ import {
 import { selectedNetworkAtom } from '@/features/calldata-decoder/atoms/calldata-atoms';
 import { useFetchEventLogs } from './use-fetch-event-logs';
 import { useEventSignatureDetection } from './use-event-signature-detection';
-import {
-  decodeEventLogWithAbi,
-  decodeEventLogs,
-  getEventSignature,
-  generateEventAbiFromSignature,
-} from '@/lib/utils/event-log-utils';
+import { decodeEventLogWithAbi } from '@/lib/utils/event-log-utils';
 import type { DecodedEventLog, EventLogDecodingResult } from '@/lib/types';
+import { STORAGE_LIMITS, ERROR_MESSAGES } from '../lib/constants';
+import {
+  validateTransactionHash,
+  decodeLogsWithAutoSignatures,
+  decodeLogsWithManualAbi,
+  buildEventLogResult,
+  buildHistoryItem,
+  validateDecodingResults,
+  parseTopicsInput,
+  decodeSingleEventAuto,
+} from '../lib/decode-helpers';
+import { handleEventLogError } from '@/lib/errors/event-log-errors';
 
 export function useEventLogDecoder() {
   const [eventLogData] = useAtom(eventLogDataAtom);
@@ -39,11 +46,10 @@ export function useEventLogDecoder() {
 
   const decodeFromTransaction = useCallback(
     async (txHash: string) => {
-      // Validate transaction hash format
-      if (!txHash || !isHex(txHash) || txHash.length !== 66) {
-        setError(
-          'Invalid transaction hash format. Expected 66 characters (0x + 64 hex characters)'
-        );
+      // Validate transaction hash
+      const validation = validateTransactionHash(txHash);
+      if (!validation.valid) {
+        setError(validation.error!);
         return;
       }
 
@@ -52,105 +58,39 @@ export function useEventLogDecoder() {
       setResult(null);
 
       try {
-        // Fetch logs from transaction
+        // Step 1: Fetch logs from transaction
         const logs = await fetchLogs(txHash);
         if (!logs || logs.length === 0) {
-          setError(
-            'No event logs found in this transaction. The transaction may not have emitted any events.'
-          );
+          setError(ERROR_MESSAGES.NO_EVENT_LOGS);
           return;
         }
 
+        // Step 2: Decode events based on mode
         let decodedEvents: DecodedEventLog[] = [];
 
         if (decodeMode === 'auto') {
-          // Auto-detect event signatures
-          const signatures = logs
-            .map((log) => getEventSignature(log.topics))
-            .filter((sig): sig is Hex => sig !== null);
-
-          const uniqueSignatures = [...new Set(signatures)];
-          const signatureMap = await detectMultipleSignatures(uniqueSignatures);
-
-          // Decode each log with detected signatures
-          decodedEvents = logs
-            .map((log) => {
-              const signature = getEventSignature(log.topics);
-              if (!signature) return null;
-
-              const detectedSigs = signatureMap.get(signature) || [];
-              if (detectedSigs.length === 0) return null;
-
-              // Use the first detected signature
-              const eventAbi = generateEventAbiFromSignature(detectedSigs[0].text);
-              if (!eventAbi) return null;
-
-              const decoded = decodeEventLogWithAbi({ data: log.data, topics: log.topics }, [
-                eventAbi,
-              ]);
-
-              if (decoded) {
-                decoded.eventSignature = detectedSigs[0].text;
-              }
-
-              return decoded;
-            })
-            .filter((event): event is DecodedEventLog => event !== null);
+          decodedEvents = await decodeLogsWithAutoSignatures(logs, detectMultipleSignatures);
         } else if (eventAbi) {
-          // Manual mode with provided ABI
-          decodedEvents = decodeEventLogs(logs, eventAbi);
-          if (decodedEvents.length === 0) {
-            setError(
-              'Unable to decode event logs with the provided ABI. Please check if the ABI matches the contract.'
-            );
-            return;
-          }
+          decodedEvents = decodeLogsWithManualAbi(logs, eventAbi);
         }
 
-        const result: EventLogDecodingResult = {
-          logs,
-          decodedEvents,
-          transactionHash: txHash as Hex,
-          blockNumber: logs[0]?.blockNumber || undefined,
-          contractAddress: logs[0]?.address,
-        };
-
-        setResult(result);
-
-        // Add to history - convert BigInt values to strings for JSON serialization
-        const serializableResult = {
-          ...result,
-          blockNumber: result.blockNumber ? result.blockNumber.toString() : undefined,
-          logs: result.logs.map(log => ({
-            ...log,
-            blockNumber: typeof log.blockNumber === 'bigint' ? log.blockNumber.toString() : log.blockNumber,
-          }))
-        };
-
-        const historyItem = {
-          id: Date.now().toString(),
-          timestamp: Date.now(),
-          transactionHash: txHash,
-          eventName: decodedEvents[0]?.eventName,
-          eventSignature: decodedEvents[0]?.eventSignature,
-          network: selectedNetwork,
-          result: serializableResult,
-        };
-
-        setHistory([historyItem, ...history.slice(0, 19)]); // Keep last 20 items
-        if (decodedEvents.length === 0 && decodeMode === 'auto') {
-          setError(
-            'Unable to decode event logs. Event signatures not found in 4bytes.directory. Try manual mode with ABI.'
-          );
+        // Step 3: Validate decoding results
+        const resultValidation = validateDecodingResults(decodedEvents, decodeMode);
+        if (!resultValidation.valid) {
+          setError(resultValidation.error!);
           return;
         }
+
+        // Step 4: Build result
+        const result = buildEventLogResult(logs, decodedEvents, txHash);
+        setResult(result);
+
+        // Step 5: Add to history
+        const historyItem = buildHistoryItem(result, txHash, selectedNetwork, decodedEvents);
+        setHistory([historyItem, ...history.slice(0, STORAGE_LIMITS.HISTORY_MAX_ITEMS - 1)]);
       } catch (error) {
         console.error('Error decoding event logs:', error);
-        setError(
-          error instanceof Error
-            ? error.message
-            : 'Failed to decode event logs. Please check your input and try again.'
-        );
+        setError(handleEventLogError(error));
       } finally {
         setIsDecoding(false);
       }
@@ -171,7 +111,7 @@ export function useEventLogDecoder() {
 
   const decodeFromRawData = useCallback(async () => {
     if (!eventLogData || !eventTopics) {
-      setError('Please provide both event data and topics to decode');
+      setError(ERROR_MESSAGES.INVALID_EVENT_DATA);
       return;
     }
 
@@ -180,55 +120,38 @@ export function useEventLogDecoder() {
     setResult(null);
 
     try {
-      // Parse topics
-      const topicsArray = eventTopics
-        .split(/[\n,]/)
-        .map((t) => t.trim())
-        .filter((t) => t && isHex(t)) as Hex[];
-
-      if (topicsArray.length === 0) {
-        setError(
-          'Invalid topics format. Topics should be hex strings separated by newlines or commas.'
-        );
+      // Step 1: Parse and validate topics
+      const topicsValidation = parseTopicsInput(eventTopics);
+      if (!topicsValidation.valid) {
+        setError(topicsValidation.error!);
         return;
       }
 
       const log = {
         data: (isHex(eventLogData) ? eventLogData : '0x') as Hex,
-        topics: topicsArray,
+        topics: topicsValidation.topics!,
       };
 
+      // Step 2: Decode event based on mode
       let decodedEvent: DecodedEventLog | null = null;
 
       if (decodeMode === 'auto') {
-        // Auto-detect event signature
-        const signature = getEventSignature(topicsArray);
-        if (signature) {
-          const detected = await detectEventSignature(signature);
-          if (detected.length > 0) {
-            const eventAbi = generateEventAbiFromSignature(detected[0].text);
-            if (eventAbi) {
-              decodedEvent = decodeEventLogWithAbi(log, [eventAbi]);
-              if (decodedEvent) {
-                decodedEvent.eventSignature = detected[0].text;
-              }
-            }
-          }
-        }
+        decodedEvent = await decodeSingleEventAuto(log, detectEventSignature);
       } else if (eventAbi) {
-        // Manual mode with provided ABI
         decodedEvent = decodeEventLogWithAbi(log, eventAbi);
       }
 
+      // Step 3: Validate result
       if (!decodedEvent) {
         setError(
           decodeMode === 'auto'
-            ? 'Failed to decode event log. Event signature not found in 4bytes.directory. Try manual mode with ABI.'
-            : 'Failed to decode event log. Please check if the ABI matches the event data.'
+            ? ERROR_MESSAGES.DECODE_SINGLE_FAILED_AUTO
+            : ERROR_MESSAGES.DECODE_SINGLE_FAILED_MANUAL
         );
         return;
       }
 
+      // Step 4: Build result
       const result: EventLogDecodingResult = {
         logs: [],
         decodedEvents: [decodedEvent],
@@ -236,26 +159,22 @@ export function useEventLogDecoder() {
 
       setResult(result);
 
-      // Add to history
+      // Step 5: Add to history
       const historyItem = {
         id: Date.now().toString(),
         timestamp: Date.now(),
         logData: eventLogData,
-        topics: topicsArray,
+        topics: topicsValidation.topics!,
         eventName: decodedEvent.eventName,
         eventSignature: decodedEvent.eventSignature,
         network: selectedNetwork,
         result,
       };
 
-      setHistory([historyItem, ...history.slice(0, 19)]); // Keep last 20 items
+      setHistory([historyItem, ...history.slice(0, STORAGE_LIMITS.HISTORY_MAX_ITEMS - 1)]);
     } catch (error) {
       console.error('Error decoding raw event data:', error);
-      setError(
-        error instanceof Error
-          ? error.message
-          : 'Failed to decode event data. Please check your input format.'
-      );
+      setError(handleEventLogError(error));
     } finally {
       setIsDecoding(false);
     }

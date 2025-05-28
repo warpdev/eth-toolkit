@@ -2,61 +2,15 @@
 
 import React, { useMemo } from 'react';
 import { formatEther } from 'viem';
+import {
+  bigIntReplacer,
+  getArgAsString,
+  isLikelyWeiValue,
+  serializeWithBigInt,
+} from '@/lib/utils/format-utils';
 
-// Formatter for BigInt values in JSON.stringify
-export const bigIntReplacer = (_: string, value: unknown): unknown =>
-  typeof value === 'bigint' ? value.toString() : value;
-
-// Helper to get the string representation of an argument for copying
-export const getArgAsString = (arg: unknown): string => {
-  if (arg === null || arg === undefined) {
-    return 'null';
-  }
-
-  // Specifically handle arrays
-  if (Array.isArray(arg)) {
-    try {
-      return JSON.stringify(arg, bigIntReplacer, 2);
-    } catch {
-      return String(arg);
-    }
-  }
-
-  if (typeof arg === 'object') {
-    try {
-      return JSON.stringify(arg, bigIntReplacer, 2);
-    } catch {
-      return String(arg);
-    }
-  }
-
-  return String(arg);
-};
-
-// Helper to check if a value is likely an ETH amount in Wei
-export const isLikelyWeiValue = (value: unknown, type?: string): boolean => {
-  // Skip array types
-  if (type && type.includes('[]')) {
-    return false;
-  }
-
-  // Check parameter type hints
-  if (type && (type.includes('uint256') || type.includes('uint128'))) {
-    return true;
-  }
-
-  // Check if it's a bigint with significant size (at least 1e15 wei = 0.001 ETH)
-  if (typeof value === 'bigint' && value >= 1000000000000000n) {
-    return true;
-  }
-
-  // Check if it's a string representation of a large number
-  if (typeof value === 'string' && /^\d+$/.test(value) && value.length >= 15) {
-    return true;
-  }
-
-  return false;
-};
+// Re-export shared utilities for backward compatibility
+export { bigIntReplacer, getArgAsString, isLikelyWeiValue };
 
 interface FormatArgProps {
   arg: unknown;
@@ -94,11 +48,7 @@ export const FormatArg: React.FC<FormatArgProps> = React.memo(function FormatArg
     if (!isArray || isEthArray) return null;
 
     try {
-      return (
-        <pre className="break-all whitespace-pre-wrap">
-          {JSON.stringify(arg, bigIntReplacer, 2)}
-        </pre>
-      );
+      return <pre className="break-all whitespace-pre-wrap">{serializeWithBigInt(arg)}</pre>;
     } catch {
       return <span>{String(arg)}</span>;
     }
@@ -132,11 +82,7 @@ export const FormatArg: React.FC<FormatArgProps> = React.memo(function FormatArg
     if (!isObject) return null;
 
     try {
-      return (
-        <pre className="break-all whitespace-pre-wrap">
-          {JSON.stringify(arg, bigIntReplacer, 2)}
-        </pre>
-      );
+      return <pre className="break-all whitespace-pre-wrap">{serializeWithBigInt(arg)}</pre>;
     } catch {
       return <span>{String(arg)}</span>;
     }

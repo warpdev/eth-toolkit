@@ -8,36 +8,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { eventLogResultAtom, decodingErrorAtom, isDecodingAtom } from '../atoms/event-log-atoms';
 import { formatEventLog } from '@/lib/utils/event-log-utils';
 import type { DecodedEventLog } from '@/lib/types';
-
-/**
- * Format parameter values for display with proper type handling
- */
-function formatValue(value: unknown): string {
-  if (typeof value === 'bigint') {
-    return value.toString();
-  }
-  if (typeof value === 'string' && value.startsWith('0x')) {
-    // Format addresses and hashes
-    if (value.length === 42) {
-      // Address
-      return `${value.slice(0, 6)}...${value.slice(-4)}`;
-    } else if (value.length > 10) {
-      // Other hex strings
-      return `${value.slice(0, 6)}...${value.slice(-4)}`;
-    }
-    return value;
-  }
-  if (Array.isArray(value)) {
-    return `[${value.map(formatValue).join(', ')}]`;
-  }
-  if (typeof value === 'object' && value !== null) {
-    return JSON.stringify(value, null, 2);
-  }
-  if (typeof value === 'boolean') {
-    return value ? 'true' : 'false';
-  }
-  return String(value);
-}
+import { VALIDATION } from '../lib/constants';
+import { formatValue, serializeWithBigInt } from '@/lib/utils/format-utils';
 
 export function EventLogOutput() {
   const [result] = useAtom(eventLogResultAtom);
@@ -118,16 +90,9 @@ export function EventLogOutput() {
           <TabsContent value="raw" className="space-y-4">
             <div className="relative">
               <pre className="bg-muted overflow-x-auto rounded-lg p-4 text-xs">
-                {JSON.stringify(result, (key, value) => 
-                  typeof value === 'bigint' ? value.toString() : value, 2
-                )}
+                {serializeWithBigInt(result)}
               </pre>
-              <CopyButton
-                text={JSON.stringify(result, (key, value) => 
-                  typeof value === 'bigint' ? value.toString() : value, 2
-                )}
-                className="absolute top-2 right-2"
-              />
+              <CopyButton text={serializeWithBigInt(result)} className="absolute top-2 right-2" />
             </div>
           </TabsContent>
         </Tabs>
@@ -182,9 +147,9 @@ function DetailedEventCard({ event, index }: { event: DecodedEventLog; index: nu
                     {formatValue(value)}
                   </span>
                 </div>
-                {typeof value === 'string' && value.startsWith('0x') && value.length > 10 && (
-                  <CopyButton text={value} size="sm" />
-                )}
+                {typeof value === 'string' &&
+                  value.startsWith('0x') &&
+                  value.length > VALIDATION.MIN_HEX_LENGTH && <CopyButton text={value} size="sm" />}
               </div>
             ))}
           </div>
