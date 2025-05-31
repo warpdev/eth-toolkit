@@ -12,7 +12,7 @@ import {
   selectedFunctionAtom,
   isEncodingAtom,
   encodeErrorAtom,
-} from '../atoms/encoder-atoms';
+} from '../atoms/calldata-atoms';
 import {
   Card,
   CardHeader,

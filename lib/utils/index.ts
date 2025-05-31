@@ -15,6 +15,7 @@ export {
   estimateParameterEncodedLength,
   estimateParametersEncodedLength,
   extractParametersFromSignature,
+  extractFunctionName,
 } from './parameter-utils';
 
 export * from './calldata-processing';

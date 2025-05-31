@@ -2,7 +2,7 @@
 
 import { useAtomValue } from 'jotai';
 import { useCallback, useMemo } from 'react';
-import { abiAtom } from '../atoms/encoder-atoms';
+import { abiAtom } from '../atoms/calldata-atoms';
 import { FunctionInfo } from '@/lib/types';
 import { extractFunctionsFromAbi } from '@/lib/utils';
 

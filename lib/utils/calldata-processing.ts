@@ -21,19 +21,32 @@ import {
 } from './signature-utils';
 
 /**
+ * Extract function name from a function signature or return the name if it's not a signature
+ */
+function extractFunctionName(functionIdentifier: string): string {
+  if (functionIdentifier.includes('(')) {
+    return functionIdentifier.split('(')[0];
+  }
+  return functionIdentifier;
+}
+
+/**
  * Encode calldata using a provided ABI and inputs
  *
  * @param abi - Contract ABI
- * @param functionName - Name of the function to encode
+ * @param functionIdentifier - Name or signature of the function to encode
  * @param args - Function arguments
  * @returns Encoded calldata or error object
  */
 export async function encodeCalldataWithAbi(
   abi: Abi,
-  functionName: string,
+  functionIdentifier: string,
   args: unknown[]
 ): Promise<string | { error: string }> {
   try {
+    // Extract function name from identifier (works for both names and signatures)
+    const functionName = extractFunctionName(functionIdentifier);
+
     const data = encodeFunctionData({
       abi,
       functionName,

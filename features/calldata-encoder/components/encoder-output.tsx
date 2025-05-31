@@ -1,52 +1,62 @@
 'use client';
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import { useAtomValue } from 'jotai';
-import { encodedCalldataAtom, selectedFunctionAtom } from '../atoms/encoder-atoms';
+import { encodedCalldataAtom } from '../atoms/encoder-result-atom';
+import { selectedFunctionAtom } from '../atoms/calldata-atoms';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { CopyButton } from '@/components/shared/copy-button';
 import { cn } from '@/lib/utils';
 import { useFunctionSelector } from '../hooks/use-function-selector';
 
-export function EncoderOutput() {
+export const EncoderOutput = React.memo(function EncoderOutput() {
   const encodedCalldata = useAtomValue(encodedCalldataAtom);
   const selectedFunction = useAtomValue(selectedFunctionAtom);
 
   const { getFunctionInfo } = useFunctionSelector();
 
-  if (!encodedCalldata) {
-    return null;
-  }
+  // Memoize function info to prevent unnecessary recalculations
+  const functionInfo = useMemo(
+    () => (selectedFunction ? getFunctionInfo(selectedFunction) : undefined),
+    [selectedFunction, getFunctionInfo]
+  );
 
-  // Get function signature
-  const functionInfo = selectedFunction ? getFunctionInfo(selectedFunction) : undefined;
+  // Memoize calldata segments to prevent unnecessary recalculations
+  const segments = useMemo(() => {
+    if (!encodedCalldata) return [];
 
-  // Prepare calldata segments for display
-  const segments = [];
+    const result = [];
 
-  if (encodedCalldata.length >= 10) {
-    // Function selector (first 4 bytes / 10 chars including 0x)
-    segments.push({
-      value: encodedCalldata.substring(0, 10),
-      type: 'selector',
-      label: 'Function Selector',
-    });
+    if (encodedCalldata.length >= 10) {
+      // Function selector (first 4 bytes / 10 chars including 0x)
+      result.push({
+        value: encodedCalldata.substring(0, 10),
+        type: 'selector',
+        label: 'Function Selector',
+      });
 
-    // Parameter data
-    if (encodedCalldata.length > 10) {
-      segments.push({
-        value: encodedCalldata.substring(10),
-        type: 'parameters',
-        label: 'Parameters',
+      // Parameter data
+      if (encodedCalldata.length > 10) {
+        result.push({
+          value: encodedCalldata.substring(10),
+          type: 'parameters',
+          label: 'Parameters',
+        });
+      }
+    } else {
+      // Just in case it's a malformed calldata
+      result.push({
+        value: encodedCalldata,
+        type: 'raw',
+        label: 'Raw Data',
       });
     }
-  } else {
-    // Just in case it's a malformed calldata
-    segments.push({
-      value: encodedCalldata,
-      type: 'raw',
-      label: 'Raw Data',
-    });
+
+    return result;
+  }, [encodedCalldata]);
+
+  if (!encodedCalldata) {
+    return null;
   }
 
   return (
@@ -107,4 +117,4 @@ export function EncoderOutput() {
       </CardContent>
     </Card>
   );
-}
+});

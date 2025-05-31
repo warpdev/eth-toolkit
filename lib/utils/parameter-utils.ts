@@ -39,16 +39,64 @@ export function parseParameter(param: string, index: number): { name: string; ty
 }
 
 /**
- * Generate parameter definitions from an ABI and function name
+ * Extract function name from a function signature or return the name if it's not a signature
+ *
+ * @param functionIdentifier - Either a function name or full signature
+ * @returns The function name
+ */
+export function extractFunctionName(functionIdentifier: string): string {
+  // If it contains parentheses, it's likely a signature
+  if (functionIdentifier.includes('(')) {
+    return functionIdentifier.split('(')[0];
+  }
+  // Otherwise, it's just a function name
+  return functionIdentifier;
+}
+
+/**
+ * Generate parameter definitions from an ABI and function identifier (name or signature)
  *
  * @param abi - Contract ABI
- * @param functionName - The name of the function to generate parameters for
+ * @param functionIdentifier - The name or signature of the function to generate parameters for
  * @returns Array of parameter objects with name, type, and optional components
  */
-export function generateParametersFromAbi(abi: Abi, functionName: string): FunctionParameter[] {
-  if (!abi || !Array.isArray(abi) || !functionName) return [];
+export function generateParametersFromAbi(
+  abi: Abi,
+  functionIdentifier: string
+): FunctionParameter[] {
+  if (!abi || !Array.isArray(abi) || !functionIdentifier) return [];
 
-  // Find the function in the ABI
+  // Extract function name from identifier
+  const functionName = extractFunctionName(functionIdentifier);
+
+  // If functionIdentifier is a signature, try to find exact match first
+  if (functionIdentifier.includes('(')) {
+    // Extract parameter types from signature for exact matching
+    const paramSection = extractParameterSection(functionIdentifier);
+    const expectedParamTypes = paramSection
+      ? paramSection.split(',').map((param) => param.trim().split(' ')[0])
+      : [];
+
+    // Find function with matching name and parameter types
+    const exactMatch = abi.find(
+      (item) =>
+        item.type === 'function' &&
+        item.name === functionName &&
+        item.inputs &&
+        item.inputs.length === expectedParamTypes.length &&
+        item.inputs.every((input: AbiParameter, idx: number) => input.type === expectedParamTypes[idx])
+    );
+
+    if (exactMatch && exactMatch.inputs) {
+      return exactMatch.inputs.map((input: AbiParameter) => ({
+        name: input.name || `param${input.type}`,
+        type: input.type,
+        components: (input as AbiParameter & { components?: FunctionParameter[] }).components,
+      }));
+    }
+  }
+
+  // Fallback to finding by name only (for non-overloaded functions)
   const functionAbi = abi.find((item) => item.type === 'function' && item.name === functionName);
 
   if (!functionAbi || !functionAbi.inputs) return [];

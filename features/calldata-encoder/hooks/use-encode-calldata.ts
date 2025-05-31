@@ -8,8 +8,8 @@ import {
   functionInputsAtom,
   isEncodingAtom,
   encodeErrorAtom,
-  encodedCalldataAtom,
-} from '../atoms/encoder-atoms';
+} from '../atoms/calldata-atoms';
+import { encodedCalldataAtom } from '../atoms/encoder-result-atom';
 import { Abi } from 'viem';
 import {
   encodeCalldataWithAbi,
@@ -22,6 +22,7 @@ import {
   ErrorType,
   getParameterError,
   normalizeError,
+  extractFunctionName,
 } from '@/lib/utils';
 import { transformInputsForEncoding } from '@/lib/utils/calldata-processing';
 
@@ -162,8 +163,9 @@ export function useEncodeCalldata() {
       const encodedData = encodingResult;
 
       // Create result object
+      const functionName = extractFunctionName(selectedFunction || '');
       const result = createResultObject(
-        selectedFunction || '',
+        functionName,
         functionParams,
         transformedInputs,
         encodedData
